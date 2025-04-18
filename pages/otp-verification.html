@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+        }
+
+        .otp-field {
+            transition: all 0.3s ease;
+        }
+
+        .otp-field:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            border: 3px solid transparent;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: btn-loading-spinner 1s linear infinite;
+        }
+
+        @keyframes btn-loading-spinner {
+            from {
+                transform: rotate(0turn);
+            }
+
+            to {
+                transform: rotate(1turn);
+            }
+        }
+
+        /* Spinner animation */
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Toast animation */
+        .toast-enter {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .toast-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 300ms;
+        }
+
+        .toast-exit {
+            opacity: 1;
+        }
+
+        .toast-exit-active {
+            opacity: 0;
+            transition: all 300ms;
+        }
+    </style>
+</head>
+
+<body class="text-white flex justify-center items-center min-h-screen p-4">
+    <div class="bg-[#1a1a1a] border border-gray-800 p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
+        <h2 class="text-xl font-semibold mb-3" id="otpTitle">Verify Your Email</h2>
+        <div class="flex justify-center items-center mb-4">
+            <div class="bg-gray-800 p-4 rounded-full">
+                <i class="fas fa-envelope text-2xl"></i>
+            </div>
+        </div>
+        <p class="text-gray-400">We sent you a verification code</p>
+        <p class="text-xs text-gray-500 mb-4">Enter the 6-digit code below</p>
+
+        <form id="otpForm">
+            <div class="flex justify-center gap-2 mb-4">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-[#1E1E1E] border border-gray-700 rounded-md"
+                    maxlength="1" autocomplete="one-time-code" id="otp1">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-[#1E1E1E] border border-gray-700 rounded-md"
+                    maxlength="1" id="otp2">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-[#1E1E1E] border border-gray-700 rounded-md"
+                    maxlength="1" id="otp3">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-[#1E1E1E] border border-gray-700 rounded-md"
+                    maxlength="1" id="otp4">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-[#1E1E1E] border border-gray-700 rounded-md"
+                    maxlength="1" id="otp5">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-[#1E1E1E] border border-gray-700 rounded-md"
+                    maxlength="1" id="otp6">
+            </div>
+            <p id="errorMessage" class="text-red-500 text-sm hidden mb-2"></p>
+            <button type="submit" id="verifyButton"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors duration-300">
+                Verify Code
+            </button>
+        </form>
+        <p class="text-sm text-gray-400 mt-4">
+            Didn't receive code?
+            <button id="resendCode" class="text-blue-400 hover:text-blue-300 font-medium">
+                Resend Code
+            </button>
+        </p>
+        <p id="resendMessage" class="text-sm mt-2 text-white hidden"></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="company-auth.js"></script>
+</body>
+
+</html>

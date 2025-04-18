@@ -1,0 +1,84 @@
+/* Change the background color of the calendar dropdown */
+.flatpickr-calendar {
+    background-color: #1e1e1e !important; /* Dark gray */
+    border: 1px solid #2d2d2d !important; /* Border color */
+    color: white !important;
+}
+
+/* Make all text inside Flatpickr white */
+.flatpickr-calendar * {
+    color: white !important;
+}
+
+/* Change the header background color */
+.flatpickr-months {
+    background-color: #252525 !important;
+}
+
+/* Make month and year text white */
+.flatpickr-month {
+    color: white !important;
+}
+
+/* Change the weekdays row background */
+.flatpickr-weekdays {
+    background-color: #252525 !important;
+}
+
+/* Change weekday labels to white */
+.flatpickr-weekday {
+    color: white !important;
+}
+
+/* Change the individual day text color */
+.flatpickr-day {
+    color: white !important;
+}
+
+/* Selected date styling */
+.flatpickr-day.selected {
+    background-color: #2563eb !important; /* Blue */
+    color: white !important;
+}
+
+/* Hover effect */
+.flatpickr-day:hover {
+    background-color: #374151 !important; /* Darker gray */
+    color: white !important;
+}
+
+/* Today’s date styling */
+.flatpickr-day.today {
+    border: 1px solid #2563eb !important; /* Blue border */
+    color: white !important;
+}
+
+/* Change the month/year dropdown background */
+.flatpickr-monthDropdown-months,
+.numInput {
+    background-color: #1e1e1e !important;
+    color: white !important;
+}
+
+/* Change arrows color */
+.flatpickr-prev-month, .flatpickr-next-month {
+    fill: white !important;
+}
+
+/* Change time picker text color */
+.flatpickr-time {
+    background-color: #1e1e1e !important;
+    color: white !important;
+}
+
+/* Make time picker input text white */
+.flatpickr-time input {
+    color: white !important;
+    background-color: #1e1e1e !important;
+}
+
+/* Change AM/PM button color */
+.flatpickr-am-pm {
+    background-color: #252525 !important;
+    color: white !important;
+}

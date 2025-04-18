@@ -1,0 +1,84 @@
+<!-- <div class="fixed top-0 left-0 right-0 z-50 mb-4 bg-black flex items-center justify-between py-2 px-4 border-b border-gray-800"> -->
+    <div class="flex items-center top-0 w-5/6 fixed z-50 justify-between mb-10 py-4 pl-2 pr-8 border-b border-gray-800 bg-black">
+    <!-- Back Button -->
+    <button class="bg-[#F5F5F51A] p-1 pr-3 pl-3 rounded-lg flex items-center justify-center">
+        <i class="fas fa-arrow-left text-white text-lg"></i>
+    </button>
+
+    <!-- Search Bar -->
+    <div class="flex-grow mx-4">
+        <div class="relative">
+            <input type="search" placeholder="Search orders, account, pickups ..."
+                class="w-full bg-[#F5F5F51A] text-white rounded-full pl-10 pr-4 py-2 focus:outline-none" />
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- Icons with Badges -->
+    <div class="flex items-center space-x-4">
+        <!-- Notification Icon -->
+        <div class="relative">
+           <a href="notification.html"> <button class="bg-[#F5F5F51A] p-2 rounded-lg flex items-center justify-center">
+                <img src="../images//notification.svg" alt="">
+            </button></a>
+            <span
+                class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                3
+            </span>
+        </div>
+
+        <!-- Share Icon -->
+        <div class="relative">
+            <button class="bg-[#F5F5F51A] p-2 rounded-full flex items-center justify-center">
+                <img src="../images/fluent_branch-24-regular.png" alt="">
+            </button>
+            <span
+                class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                3
+            </span>
+        </div>
+
+        <!-- User Avatar & Dropdown -->
+        <div class="relative shadow-lg" x-data="{ open: false }">
+            <!-- Avatar Button -->
+            <button @click="open = !open">
+                <img src="../images/Rectangle 6166.svg"
+                    class="w-10 h-10 rounded-full border border-gray-700" />
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div x-show="open" @click.away="open = false"
+                class="absolute right-0 mt-2 w-48 bg-black text-white rounded-lg shadow-lg border border-gray-700 z-50">
+                <a href="profile.html" class="block px-4 py-2 hover:bg-blue-600"
+                    :class="window.location.pathname.includes('profile.html') ? 'bg-blue-600' : ''">
+                    Set Profile
+                </a>
+                <a href="branches.html" class="block px-4 py-2 hover:bg-blue-600"
+                    :class="window.location.pathname.includes('branches') ? 'bg-blue-600' : ''">
+                    Add/view Branches
+                </a>
+                <a href="add_products.html" class="block px-4 py-2 hover:bg-blue-600"
+                    :class="window.location.pathname.includes('products') ? 'bg-blue-600' : ''">
+                    Add Products
+                </a>
+                <a href="add_driver.html" class="block px-4 py-2 hover:bg-blue-600"
+                    :class="window.location.pathname.includes('driver') ? 'bg-blue-600' : ''">
+                    Add Driver
+                </a>
+                <a href="workspace.html" class="block px-4 py-2 hover:bg-blue-600"
+                    :class="window.location.pathname.includes('workspace') ? 'bg-blue-600' : ''">
+                    Workspace
+                </a>
+                <a href="login_details.html" class="block px-4 py-2 hover:bg-blue-600"
+                    :class="window.location.pathname.includes('login_details.html') ? 'bg-blue-600' : ''">
+                    See Login Details
+                </a>
+                <a href="#" class="block logout-btn px-4 py-2 hover:bg-blue-600" onclick="return confirmLogout()" >
+                    Log out
+                  </a>
+                 
+            </div>
+
+        </div>
+    </div>
+</div>

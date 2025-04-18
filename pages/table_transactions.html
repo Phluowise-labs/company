@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Customer Transactions</title>
+    <link rel="icon" href="../../images/Phluowise_Business_icon.svg" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <style>
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-black text-white p-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <!-- description -->
+            </div>
+            <button
+                class="glassmorphism bg-blue-600 text-white px-4 py-2 pt-1 pb-1 rounded-md shadow-md hover:bg-blue-700">
+                Export data (excel)
+            </button>
+        </div>
+        <div class="mb-4">
+            <input
+                class="glassmorphism w-full px-4 py-2 rounded-md text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                id="searchInput" placeholder="Search..." type="text" />
+        </div>
+        <div class="overflow-x-auto glassmorphism shadow-md rounded-lg fade-in">
+            <table class="min-w-full divide-y divide-gray-700">
+                <thead class="bg-[#F5F5F51A]">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Image
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Name
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Location
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Transaction Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Time
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Amount received</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Amount to Phluowise</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Payment Method</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-zinc-900 divide-y divide-gray-700">
+                    <!-- Rows will be populated dynamically here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Include the JavaScript code here -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tableBody = document.querySelector("tbody");
+            const exportButton = document.querySelector("button");
+            const searchInput = document.getElementById("searchInput");
+
+            // Global variable to store transactions data
+            let transactionsData = [];
+
+            // Fetch data from JSON file or API (e.g., transactions.json)
+            fetch('transactions.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Network response was not ok (${response.status})`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.transactions || data.transactions.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="10" class="px-6 py-4 text-center">No transactions found</td></tr>';
+                        return;
+                    }
+                    transactionsData = data.transactions;
+                    renderTable(transactionsData);
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    tableBody.innerHTML = `<tr><td colspan="10" class="px-6 py-4 text-center text-red-400">Error loading data: ${error.message}</td></tr>`;
+                });
+
+
+            // Render the table with the data
+            function renderTable(data) {
+    tableBody.innerHTML = ''; // Clear existing rows
+
+    data.forEach((transaction) => {
+        const row = document.createElement('tr');
+        row.classList.add("hover:bg-black", "transition", "duration-150", "ease-in-out");
+
+        row.innerHTML = `
+           
+            <td class="px-6 py-4 whitespace-no-wrap text-sm text-gray-400">${transaction.id || 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-no-wrap">
+                <img alt="Profile picture" class="h-10 w-10 rounded-full" height="40" src="${transaction.image || 'default-avatar.png'}" width="40" />
+            </td>
+            <td class="px-6 py-4 whitespace-no-wrap">${transaction.name || 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-no-wrap text-sm text-gray-400">${transaction.location || 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-no-wrap text-green-500">  ${transaction.status || 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-no-wrap text-sm text-gray-400">${transaction.time || 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-no-wrap text-sm text-gray-400">${transaction.date || 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-no-wrap text-sm text-gray-400">${transaction.amountReceived || '$0.00'}</td>
+            <td class="px-6 py-4 whitespace-no-wrap text-sm text-gray-400">${transaction.amountPhluowise || '$0.00'}</td>
+            <td class="px-6 py-4 whitespace-no-wrap text-sm text-gray-400">${transaction.paymentMethod || 'N/A'}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+            // Search functionality
+            searchInput.addEventListener("input", function () {
+                const searchTerm = searchInput.value.toLowerCase();
+                const filteredData = transactionsData.filter(transaction => {
+                    return Object.values(transaction).some(val =>
+                        val.toString().toLowerCase().includes(searchTerm)
+                    );
+                });
+                renderTable(filteredData); // Render filtered data
+            });
+
+
+            // Export data to Excel with professional headers
+            exportButton.addEventListener("click", function () {
+                // Define header row
+                const header = [
+                    "ID",
+                    "Image",
+                    "Name",
+                    "Location",
+                    "Transaction Status",
+                    "Time",
+                    "Date",
+                    "Amount received",
+                    "Amount to Phluowise",
+                    "Account Type"
+                ];
+
+                // Map each transaction to an array of values
+                const rows = transactionsData.map(transaction => [
+                    transaction.id,
+                    transaction.image,
+                    transaction.name,
+                    transaction.location,
+                    transaction.status,
+                    transaction.time,
+                    transaction.date,
+                    transaction.amountReceived,
+                    transaction.amountPhluowise,
+                    transaction.accountType
+                ]);
+
+                // Combine header and rows into a final data array
+                const finalData = [header, ...rows];
+
+                // Convert finalData to a worksheet and add it to a workbook
+                const ws = XLSX.utils.aoa_to_sheet(finalData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Transactions");
+
+                // Trigger the download of the Excel file
+                XLSX.writeFile(wb, 'transactions.xlsx');
+            });
+
+
+        });
+    </script>
+</body>
+
+</html>

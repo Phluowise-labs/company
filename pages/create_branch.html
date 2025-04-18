@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branches Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body class="bg-black flex items-center justify-center min-h-screen p-4" style="font-family: 'Inter', sans-serif;">
+    <!-- Back Button -->
+    <button onclick="history.back()"
+        class="fixed top-10 left-4 flex items-center text-white/70 hover:text-white transition duration-300 z-50">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="text-base font-medium">Back</span>
+    </button>
+
+    <!-- Form Container -->
+    <div class="bg-[#F5F5F51A] border-gray-700 text-white rounded-lg p-8 w-full max-w-md">
+        <form onsubmit="return validateForm(event)">
+            <h2 id="companyHeading" class="text-center text-2xl font-semibold mb-6">
+                Company Branches Settings
+            </h2>
+            <script>
+                // Update heading with company name
+                window.addEventListener('DOMContentLoaded', () => {
+                    const signupData = JSON.parse(localStorage.getItem("")) || {};
+                    const companyName = signupData.companyName || "Company";
+                    const heading = document.getElementById("companyHeading");
+                    heading.textContent = `${companyName} Branches Settings`;
+                });
+            </script>
+
+            <!-- Branch Name (User types in the Branch Name) -->
+            <div class="mb-4">
+                <label class="block mb-2">Branch Name</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-building text-xl mr-3"></i>
+                    <input id="branchName" type="text" placeholder="Enter Branch Name" class="bg-transparent w-full focus:outline-none"  oninput="generateBranchCode()" required />
+
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="mb-4">
+                <label class="block mb-2"> Branch Location</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-map-marker-alt text-xl mr-3"></i>
+                    <input id="location" type="text" placeholder="Enter Location" class="bg-transparent w-full focus:outline-none"  oninput="generateBranchCode()" required />
+
+                </div>
+            </div>
+
+            <!-- Branch Code -->
+            <div class="mb-4">
+                <label class="block mb-2">Branch Code</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-key text-xl mr-3"></i>
+                    <input id="branchCode" type="text" placeholder="Branch Code" class="bg-transparent w-full focus:outline-none" readonly />
+
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-4">
+                <label class="block mb-2">Create a Password</label>
+                <div class="flex items-center bg-[#060606B2] relative p-3 rounded-lg">
+                    <i class="fas fa-lock text-xl mr-3"></i>
+                    <input id="branchPassword" type="password" placeholder="Enter password for branch"
+                        class="bg-transparent w-full focus:outline-none" required />
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+                        onclick="togglePassword()">
+                        <i id="toggleIcon" class="fas fa-eye text-gray-500"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg mb-4">
+                Create Branch Space
+            </button>
+        </form>
+    </div>
+
+    <!-- JS Section -->
+    <script>
+        // Retrieve signupData from localStorage
+        document.addEventListener("DOMContentLoaded", () => {
+            const signupData = JSON.parse(localStorage.getItem("signupData")) || {};
+        });
+    
+        function togglePassword() {
+            const passwordField = document.getElementById('branchPassword');
+            const toggleIcon = document.getElementById('toggleIcon');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+    
+        function generateBranchCode() {
+            // Retrieve company name from signupData stored in localStorage
+            const signupData = JSON.parse(localStorage.getItem("signupData")) || {};
+            const companyName = signupData.companyName ? signupData.companyName.trim().toUpperCase() : "";
+            console.log("Company Name:", companyName);
+    
+            // Retrieve branch name that the user types
+            const branchName = document.getElementById('branchName').value.trim().toUpperCase();
+            console.log("Branch Name:", branchName);
+
+            // Retrieve location input value
+            const location = document.getElementById('location').value.trim().toUpperCase();
+            console.log("Location:", location);
+
+            const branchCodeField = document.getElementById('branchCode');
+    
+            // Ensure we have at least 3 characters for company and branch names, and non-empty location
+            if (companyName.length >= 3 && branchName.length >= 3 && location.length > 0) {
+                const cmpPart = companyName.substring(0, 3);
+                const bnPart = branchName.substring(0, 3);
+                const locPart = location.substring(0, 3);
+    
+                // Retrieve existing branches (an array) from localStorage
+                const existingBranches = JSON.parse(localStorage.getItem("branchInfo")) || [];
+    
+                // Collect random numbers already used for branches with the same prefix
+                let usedNumbers = [];
+                existingBranches.forEach(branch => {
+                    if (branch.branchCode && branch.branchCode.startsWith(`${cmpPart}-${bnPart}-${locPart}`)) {
+                        const parts = branch.branchCode.split("-");
+                        if (parts.length === 4) {
+                            const num = parseInt(parts[3]);
+                            if (!isNaN(num)) {
+                                usedNumbers.push(num);
+                            }
+                        }
+                    }
+                });
+    
+                // Generate a unique 4-digit random number that is not in usedNumbers
+                let random4;
+                do {
+                    random4 = Math.floor(1000 + Math.random() * 9000);
+                } while (usedNumbers.includes(random4));
+    
+                // Form the final branch code: CompanyPart-BranchPart-LocationPart-Random4
+                const branchCode = `${cmpPart}-${bnPart}-${locPart}-${random4}`;
+                branchCodeField.value = branchCode;
+            } else {
+                branchCodeField.value = "";
+            }
+        }
+    
+        async function validateForm(event) {
+            event.preventDefault();
+    
+            // Use the company name from the signupData (already stored from localStorage)
+            const signupData = JSON.parse(localStorage.getItem("signupData")) || {};
+            const company = signupData.companyName ? signupData.companyName.trim() : "";
+            const location = document.getElementById("location").value.trim();
+            const branchName = document.getElementById("branchName").value.trim(); // New: branch name input
+            const password = document.getElementById("branchPassword").value.trim();
+    
+            const passwordInput = document.getElementById("branchPassword");
+            const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    
+            if (!pattern.test(password)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Password',
+                    text: 'Password must be at least 8 characters long and include 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
+                });
+                passwordInput.classList.add("border", "border-red-500", "rounded");
+                return false;
+            } else {
+                passwordInput.classList.remove("border", "border-red-500");
+            }
+    
+            // Get existing branches from localStorage (an array)
+            const existingBranches = JSON.parse(localStorage.getItem("branchInfo")) || [];
+    
+            // Generate a unique 4-digit number
+            function generateUniqueCode() {
+                let code;
+                let existingCodes = existingBranches.map(branch => branch.branchCode.split("-").pop());
+            do {
+                    code = Math.floor(1000 + Math.random() * 9000).toString();
+                } while (existingCodes.includes(code));
+                return code;
+            }
+    
+            const branchCode = `${company.slice(0, 3).toUpperCase()}-${branchName.slice(0, 3).toUpperCase()}-${location.slice(0, 3).toUpperCase()}-${generateUniqueCode()}`;
+    
+            // Prepare new branch data using the company name from signupData
+            const branchData = {
+                companyName: company,
+                branchName: branchName,
+                location: location,
+                branchCode: branchCode,
+                password: password,
+                createdAt: new Date().toISOString()
+            };
+    
+            // Add the new branch to the array and save back
+            existingBranches.push(branchData);
+            localStorage.setItem("branchInfo", JSON.stringify(existingBranches));
+    
+            try {
+                const response = await fetch('http://localhost:5161/api/auth/create-branch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(branchData)
+                });
+    
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Branch Created',
+                        text: 'Branch data saved successfully!',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        window.location.href = "branches.html"; // Redirect after success
+                    });
+                } else {
+                    const errorData = await response.json();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorData.message || 'An error occurred while creating the branch.'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to connect to the backend.'
+                });
+            }
+        }
+    </script>
+    
+
+
+</body>
+
+</html>

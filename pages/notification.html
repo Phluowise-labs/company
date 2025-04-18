@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Template Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Global logout functions
+        function confirmLogout() {
+            Swal.fire({
+                title: 'Log out?',
+                text: "You'll be signed out!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, log out'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    
+                    window.location.href = "user-signin.html";
+                }
+            });
+            return false; // Prevent default link behavior
+        }
+    </script>
+     <script>
+    //    const isLoggedIn = localStorage.getItem("isLoggedIn");
+     
+    //    if (!isLoggedIn) {
+    //      window.location.href = "user-signin.html"; // Redirect to login if not authenticated
+    //    }
+     </script>
+      <style>
+        body {
+          background-image: url('/api/placeholder/1920/1080');
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+        }
+        
+        .glassmorphism {
+          background: rgba(15, 23, 42, 0.6);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          /* border: 1px solid rgba(255, 255, 255, 0.1); */
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .notification-container {
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .notification-enter {
+          transform: translateY(30px);
+          opacity: 0;
+        }
+        
+        .notification-enter-active {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        
+        .btn-primary {
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+          transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-success {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-danger {
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          transition: all 0.3s ease;
+        }
+        
+        .btn-danger:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn-warning {
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          transition: all 0.3s ease;
+        }
+        
+        .btn-warning:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+        
+        .glow {
+          box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        
+        .badge {
+          font-size: 0.65rem;
+          border-radius: 9999px;
+          padding: 0.25rem 0.5rem;
+        }
+      </style>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+        <!-- Main Content -->
+        <div class="ml-64 p-5 w-full text-white">
+            <!-- Top Bar -->
+            <div id="topbar">
+                <script>
+                    fetch("topbar.html")
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById("topbar").innerHTML = data;
+                        });
+                </script>
+            </div>
+            <!-- Main Content Area -->
+            <div class="container mx-auto mt-16 p-4"> 
+                <!-- write the content of the page here -->
+                <div class="glassmorphism rounded-xl bg-black p-6 mb-8">
+                    <div class="flex items-center  justify-between mb-6">
+                      <h1 class="text-xl bg-clip-text ">Notification Center</h1>
+                      <!-- <div class="flex space-x-2">
+                        <button class="btn-primary px-3 py-1 rounded-lg text-sm font-medium flex items-center">
+                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                          </svg>
+                          Filter
+                        </button>
+                        <button class="btn-primary px-3 py-1 rounded-lg text-sm font-medium flex items-center">
+                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                          View All
+                        </button>
+                      </div> -->
+                    </div>
+                    
+                    <div class="grid grid-cols-1  md:grid-cols-2 gap-4" id="notifications-container">
+                      <!-- Notifications will be dynamically inserted here -->
+                    </div>
+                  </div>
+                  <script>
+                    // Sample data for notifications
+                    const notificationData = [
+                      {
+                        type: 'visit',
+                        userName: 'Name of User',
+                        location: 'location',
+                        timestamp: '12:30am July 20, 2023',
+                        actions: ['Accept', 'Deny', 'Pend', 'Broadcast'],
+                        image: '../images/user.png'
+                      },
+                      {
+                        type: 'product',
+                        userName: 'Name of User',
+                        location: 'location',
+                        timestamp: '12:30am July 20, 2023',
+                        productDetails: {
+                          size: '20L',
+                          price: 'GHS 20.00',
+                          type: 'Dispenser bottle'
+                        },
+                        actions: ['Accept'],
+                        image: '../images/user.png'
+                      },
+                      
+                      {
+                        type: 'rating',
+                        customerName: 'Name of Customer',
+                        userLocation: 'Location of User',
+                        rating: 3.0,
+                        ratingText: 'Moderate rating',
+                        timestamp: '6:30am 21 Dec,2023',
+                        image: '../images/user.png'
+                      },
+                      {
+                        type: 'location-update',
+                        location: 'Location',
+                        status: 'Order received',
+                        amount: 'GH₵24',
+                        timestamp: '6:30am 21 Dec,2023',
+                        image: '../images/user.png'
+                      },
+                      {
+                        type: 'driver-location',
+                        location: 'Location',
+                        status: 'Payment received',
+                        amount: 'GH₵20',
+                        timestamp: '6:30am 21 Dec,2023',
+                        image: '../images/user.png'
+                      },
+                      {
+                        type: 'payment',
+                        title: 'Account Debited',
+                        status: 'Payment successful',
+                        amount: 'GH₵20',
+                        timestamp: '6:30am 21 Dec,2023',
+                        image: '../images/user.png'
+                      },
+                    
+                    ];
+                
+                    </script>
+
+                    <script>
+                    
+                    // Function to create notification cards
+                    function createNotificationCard(notification) {
+                        const card = document.createElement('div');
+                        card.className = 'glassmorphism rounded-xl p-4 notification-container bg-zinc-900 notification-enter relative overflow-hidden';
+                        
+                        let cardContent = '';
+                        let badge = '';
+                        
+                        // Add badge based on notification type
+                        switch(notification.type) {
+                            case 'visit':
+                            badge = '<span class="badge absolute top-16 right-3  text-xs font-semibold">VISIT</span>';
+                            break;
+                            case 'product':
+                            badge = '<span class="badge absolute top-16 right-3 text-xs font-semibold">PRODUCT</span>';
+                            break;
+                            case 'rating':
+                            badge = '<span class="badge absolute top-16 right-3 text-xs font-semibold">RATING</span>';
+                            break;
+                            case 'payment':
+                            badge = '<span class="badge absolute top-16 right-3 text-xs font-semibold">PAYMENT</span>';
+                            break;
+                            case 'location-update':
+                            case 'driver-location':
+                            badge = '<span class="badge absolute top-16 right-3 text-xs font-semibold">LOCATION</span>';
+                            break;
+                        }
+                        
+                        switch(notification.type) {
+                            case 'visit':
+                            cardContent = `
+                                ${badge}
+                                <div class="flex items-start">
+                                <div class="relative">
+                                    <img src="${notification.image}" alt="User" class="w-16 h-16 rounded-lg object-cover">
+                                    <div class="absolute -bottom-1 -right-1 bg-blue-500 p-1 rounded-full">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-grow ml-4">
+                                    <h3 class="font-semibold text-lg">${notification.userName}</h3>
+                                    <p class="text-gray-300 text-sm">${notification.location}</p>
+                                    <p class="text-gray-400 text-xs mt-1">${notification.timestamp}</p>
+                                    
+                                    <div class="flex flex-wrap gap-2 mt-3">
+                                    <button class="btn-success text-white px-3 py-1 rounded-lg text-sm">Accept</button>
+                                    <button class="btn-danger text-white px-3 py-1 rounded-lg text-sm">Deny</button>
+                                    <button class="btn-warning text-white px-3 py-1 rounded-lg text-sm">Pend</button>
+                                    </div>
+                                    
+                                    <div class="mt-3 flex justify-between">
+                                    <button class="btn-primary text-white px-4 py-1 rounded-lg text-sm">Broadcast</button>
+                                    <a href="${notification.pagePath}" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-all">
+                                        View
+                                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                        </svg>
+                                    </a>
+                                    </div>
+                                </div>
+                                </div>
+                            `;
+                            break;
+                            
+                            case 'product':
+                            cardContent = `
+                                ${badge}
+                                <div class="flex items-start">
+                                <div class="relative">
+                                    <img src="${notification.image}" alt="Product" class="w-16 h-16 rounded-lg object-cover">
+                                    <div class="absolute -bottom-1 -right-1 bg-green-500 p-1 rounded-full">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-grow ml-4">
+                                    <h3 class="font-semibold text-lg">${notification.userName}</h3>
+                                    <p class="text-gray-300 text-sm">${notification.location}</p>
+                                    <p class="text-gray-400 text-xs mt-1">${notification.timestamp}</p>
+                                    
+                                    <div class="flex flex-wrap gap-2 mt-2">
+                                    <span class="bg-gray-800 text-gray-200 px-2 py-1 rounded-md text-xs">${notification.productDetails.size}</span>
+                                    <span class="bg-green-800 text-green-200 px-2 py-1 rounded-md text-xs">${notification.productDetails.price}</span>
+                                    <span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-md text-xs">${notification.productDetails.type}</span>
+                                    </div>
+                                    
+                                    <div class="mt-3 flex justify-between">
+                                    <button class="btn-success text-white px-4 py-1 rounded-lg text-sm">Accept</button>
+                                    <a href="${notification.pagePath}" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-all">
+                                        View
+                                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                        </svg>
+                                    </a>
+                                    </div>
+                                </div>
+                                </div>
+                            `;
+                            break;
+                            
+                            case 'location':
+                            cardContent = `
+                                <div class="p-3 relative">
+                                <div class="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 mb-4">
+                                    <div class="flex items-center">
+                                    <div class="bg-blue-500 p-2 rounded-lg mr-3">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">${notification.message}</p>
+                                        <p class="text-sm text-gray-300 mt-1">${notification.submessage}</p>
+                                    </div>
+                                    </div>
+                                </div>
+                                <a href="${notification.pagePath}" class="btn-primary text-white w-full py-2 rounded-lg text-sm font-medium flex items-center justify-center">
+                                    View Location
+                                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                    </svg>
+                                </a>
+                                </div>
+                            `;
+                            break;
+                            
+                            case 'rating':
+                            cardContent = `
+                                ${badge}
+                                <div class="flex items-start">
+                                <div class="relative">
+                                    <div class="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center">
+                                    <span class="text-xs text-gray-300">Image of Customer</span>
+                                    </div>
+                                    <div class="absolute -bottom-1 -right-1 bg-yellow-500 p-1 rounded-full">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                    </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-grow ml-4">
+                                    <div class="flex justify-between">
+                                    <h3 class="font-semibold text-lg">${notification.customerName}</h3>
+                                    <div class="flex items-center bg-gray-800 px-2 py-1 rounded-lg">
+                                        <span class="mr-1 font-medium">${notification.rating}</span>
+                                        <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.799-2.034c-.784-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                    </div>
+                                    </div>
+                                    <p class="text-gray-300 text-sm">${notification.userLocation}</p>
+                                    <p class="text-gray-400 text-xs mt-1">${notification.timestamp}</p>
+                                    <p class="text-yellow-400 mt-2 text-sm font-medium">${notification.ratingText}</p>
+                                    
+                                    <div class="mt-3 flex justify-end">
+                                    <a href="${notification.pagePath}" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-all">
+                                        Details
+                                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                        </svg>
+                                    </a>
+                                    </div>
+                                </div>
+                                </div>
+                            `;
+                            break;
+                            
+                            case 'location-update':
+                            case 'driver-location':
+                            const iconColor = notification.type === 'location-update' ? 'indigo' : 'purple';
+                            cardContent = `
+                                ${badge}
+                                <div class="flex items-start">
+                                <div class="relative">
+                                    <div class="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center">
+                                    <span class="text-xs text-gray-300">Image of ${notification.type === 'location-update' ? 'Customer' : 'Driver'}</span>
+                                    </div>
+                                    <div class="absolute -bottom-1 -right-1 bg-${iconColor}-500 p-1 rounded-full">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-grow ml-4">
+                                    <div class="flex justify-between">
+                                    <h3 class="font-semibold text-lg">${notification.location}</h3>
+                                    <div class="bg-gray-800 px-2 py-1 rounded-lg text-sm">
+                                        ${notification.amount}
+                                    </div>
+                                    </div>
+                                    <p class="text-green-400 text-sm font-medium">${notification.status}</p>
+                                    <p class="text-gray-400 text-xs mt-1">${notification.timestamp}</p>
+                                    
+                                    <div class="mt-3 flex justify-end">
+                                    <a href="${notification.pagePath}" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-all">
+                                        View Details
+                                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                        </svg>
+                                    </a>
+                                    </div>
+                                </div>
+                                </div>
+                            `;
+                            break;
+                            
+                            case 'payment':
+                            cardContent = `
+                                ${badge}
+                                <div class="flex items-start">
+                                <div class="relative">
+                                    <div class="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center">
+                                    <span class="text-xs text-gray-300">Image of Driver</span>
+                                    </div>
+                                    <div class="absolute -bottom-1 -right-1 bg-purple-500 p-1 rounded-full">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-grow ml-4">
+                                    <div class="flex justify-between">
+                                    <h3 class="font-semibold text-lg">${notification.title}</h3>
+                                    <div class="bg-gray-800 px-2 py-1 rounded-lg text-sm">
+                                        ${notification.amount}
+                                    </div>
+                                    </div>
+                                    <p class="text-green-400 text-sm font-medium">${notification.status}</p>
+                                    <p class="text-gray-400 text-xs mt-1">${notification.timestamp}</p>
+                                    
+                                    <div class="mt-3 flex justify-end">
+                                    <a href="${notification.pagePath}" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-sm flex items-center transition-all">
+                                        Transaction Details
+                                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                        </svg>
+                                    </a>
+                                    </div>
+                                </div>
+                                </div>
+                            `;
+                            break;
+                            
+                            case 'track':
+                            cardContent = `
+                                <div class="p-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-lg border border-gray-700/50">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                    <div class="bg-blue-500/20 p-2 rounded-lg mr-3">
+                                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                        </svg>
+                                    </div>
+                                    <p class="font-medium">${notification.message}</p>
+                                    </div>
+                                    <a href="${notification.pagePath}" class="btn-primary text-white px-3 py-1 rounded-lg text-sm flex items-center">
+                                    View
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                    </svg>
+                                    </a>
+                                </div>
+                                </div>
+                            `;
+                            break;
+                        }
+                        
+                        card.innerHTML = cardContent;
+                        return card;
+                    }
+                    // Function to add notification with animation
+                    function addNotification(notification) {
+                      const container = document.getElementById('notifications-container');
+                      const card = createNotificationCard(notification);
+                      container.prepend(card);
+                      
+                      // Trigger animation
+                      setTimeout(() => {
+                        card.classList.remove('notification-enter');
+                        card.classList.add('notification-enter-active');
+                      }, 50);
+                    }
+                
+                    // Initially load some notifications
+                    let initialNotifications = notificationData.slice(0, 4);
+                    initialNotifications.forEach(notification => {
+                      const card = createNotificationCard(notification);
+                      document.getElementById('notifications-container').appendChild(card);
+                      card.classList.remove('notification-enter');
+                    });
+                
+                    // Simulate new notifications coming in
+                    let index = 4;
+                    const addNewNotifications = setInterval(() => {
+                      if (index < notificationData.length) {
+                        addNotification(notificationData[index]);
+                        index++;
+                      } else {
+                        clearInterval(addNewNotifications);
+                        
+                        // After all notifications are added, start a loop of random new ones
+                        setInterval(() => {
+                          const randomIndex = Math.floor(Math.random() * notificationData.length);
+                          const randomNotification = {...notificationData[randomIndex]};
+                          // Change timestamp to make it look new
+                          if (randomNotification.timestamp) {
+                            const now = new Date();
+                            randomNotification.timestamp = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')} ${now.toDateString()}`;
+                          }
+                          addNotification(randomNotification);
+                        }, 8000);
+                      }
+                    }, 2000);
+                  </script>
+
+                <!-- end of page -->
+            </div>
+            <!-- end of content -->
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Website Guided Tour</title>
+    <style>
+        /* Highlight effect */
+        .tour-highlight {
+            position: relative;
+            z-index: 1001;
+            box-shadow: 0 0 0 3px rgba(0, 162, 255, 0.7);
+            border-radius: 4px;
+            transition: box-shadow 0.3s;
+        }
+
+        /* Modal overlay */
+        .tour-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Modal content */
+        .tour-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            position: relative;
+            animation: fadeIn 0.3s;
+        }
+
+        /* Button styles */
+        .tour-btn {
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .tour-next {
+            background: #0066ff;
+            color: white;
+        }
+
+        .tour-prev {
+            background: #e0e0e0;
+        }
+
+        .tour-skip {
+            background: transparent;
+            color: #666;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Your website content -->
+    <h1>Welcome to My Website</h1>
+    
+    <button id="important-button" style="padding: 10px 20px; margin: 10px;">
+       Main Feature
+    </button>
+    
+    <div id="info-section" style="background: #f0f0f0; padding: 20px; margin: 20px 0;">
+        <h2>Important Information</h2>
+        <p>This section contains key details.</p>
+    </div>
+
+    <!-- Tour System -->
+    <div class="tour-modal" id="tourModal">
+        <div class="tour-content">
+            <h2 id="tour-title">Welcome to the Tour!</h2>
+            <p id="tour-text">Let me show you around.</p>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="tour-btn tour-prev" id="prevBtn">Previous</button>
+                <button class="tour-btn tour-next" id="nextBtn">Next</button>
+                <button class="tour-btn tour-skip" id="skipBtn">Skip</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tour configuration
+        const tourSteps = [
+            {
+                title: "Welcome!",
+                text: "This quick tour will show you the main features.",
+                element: null // No element to highlight
+            },
+            {
+                title: "Main Feature",
+                text: "Click this button for the most important action.",
+                element: "#important-button"
+            },
+            {
+                title: "Information Section",
+                text: "Here you'll find key details about our service.",
+                element: "#info-section"
+            }
+        ];
+
+        // Tour state
+        let currentStep = 0;
+        const modal = document.getElementById('tourModal');
+        const tourTitle = document.getElementById('tour-title');
+        const tourText = document.getElementById('tour-text');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const skipBtn = document.getElementById('skipBtn');
+
+        // Start the tour
+        function startTour() {
+            modal.style.display = 'flex';
+            showStep(currentStep);
+        }
+
+        // Show current step
+        function showStep(step) {
+            // Remove previous highlights
+            document.querySelectorAll('.tour-highlight').forEach(el => {
+                el.classList.remove('tour-highlight');
+            });
+
+            const stepData = tourSteps[step];
+            tourTitle.textContent = stepData.title;
+            tourText.textContent = stepData.text;
+
+            // Highlight element if specified
+            if (stepData.element) {
+                const element = document.querySelector(stepData.element);
+                if (element) {
+                    element.classList.add('tour-highlight');
+                    
+                    // Optional: Scroll to element
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+            }
+
+            // Update button states
+            prevBtn.disabled = step === 0;
+            nextBtn.textContent = step === tourSteps.length - 1 ? 'Finish' : 'Next';
+        }
+
+        // Event listeners
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < tourSteps.length - 1) {
+                currentStep++;
+                showStep(currentStep);
+            } else {
+                modal.style.display = 'none';
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        });
+
+        skipBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Start tour automatically after 1 second
+        setTimeout(startTour, 1000);
+    </script>
+</body>
+</html>

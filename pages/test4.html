@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .otp-field:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+        }
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            border: 3px solid transparent;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: btn-loading-spinner 1s linear infinite;
+        }
+        @keyframes btn-loading-spinner {
+            from { transform: rotate(0turn); }
+            to { transform: rotate(1turn); }
+        }
+    </style>
+</head>
+
+<body class="bg-[#121212] text-white flex justify-center items-center h-screen">
+    <div class="bg-[#1a1a1a] border-gray-700 p-6 rounded-lg shadow-lg w-full max-w-sm text-center">
+        <h2 class="text-lg font-semibold mb-3" id="otpTitle">Verify Your Email</h2>
+        <div class="flex justify-center items-center mb-4">
+            <div class="bg-gray-700 p-4 rounded-full">
+                <i class="fas fa-envelope text-2xl"></i>
+            </div>
+        </div>
+        <p class="text-gray-400">We sent you a code.</p>
+        <p class="text-xs text-gray-500 mb-4">Enter the verification code</p>
+    
+        <form id="verificationForm">
+            <div class="flex justify-center gap-2 mb-4">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-gray-800 border border-gray-700 rounded-md"
+                    maxlength="1" autocomplete="one-time-code" id="otp1">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-gray-800 border border-gray-700 rounded-md"
+                    maxlength="1" id="otp2">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-gray-800 border border-gray-700 rounded-md"
+                    maxlength="1" id="otp3">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-gray-800 border border-gray-700 rounded-md"
+                    maxlength="1" id="otp4">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-gray-800 border border-gray-700 rounded-md"
+                    maxlength="1" autocomplete="one-time-code" id="otp5">
+                <input type="text" inputmode="numeric" pattern="[0-9]*"
+                    class="otp-field w-12 h-14 text-center text-2xl bg-gray-800 border border-gray-700 rounded-md"
+                    maxlength="1" autocomplete="one-time-code" id="otp6">
+            </div>
+            <p id="errorMessage" class="text-red-500 text-sm hidden mb-2"></p>
+            <button type="submit" id="verifyButton"
+                class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors">
+                Verify
+            </button>
+        </form>
+        <p class="text-sm text-gray-400 mt-4">
+            <button id="resendCode" class="text-blue-400 hover:text-blue-300 transition-colors">Resend Code</button>
+        </p>
+        <p id="resendMessage" class="text-green-500 text-sm hidden mt-2"></p>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const baseUrl = "https://phlowise-amggdaagb5ancjfu.eastus-01.azurewebsites.net";
+        const API_TIMEOUT = 15000; // 15 seconds
+        let resendTimer;
+        let resendTimeout = 30000; // 30 seconds
+        
+        // Helper function to show SweetAlert notifications
+        function showAlert(icon, title, text) {
+            return Swal.fire({
+                icon: icon,
+                title: title,
+                text: text,
+                confirmButtonColor: '#2563eb',
+            });
+        }
+        
+        // Toggle loading state on buttons
+        function setLoadingState(button, isLoading) {
+            if (isLoading) {
+                button.classList.add('btn-loading');
+                button.disabled = true;
+                button.dataset.originalText = button.textContent;
+                button.innerHTML = '<span class="opacity-0">' + button.textContent + '</span>';
+            } else {
+                button.classList.remove('btn-loading');
+                button.disabled = false;
+                button.textContent = button.dataset.originalText;
+            }
+        }
+        
+        // Handle post-OTP verification redirect
+        function handlePostOTPRedirect() {
+            const purpose = localStorage.getItem("otpPurpose");
+            
+            switch (purpose) {
+                case "registration":
+                case "login":
+                    window.location.href = "company-dashboard.html";
+                    break;
+                case "forgot":
+                    window.location.href = "reset-password.html";
+                    break;
+                default:
+                    window.location.href = "user-signin.html";
+            }
+            
+            localStorage.removeItem("otpPurpose");
+        }
+        
+        // API call with timeout handling
+        async function makeAPICall(url, options) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timed out. Please try again.');
+                }
+                throw error;
+            }
+        }
+        
+        // Combine OTP digits
+        function getCombinedOTP() {
+            let otp = '';
+            for (let i = 1; i <= 6; i++) {
+                otp += document.getElementById(`otp${i}`).value;
+            }
+            return otp;
+        }
+        
+        // Auto-focus and move between OTP fields
+        function setupOTPInputs() {
+            const inputs = document.querySelectorAll('.otp-field');
+            
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    if (e.target.value.length === 1) {
+                        if (index < inputs.length - 1) {
+                            inputs[index + 1].focus();
+                        } else {
+                            inputs[index].blur();
+                        }
+                    }
+                });
+                
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+            });
+        }
+        
+        // Start resend timer
+        function startResendTimer() {
+            const resendButton = document.getElementById('resendCode');
+            const resendMessage = document.getElementById('resendMessage');
+            
+            resendButton.disabled = true;
+            resendButton.classList.add('opacity-50');
+            
+            let timeLeft = resendTimeout / 1000;
+            resendButton.textContent = `Resend Code (${timeLeft}s)`;
+            
+            resendTimer = setInterval(() => {
+                timeLeft--;
+                resendButton.textContent = `Resend Code (${timeLeft}s)`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(resendTimer);
+                    resendButton.disabled = false;
+                    resendButton.classList.remove('opacity-50');
+                    resendButton.textContent = 'Resend Code';
+                }
+            }, 1000);
+        }
+        
+        // Verify OTP
+        async function verifyOTP(otp) {
+            const verifyButton = document.getElementById('verifyButton');
+            setLoadingState(verifyButton, true);
+            
+            try {
+                const purpose = localStorage.getItem("otpPurpose");
+                let result;
+                
+                // Registration OTP flow
+                const registerToken = localStorage.getItem("otpToken");
+                if (registerToken && purpose === "registration") {
+                    result = await makeAPICall(`${baseUrl}/company/register-validate-otp`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ register_token: registerToken, otp })
+                    });
+
+                    localStorage.setItem("registeredCompany", JSON.stringify(result));
+                    localStorage.setItem("authToken", result.token);
+                    localStorage.removeItem("otpToken");
+                    
+                    await showAlert('success', 'Registration Complete', 'Your company has been successfully registered!');
+                    handlePostOTPRedirect();
+                    return;
+                }
+
+                // Login/Forgot Password OTP flow
+                const loginToken = localStorage.getItem("loginToken");
+                if (loginToken && (purpose === "login" || purpose === "forgot")) {
+                    result = await makeAPICall(`${baseUrl}/company/validate-otp`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ token: loginToken, otp })
+                    });
+
+                    localStorage.setItem("authToken", result.token);
+                    localStorage.removeItem("loginToken");
+                    
+                    await showAlert('success', 'OTP Verified', 
+                        purpose === "forgot" 
+                            ? 'You can now reset your password' 
+                            : 'Login successful');
+                    handlePostOTPRedirect();
+                    return;
+                }
+
+                throw new Error("No pending OTP verification found");
+            } catch (error) {
+                console.error("OTP Validation Error:", error);
+                document.getElementById('errorMessage').textContent = error.message || "Invalid verification code";
+                document.getElementById('errorMessage').classList.remove('hidden');
+            } finally {
+                setLoadingState(verifyButton, false);
+            }
+        }
+        
+        // Resend OTP
+        async function resendOTP() {
+            const resendButton = document.getElementById('resendCode');
+            const resendMessage = document.getElementById('resendMessage');
+            
+            resendButton.disabled = true;
+            resendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            
+            try {
+                const purpose = localStorage.getItem("otpPurpose");
+                let result;
+
+                // Registration OTP resend
+                const registerToken = localStorage.getItem("otpToken");
+                if (registerToken && purpose === "registration") {
+                    result = await makeAPICall(`${baseUrl}/company/resend-registration-otp`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ register_token: registerToken })
+                    });
+                } 
+                // Login/Forgot OTP resend
+                else {
+                    const loginToken = localStorage.getItem("loginToken");
+                    if (!loginToken) throw new Error("No active session found");
+                    
+                    const endpoint = purpose === "forgot" 
+                        ? "/company/resend-forgot-otp" 
+                        : "/company/resend-login-otp";
+                        
+                    result = await makeAPICall(`${baseUrl}${endpoint}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ token: loginToken })
+                    });
+                }
+
+                resendMessage.textContent = result.message || 'A new verification code has been sent';
+                resendMessage.classList.remove('hidden');
+                startResendTimer();
+            } catch (error) {
+                console.error("Resend OTP Error:", error);
+                resendMessage.textContent = error.message || "Failed to resend OTP";
+                resendMessage.classList.remove('hidden');
+                resendMessage.classList.add('text-red-500');
+            } finally {
+                setTimeout(() => {
+                    resendButton.disabled = false;
+                    resendButton.innerHTML = 'Resend Code';
+                }, 2000);
+            }
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            setupOTPInputs();
+            startResendTimer();
+            
+            const registerToken = localStorage.getItem("otpToken");
+            const loginToken = localStorage.getItem("loginToken");
+            const purpose = localStorage.getItem("otpPurpose");
+            
+            if (!registerToken && !loginToken) {
+                showAlert('error', 'Invalid Access', 'No pending OTP verification found').then(() => {
+                    window.location.href = "user-signin.html";
+                });
+                return;
+            }
+            
+            // Update UI based on purpose
+            const title = document.getElementById('otpTitle');
+            if (title && purpose) {
+                const actionMap = {
+                    'registration': 'Complete Registration',
+                    'login': 'Verify Login',
+                    'forgot': 'Reset Password'
+                };
+                if (actionMap[purpose]) {
+                    title.textContent = actionMap[purpose];
+                }
+            }
+            
+            // Form submission
+            document.getElementById('verificationForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const otp = getCombinedOTP();
+                if (otp.length === 6) {
+                    await verifyOTP(otp);
+                } else {
+                    document.getElementById('errorMessage').textContent = 'Please enter a 6-digit code';
+                    document.getElementById('errorMessage').classList.remove('hidden');
+                }
+            });
+            
+            // Resend code
+            document.getElementById('resendCode').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await resendOTP();
+            });
+        });
+    </script>
+</body>
+</html>

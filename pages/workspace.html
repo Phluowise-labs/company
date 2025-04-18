@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Template Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+ <script>
+     // Global logout functions
+     function confirmLogout() {
+         Swal.fire({
+             title: 'Log out?',
+             text: "You'll be signed out!",
+             icon: 'warning',
+             showCancelButton: true,
+             confirmButtonText: 'Yes, log out'
+         }).then((result) => {
+             if (result.isConfirmed) {
+                 //clear JWT token here
+                 window.location.href = "user-signin.html";
+             }
+         });
+         return false; // Prevent default link behavior
+     }
+ </script>
+  <script>
+    // const isLoggedIn = localStorage.getItem("isLoggedIn");
+  
+    // if (!isLoggedIn) {
+    //   window.location.href = "user-signin.html"; // Redirect to login if not authenticated
+    // }
+  </script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <style>
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <div class="w-64 h-screen p-4 pr-0 flex-col bg-[#212121] flex fixed"  >
+                <div class="text-center mb-8">
+                    <img src="../images/phluowise_logo.svg" alt="">
+                </div>
+                <div class="space-y-8 text-white">
+                    <div>
+                        <h2 class="text-gray-500 text-xs mb-2">OVERVIEW</h2>
+                        <ul class="space-y-4">
+                            <a href="account.html"><li class="flex items-center space-x-2 text-white cursor-pointer hover:text-blue-400">
+                                <img src="../images//home.svg" alt="">
+                                <span>Home</span>
+                            </li></a>
+                            <li
+                                class="menu-item flex items-center space-x-2 text-blue-500 cursor-pointer hover:text-blue-400 relative">
+                                <img src="../images/carbon_workspace.svg" alt="">
+                                <span>Worskspace</span>
+                                <div
+                                    class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm ">
+                                </div>
+                            </li>
+                            <li class="flex items-center space-x-2 text-gray-400 cursor-pointer hover:text-blue-400">
+                                <img src="../images/arcticons_game-plugins.svg" alt="">
+                                <span>Plugins</span>
+                            </li>
+                            <li class="flex items-center space-x-2 text-gray-400 cursor-pointer hover:text-blue-400">
+                                <img src="../images/fluent_people-community-24-regular.svg" alt="">
+                                <span>Community</span>
+                            </li>
+                        </ul>
+                    </div>
+
+
+
+                </div>
+                <footer class="mt-auto ">
+                    <div class="text-blue-600">
+                      <p class="text-sm">This is a Beta version (1.0.00)</p>
+                    </div>
+                    <div class="mt-2">
+                      <a href="#" class="text-gray-400 text-sm hover:text-blue-400 underline">
+                        Learn more about Phluowise
+                      </a>
+                    </div>
+                  </footer>
+            </div>
+
+
+        </div>
+        <!-- Main Content -->
+        <div class="ml-64 p-5 w-full text-white">
+            <!-- Top Bar -->
+            <div id="topbar">
+                <script>
+                    fetch("topbar.html")
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById("topbar").innerHTML = data;
+                        });
+                </script>
+            </div>
+            <!-- Main Content Area -->
+            <div class="container mx-auto p-4">
+                <!-- write the content of the page here -->
+                <div class="flex justify-end mb-4">
+                    <button class="bg-gray-700 text-white py-2 px-4 rounded">Add a Branch</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="glassmorphism p-4 rounded-lg relative">
+                        <span class="absolute top-2 right-2 bg-green-800 text-white py-1 px-2 rounded">Main</span>
+                        <div class="mt-8">
+                            <p class="text-lg font-semibold">Admin name</p>
+                            <p class="text-gray-400">Location</p>
+                        </div>
+                        <div class="absolute bottom-2 right-2">
+                            <i class="fas fa-link text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="glassmorphism p-4 rounded-lg relative">
+                        <span class="absolute top-2 right-2 bg-gray-700 text-white py-1 px-2 rounded">Branch</span>
+                        <div class="mt-8">
+                            <p class="text-lg font-semibold">Admin name</p>
+                            <p class="text-gray-400">Location</p>
+                        </div>
+                        <div class="absolute bottom-2 right-2">
+                            <i class="fas fa-link text-blue-500"></i>
+                        </div>
+                    </div>
+                    <div class="glassmorphism p-4 rounded-lg relative">
+                        <span class="absolute top-2 right-2 bg-green-800 text-white py-1 px-2 rounded">Main</span>
+                        <div class="mt-8">
+                            <p class="text-lg font-semibold">Admin name</p>
+                            <p class="text-gray-400">Location</p>
+                        </div>
+                        <div class="absolute bottom-2 right-2">
+                            <i class="fas fa-link text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="glassmorphism p-4 rounded-lg relative">
+                        <span class="absolute top-2 right-2 bg-gray-700 text-white py-1 px-2 rounded">Branch</span>
+                        <div class="mt-8">
+                            <p class="text-lg font-semibold">Admin name</p>
+                            <p class="text-gray-400">Location</p>
+                        </div>
+                        <div class="absolute bottom-2 right-2">
+                            <i class="fas fa-link text-blue-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- end of content -->
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>

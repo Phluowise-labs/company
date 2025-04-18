@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+    <script>
+        // Global logout functions
+        function confirmLogout() {
+            Swal.fire({
+                title: 'Log out?',
+                text: "You'll be signed out!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, log out'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    //clear JWT token here
+                    window.location.href = "user-signin.html";
+                }
+            });
+            return false; // Prevent default link behavior
+        }
+    </script>
+     <script>
+    //    const isLoggedIn = localStorage.getItem("isLoggedIn");
+     
+    //    if (!isLoggedIn) {
+    //      window.location.href = "user-signin.html"; // Redirect to login if not authenticated
+    //    }
+     </script>
+      
+</head>
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+        <!-- Main Content -->
+        <div class="ml-64 p-5 w-full text-white">
+            <!-- Top Bar -->
+            <div id="topbar">
+                <script>
+                    fetch("topbar.html")
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById("topbar").innerHTML = data;
+                        });
+                </script>
+            </div>
+            <!-- Main Content Area -->
+            <div class="flex flex-col mt-10 md:flex-row items-start justify-center space-y-8 md:space-y-10 md:space-x-8">
+                <!-- Free Plan Card -->
+                <div class="bg-zinc-800 mt-10 rounded-3xl p-6 text-center  w-68">
+                    <div class="bg-zinc-900 rounded-3xl p-6 text-center   space-y-4 w-64">
+                        <div class="bg-blue-500 text-gray-100 rounded-full px-9 py-2 font-[800] inline-block">Free Plan
+                        </div>
+                        <div class="text-2xl font-[800]  text-[#F5F5F5F5]  whitespace-nowrap">12hrs : 24min : 29s</div>
+                        <div class="">Expires in <span class="text-[#F85D5D]"> 20 days </span></div>
+                    </div>
+                </div>
+                <!-- Basic Pack Card -->
+                <div class="bg-[#1F2B47] rounded-3xl p-6 mt-4 space-y-6 ">
+                    <div class="bg-zinc-800 rounded-3xl p-6 text-center space-y-6 w-64">
+                        <div class="text-gray-100">Subscription Plan</div>
+                        <div class="bg-[#292B2F] text-gray-100 rounded-full px-4 py-2 inline-block">Basic Pack</div>
+                        <div class="flex  items-center justify-center mt-4 text-3xl font-bold">
+                            <span>0.3+</span>
+                            <div
+                                class="bg-red-400 absolute-right ml-2 mb-5  text-white text-xs font-semibold px-2  py-0.5  rounded-full">
+                                83.5% off (1 month)
+                            </div>
+                        </div>
+                        <div class="text-gray-100">per sales</div>
+                        <div class="text-gray-100">Manage logistics easily with Phluowise</div>
+                        <div class="space-y-2 bg-[#808080] p-4 rounded-lg">
+                            <div class="bg-[#40444B] text-gray-100 rounded-lg p-2">GH₵ 0.05 / Sachets Transaction</div>
+                            <div class="bg-[#40444B] text-gray-100 rounded-lg p-2">GH₵ 0.07 / Bottle pack Transaction
+                            </div>
+                            <div class="bg-[#40444B] text-gray-100 rounded-lg p-2">GH₵ 0.08 / Dispenser Transaction
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <div class="space-y-7  text-center">
+                        <button class="bg-blue-500 absolute-right   text-white rounded-full px-4 py-2">Activate Plan</button>
+                        <div><i class="fas fa-check-circle mr-1 text-blue-500"></i> Transactions fees</div>
+                        <div><i class="fas fa-check-circle mr-1 text-blue-500"></i> Access to all initial <br>version
+                            updates</div>
+                        <div><i class="fas fa-check-circle mr-1 text-blue-500"></i> Customer Service</div>
+                    </div>
+                </div>
+                <!-- Premium Pack Card -->
+                <div class="bg-[#1F2B47] rounded-3xl p-6 space-y-6 w-68">
+                    <div class="bg-zinc-800 rounded-3xl p-6 text-center space-y-6 w-64">
+                        <div class="bg-green-600 text-white rounded-full px-4 py-1 inline-block">coming soon</div>
+                        <div class="text-gray-100">Subscription Plan</div>
+                        <div class="bg-gray-800 text-white rounded-full px-4 py-2 inline-block">Premium Pack</div>
+                        <div class="flex  items-center justify-center mt-4 ml-2 text-3xl font-bold">
+                            <span>GH₵ 60
+                                <p class="text-[#F9A24B] font-semibold  text-xl ">month</p>
+                            </span>
+
+                        </div>
+                        <div
+                            class="bg-red-400    mb-8 inline-block text-white text-xs font-semibold px-2  py-0.5  rounded-full">
+                            50% off
+                        </div>
+
+                        <div class="text-gray-100">Manage logistics easily with Phluowise</div>
+
+                    </div>
+                    
+                    <div class="space-y-6  text-center">
+                        <button class="bg-[#808080]   text-white rounded-full px-4 py-2">Choose Plan</button>
+                        <div><i class="fas fa-check-circle mr-1 text-gray-500"></i> Access to all future updates</div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- end of content -->
+        </div>
+
+    </div>
+    </div>
+</body>
+
+</html>

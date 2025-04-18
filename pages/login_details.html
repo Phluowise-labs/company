@@ -1,0 +1,63 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // const isLoggedIn = localStorage.getItem("isLoggedIn");
+  
+    // if (!isLoggedIn) {
+    //   window.location.href = "user-signin.html"; // Redirect to login if not authenticated
+    // }
+  </script>
+</head>
+<body class="bg-black flex items-center justify-center min-h-screen p-4">
+<style>
+        body {
+  font-family: 'Inter', sans-serif;
+}
+    </style>
+    <div class="  bg-[#F5F5F51A] border-gray-700  text-white rounded-lg p-8 w-full max-w-md">
+        <h1 class="text-center text-2xl font-semibold mb-6">You are Loged In</h1>
+        <form>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Company Name</label>
+                <div class="relative">
+                    <input type="text" class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none" placeholder="Company name">
+                    <i class="fas fa-building absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Email</label>
+                <div class="relative">
+                    <input type="email" class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none" placeholder="Change email">
+                    <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Branch Code</label>
+                <div class="relative">
+                    <input type="text" class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none " >
+                    <i class="fas fa-code-branch absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Password</label>
+                <div class="relative">
+                    <input type="password" class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none" >
+                    <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <a href="#" class="text-sm text-gray-400 hover:underline mt-2 inline-block">Forgot Password?</a>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 focus:outline-none">Save</button>
+        </form>
+        <div class="text-center mt-4">
+            <span class="text-gray-400">or want to logout? </span>
+            <a href="#" class="text-blue-400 hover:underline">Log Out</a>
+        </div>
+    </div>
+</body>
+</html>
