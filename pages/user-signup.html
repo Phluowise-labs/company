@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,14 +10,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
+
         .btn-loading {
             position: relative;
             pointer-events: none;
         }
+
         .btn-loading::after {
             content: "";
             position: absolute;
@@ -32,12 +37,19 @@
             border-radius: 50%;
             animation: btn-loading-spinner 1s linear infinite;
         }
+
         @keyframes btn-loading-spinner {
-            from { transform: rotate(0turn); }
-            to { transform: rotate(1turn); }
+            from {
+                transform: rotate(0turn);
+            }
+
+            to {
+                transform: rotate(1turn);
+            }
         }
     </style>
 </head>
+
 <body class="bg-black flex items-center justify-center min-h-screen p-4">
     <div class="bg-[#121212] border-gray-700 p-8 rounded-lg shadow-lg w-full max-w-md border">
         <h2 class="text-2xl font-bold text-white mb-6">Welcome, Let's get you Started!</h2>
@@ -69,7 +81,7 @@
                 </div>
                 <p id="emailError" class="text-red-500 text-sm mt-1 hidden">Invalid email format.</p>
             </div>
-            
+
             <!-- Password -->
             <div class="mb-4">
                 <label class="block text-gray-400 mb-2" for="password">Password</label>
@@ -100,11 +112,11 @@
                 </button>
             </div>
 
-            <div id="registerMessage" class="text-white"></div> 
+            <div id="registerMessage" class="text-red-500"></div>
             <div class="text-center text-gray-400">
                 or already have an account? <a href="user-signin.html" class="text-blue-500 hover:underline">Sign in</a>
             </div>
-            
+
         </form>
     </div>
 
@@ -123,6 +135,66 @@
             }
         }
     </script>
- <script defer src="company-auth.js"></script>
+
+<!-- <script>
+    document.getElementById("registerForm").addEventListener("submit", function (e) {
+        e.preventDefault(); // Prevent form from submitting until validation is done
+
+        // Input elements
+        const companyName = document.getElementById("companyName");
+        const email = document.getElementById("companyEmail");
+        const password = document.getElementById("password");
+
+        // Error elements
+        const companyError = document.getElementById("companyError");
+        const emailError = document.getElementById("emailError");
+        const passwordError = document.getElementById("passwordError");
+
+        // Validation flags
+        let isValid = true;
+
+        // Validate company name
+        if (companyName.value.trim() === "") {
+            companyError.classList.remove("hidden");
+            isValid = false;
+        } else {
+            companyError.classList.add("hidden");
+        }
+
+        // Validate email
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email.value.trim())) {
+            emailError.classList.remove("hidden");
+            isValid = false;
+        } else {
+            emailError.classList.add("hidden");
+        }
+
+        // Validate password
+        const passwordPattern =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        if (!passwordPattern.test(password.value)) {
+            passwordError.classList.remove("hidden");
+            isValid = false;
+        } else {
+            passwordError.classList.add("hidden");
+        }
+
+        // If all valid, proceed to submit
+        if (isValid) {
+            // Optional: Add loading indicator
+            const submitBtn = document.getElementById("submitButton");
+            submitBtn.classList.add("btn-loading");
+
+            // Simulate form submission or trigger backend handler
+            setTimeout(() => {
+                document.getElementById("registerForm").submit();
+            }, 500); // Adjust timing or call your actual submit logic here
+        }
+    });
+</script> -->
+
+    <script defer src="company-auth.js"></script>
 </body>
+
 </html>

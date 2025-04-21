@@ -2,124 +2,170 @@
 export function initializeTour() {
     // Check if tour was completed before
     if (!localStorage.getItem('tourCompleted')) {
-      setTimeout(startTour, 1500); // Auto-start after 1.5s on first visit
+        setTimeout(startTour, 1500); // Auto-start after 1.5s on first visit
     }
-  
+
     // Manual tour trigger
     document.addEventListener('click', (e) => {
-      if (e.target.matches('#start-tour')) {
-        startTour();
-      }
+        if (e.target.matches('#start-tour')) {
+            startTour();
+        }
     });
-  }
-  
-  function startTour() {
+}
+
+function startTour() {
     const tour = new Shepherd.Tour({
-      defaultStepOptions: {
-        classes: 'glass-intense shadow-xl rounded-xl border border-white/20',
-        scrollTo: { behavior: 'smooth', block: 'center' }
-      }
-    });
-  
-    // Cleanup function
-    function cleanupTour() {
-      document.querySelectorAll('.tour-highlight').forEach(el => {
-        el.classList.remove('tour-highlight');
-      });
-      localStorage.setItem('tourCompleted', 'true');
-    }
-  
-    // Common step configuration
-    function createStep(config) {
-      return {
-        ...config,
-        buttons: [
-          { 
-            text: 'Skip', 
-            action: () => {
-              cleanupTour();
-              tour.cancel();
+        defaultStepOptions: {
+            classes: 'shepherd-theme-custom',
+            scrollTo: { behavior: 'smooth', block: 'center' },
+            when: {
+                show: function() {
+                    const currentElement = document.querySelector(this.options.attachTo.element);
+                    if (currentElement) {
+                        currentElement.classList.add('tour-highlight');
+                    }
+                },
+                hide: function() {
+                    const currentElement = document.querySelector(this.options.attachTo.element);
+                    if (currentElement) {
+                        currentElement.classList.remove('tour-highlight');
+                    }
+                }
             }
-          },
-          ...(config.buttons || [])
-        ],
-        beforeShow: () => {
-          document.querySelector(config.element).classList.add('tour-highlight');
+        }
+    });
+
+    // Add steps for all navigation items
+    const tourSteps = [
+        // Welcome
+        {
+            id: 'welcome',
+            text: 'Welcome to Phluowise Dashboard! Let me guide you through the features.',
+            buttons: [{ text: 'Next', action: tour.next }]
         },
-        beforeHide: () => {
-          document.querySelector(config.element).classList.remove('tour-highlight');
+        
+        // Dashboard Section
+        {
+            id: 'dashboard-section',
+            title: 'Dashboard',
+            text: 'Your main navigation area',
+            attachTo: { element: '.sidebar h2:first-of-type', on: 'right' }
+        },
+        {
+            id: 'home',
+            title: 'Home (Coming Soon)',
+            text: 'Dashboard overview coming in version 2.0',
+            attachTo: { element: '[data-page="home"]', on: 'right' }
+        },
+        {
+            id: 'add-drivers',
+            title: 'Add Drivers',
+            text: 'Create and manage driver accounts here',
+            attachTo: { element: '[data-page="add_driver"]', on: 'right' }
+        },
+        
+        // Messaging Section
+        {
+            id: 'messaging-section',
+            title: 'Messaging',
+            text: 'Communication tools',
+            attachTo: { element: '.sidebar h2:nth-of-type(2)', on: 'right' }
+        },
+        {
+            id: 'chat',
+            title: 'Chat (Coming Soon)',
+            text: 'In-app messaging coming soon',
+            attachTo: { element: '[data-page="chat"]', on: 'right' }
+        },
+        {
+            id: 'rating',
+            title: 'Ratings',
+            text: 'View customer feedback and ratings',
+            attachTo: { element: '[data-page="rating"]', on: 'right' }
+        },
+        
+        // Account Section
+        {
+            id: 'account-section',
+            title: 'Account',
+            text: 'Business analytics and financials',
+            attachTo: { element: '.sidebar h2:nth-of-type(3)', on: 'right' }
+        },
+        {
+            id: 'account',
+            title: 'Account Analytics',
+            text: 'View order stats and pickup requests',
+            attachTo: { element: '[data-page="account"]', on: 'right' }
+        },
+        {
+            id: 'transactions',
+            title: 'Transactions',
+            text: 'Complete transaction history',
+            attachTo: { element: '[data-page="transactions"]', on: 'right' }
+        },
+        {
+            id: 'subscription',
+            title: 'Subscription',
+            text: 'Manage your service plan',
+            attachTo: { element: '[data-page="subscription"]', on: 'right' }
+        },
+        
+        // Pickups Section
+        {
+            id: 'pickups-section',
+            title: 'Pickups',
+            text: 'Order and return management',
+            attachTo: { element: '.sidebar h2:nth-of-type(4)', on: 'right' }
+        },
+        {
+            id: 'requests',
+            title: 'Order Requests',
+            text: 'Manage customer orders',
+            attachTo: { element: '[data-page="requests"]', on: 'right' }
+        },
+        {
+            id: 'return-pickups',
+            title: 'Return Pickups',
+            text: 'Schedule bottle retrievals',
+            attachTo: { element: '[data-page="get_return_pickups"]', on: 'right' }
+        },
+        {
+            id: 'driver-app',
+            title: 'Driver App (Coming Soon)',
+            text: 'Mobile app for drivers coming soon',
+            attachTo: { element: '[data-page="get_driver_app"]', on: 'right' }
+        },
+        
+        // Final Step
+        {
+            id: 'complete',
+            title: 'Tour Complete!',
+            text: 'You\'re ready to use Phluowise Dashboard',
+            buttons: [{ text: 'Finish', action: tour.complete }]
         }
-      };
-    }
-  
-    // Tour steps
-    tour.addStep(createStep({
-      id: 'welcome',
-      text: '<div class="text-lg font-medium">Welcome! Let me guide you through key features.</div>',
-      element: '#topbar',
-      buttons: [
-        { text: 'Next', action: tour.next }
-      ]
+    ];
+
+    // Add all steps to the tour
+    tourSteps.forEach(step => tour.addStep({
+        ...step,
+        buttons: [
+            ...(step.buttons || []),
+            ...(step.id !== 'welcome' && step.id !== 'complete' ? [
+                { text: 'Back', action: tour.back, classes: 'shepherd-button-secondary' },
+                { text: 'Next', action: tour.next }
+            ] : [])
+        ]
     }));
-  
-    // Add more steps for your specific elements
-    // Example for sidebar items:
-    tour.addStep(createStep({
-      id: 'dashboard',
-      title: 'Dashboard',
-      text: 'This is your main dashboard area',
-      element: '[data-tour="dashboard"]',
-      attachTo: {
-        element: '[data-tour="dashboard"]',
-        on: 'right'
-      },
-      buttons: [
-        { text: 'Back', action: tour.back },
-        { text: 'Next', action: tour.next }
-      ]
-    }));
-  
-    // Final step
-    tour.addStep(createStep({
-      id: 'complete',
-      title: 'Tour Complete!',
-      text: 'You\'re now ready to explore. Happy navigating!',
-      element: '#start-tour',
-      buttons: [
-        { 
-          text: 'Finish', 
-          action: () => {
-            cleanupTour();
-            tour.complete();
-          }
-        }
-      ]
-    }));
-  
-    // Handle tour cancellation/complete
-    tour.on('cancel', cleanupTour);
-    tour.on('complete', cleanupTour);
-  
-    // Start the tour
+
+    // Cleanup on complete/cancel
+    tour.on('complete', () => {
+        document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+        localStorage.setItem('tourCompleted', 'true');
+    });
+    tour.on('cancel', () => {
+        document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+        localStorage.setItem('tourCompleted', 'true');
+    });
+
     tour.start();
-  }
-  
-  // Add this to your main CSS or create a tour.css file
-  export const tourStyles = `
-    .glass-intense {
-      background: rgba(255, 255, 255, 0.08) !important;
-      backdrop-filter: blur(25px) !important;
-      -webkit-backdrop-filter: blur(25px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    }
-    .tour-highlight {
-      animation: pulse 2s infinite;
-      position: relative;
-      z-index: 50;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-      70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-    }
-  `;
+}

@@ -93,52 +93,69 @@
         <div id="sidebar">
             <script>
                 fetch("sidebar.html")
-                  .then(response => response.text())
-                  .then(data => {
-                    document.getElementById("sidebar").innerHTML = data;
-                    highlightActivePage();
-                    // Initialize tour after sidebar loads
-                    import('./tour.js').then(module => {
-                      module.initializeTour();
-                      // Inject tour styles
-                      const style = document.createElement('style');
-                      style.textContent = module.tourStyles;
-                      document.head.appendChild(style);
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
                     });
-                  });
-        
+
                 function highlightActivePage() {
-                  const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
-                  document.querySelectorAll(".menu-item").forEach(item => {
-                    const page = item.getAttribute("data-page");
-                    if (page === currentPage) {
-                      item.classList.add("text-blue-400", "font-bold");
-                      item.querySelector(".selection-indicator")?.classList.remove("hidden");
-                    }
-                  });
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
                 }
-              </script>
+            </script>
         </div>
         <!-- Main Content -->
         <div class="ml-64  p-5 w-full text-white">
             <!-- Top Bar -->
+            <!-- TOPBAR PLACEHOLDER -->
             <div id="topbar">
                 <script>
                     fetch("topbar.html")
-                      .then(response => response.text())
-                      .then(data => {
-                        document.getElementById("topbar").innerHTML = data;
-                        // Add tour button if not already in topbar.html
-                        if (!document.querySelector('#start-tour')) {
-                          const tourBtn = document.createElement('button');
-                          tourBtn.id = 'start-tour';
-                          tourBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm font-medium ml-4';
-                          tourBtn.textContent = 'Start Tour';
-                          document.querySelector('#topbar').appendChild(tourBtn);
-                        }
-                      });
-                  </script>
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById("topbar").innerHTML = data;
+
+                            // Attach logout handler after topbar is loaded
+                            const logoutBtn = document.querySelector(".logout-btn");
+                            if (logoutBtn) logoutBtn.addEventListener("click", confirmLogout);
+                        });
+
+                    // Global logout function
+                    function confirmLogout(e) {
+                        e.preventDefault(); // Prevent <a href="#"> default action
+                        Swal.fire({
+                            title: 'Log out?',
+                            text: "You'll be signed out!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, log out'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Clear only necessary login-related storage
+                                localStorage.removeItem("authToken");           // Company login session
+                                localStorage.removeItem("loginToken");          // Temp login token for OTP
+                                localStorage.removeItem("otpPurpose");          // Used for knowing OTP flow
+                                localStorage.removeItem("otpToken");            // OTP token (login/forgot)
+                                localStorage.removeItem("otpEmail");            // Email used in OTP
+                                localStorage.removeItem("loggedInCompany");     // Company info after login
+                                localStorage.removeItem("resendTimeout");       // OTP resend timer
+
+                                // Redirect to login page
+                                window.location.href = "user-signin.html";
+                            }
+                        });
+                    }
+                </script>
             </div>
+
             <!-- Main Content Area -->
             <div class="container mt-10 z-0 mx-auto p-4">
                 <!-- write the content of the page here -->
@@ -865,9 +882,7 @@
             createUserCards(users);
         });
     </script>
- <!-- Shepherd.js and jQuery -->
- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
- <script src="https://cdnjs.cloudflare.com/ajax/libs/shepherd.js/10.0.1/js/shepherd.min.js"></script>
+
 </body>
 
 </html>

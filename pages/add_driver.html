@@ -2,208 +2,242 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
-    <title>Add Driver</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <!-- Add Alpine.js (if not already included) -->
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+  <title>Add Driver</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <!-- Add Alpine.js (if not already included) -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
-  
-  
-    
+
+
+
   <link rel="stylesheet" href="driver.css">
 </head>
 
 <body class="bg-black text-white">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+  <div class="flex">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <script>
+        fetch("sidebar.html")
+          .then(response => response.text())
+          .then(data => {
+            document.getElementById("sidebar").innerHTML = data;
+            highlightActivePage();
+          });
+
+        function highlightActivePage() {
+          const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+          document.querySelectorAll(".menu-item").forEach(item => {
+            const page = item.getAttribute("data-page");
+            if (page === currentPage) {
+              item.classList.add("text-blue-400", "font-bold");
+              item.querySelector(".selection-indicator")?.classList.remove("hidden");
+            }
+          });
         }
-    </style>
-    <div class="flex">
-        <!-- Sidebar -->
-        <div id="sidebar">
-            <script>
-                fetch("sidebar.html")
-                    .then(response => response.text())
-                    .then(data => {
-                        document.getElementById("sidebar").innerHTML = data;
-                        highlightActivePage();
-                    });
-
-                function highlightActivePage() {
-                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
-
-                    document.querySelectorAll(".menu-item").forEach(item => {
-                        const page = item.getAttribute("data-page");
-                        if (page === currentPage) {
-                            item.classList.add("text-blue-400", "font-bold");
-                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
-                        }
-                    });
-                }
-            </script>
-        </div>
-        <!-- Main Content -->
-        <div class="ml-64 mt-12 p-5 w-full text-white">
-            <!-- Top Bar -->
-            <div id="topbar">
-                <script>
-                    fetch("topbar.html")
-                        .then(response => response.text())
-                        .then(data => {
-                            document.getElementById("topbar").innerHTML = data;
-                        });
-                </script>
-            </div>
-            <!-- Main Content Area -->
-            <div class="container  mx-auto p-4">
-                <!-- write the content of the page here -->
-                <div class="container mt-4">
-                    <div class="form-container animate__animated animate__fadeIn">
-                      <div class="upload-container">
-                        <div class="image-upload animation-pulse">
-                          <input type="file" accept="image/*" id="profileImage">
-                          <img id="previewImage" src="" alt="Profile Image">
-                          <p>Upload Profile Image</p>
-                        </div>
-                      </div>
-                      
-                      <div class="form-group">
-                        <label for="publicName">Public name</label>
-                        <input type="text" id="publicName" class="form-control" placeholder="Choose name to be made public to Consumers">
-                      </div>
-                      
-                      <div class="form-group">
-                        <label for="driverName">Name of Driver</label>
-                        <input type="text" id="driverName" class="form-control">
-                      </div>
-                      
-                      <div class="form-group">
-                        <label for="phoneNumber">Phone number</label>
-                        <input type="tel" id="phoneNumber" class="form-control">
-                      </div>
-                      
-                      <div class="form-group">
-                        <label for="emailAddress">Email Address</label>
-                        <input type="email" id="emailAddress" class="form-control">
-                      </div>
-                      
-                      <div class="form-group">
-                        <label for="residence">Location of Residence</label>
-                        <input type="text" id="residence" class="form-control" placeholder="Enter full address">
-                      </div>
-                      
-                      <div class="form-group">
-                        <label for="vehicleNumber">Vehicle Number</label>
-                        <input type="text" id="vehicleNumber" class="form-control">
-                      </div>
-                      
-                      <div class="form-group">
-                        <label for="vehicleType">Vehicle Type</label>
-                        <input type="text" id="vehicleType" class="form-control">
-                      </div>
-                      
-                      <div class="form-group">
-                        <label for="driverID">Driver's ID Number</label>
-                        <div class="password-container">
-                          <input type="text" id="driverID" class="form-control">
-                          <button class="generate-btn" id="generateID">Generate</button>
-                        </div>
-                      </div>
-                      
-                      <h3 class="section-title">Legal Identification Document</h3>
-                      
-                      <div class="form-group">
-                        <label for="idType">Type of ID</label>
-                        <div class="select-container">
-                          <select id="idType" class="form-control">
-                            <option value="">Select ID Type</option>
-                            <option value="passport">Passport</option>
-                            <option value="national_id">National ID Card</option>
-                            <option value="drivers_license">Driver's License</option>
-                            <option value="residence_permit">Residence Permit</option>
-                            <option value="social_security">Social Security Card</option>
-                            <option value="voter_id">Voter ID</option>
-                          </select>
-                          <button class="add-option-btn" id="addIdType">+</button>
-                        </div>
-                      </div>
-                      
-                      <div class="form-group">
-                        <label for="idNumber">ID Number</label>
-                        <input type="text" id="idNumber" class="form-control" placeholder="Enter the ID number/code">
-                      </div>
-                      
-                      <div class="form-group">
-                        <label>ID Document Images</label>
-                        <div class="id-documents-container">
-                          <div class="id-upload" id="frontIdUpload">
-                            <input type="file" accept="image/*" id="frontIdImage">
-                            <img id="frontIdPreview" src="" alt="ID Front">
-                            <div class="upload-icon">📄</div>
-                            <p>Front Side</p>
-                          </div>
-                          <div class="id-upload" id="backIdUpload">
-                            <input type="file" accept="image/*" id="backIdImage">
-                            <img id="backIdPreview" src="" alt="ID Back">
-                            <div class="upload-icon">📄</div>
-                            <p>Back Side</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <button class="btn btn-block animate__animated animate__pulse animate__infinite" id="addDriver">Add Driver</button>
-                    </div>
-                    
-                    <div class="drivers-list animate__animated animate__fadeInRight">
-                      <h2 class="list-title">List of Drivers</h2>
-                      
-                      <div class="driver-card">
-                        <h3>Name of Driver</h3>
-                        <p>Vehicle Number: <span>GH34-94ASD</span></p>
-                        <p>Driver ID: <span>Driver-000001</span></p>
-                        <p>Location: <span>May 09, 2023</span></p>
-                      </div>
-                      
-                      <div class="driver-card">
-                        <h3>Name of Driver</h3>
-                        <p>Vehicle Number: <span>GH39-14BFD</span></p>
-                        <p>Driver ID: <span>Driver-000002</span></p>
-                        <p>Location: <span>May 12, 2023</span></p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Add ID Type Dialog -->
-                  <div class="dialog-backdrop" id="addIdTypeDialog">
-                    <div class="dialog">
-                      <h3>Add New ID Type</h3>
-                      <div class="form-group">
-                        <label for="newIdType">ID Type Name</label>
-                        <input type="text" id="newIdType" class="form-control" placeholder="e.g. Work Permit, Military ID">
-                      </div>
-                      <div class="dialog-footer">
-                        <button class="btn btn-cancel" id="cancelAddIdType">Cancel</button>
-                        <button class="btn btn-success" id="saveIdType">Add</button>
-                      </div>
-                    </div>
-                  </div>
-                  <script src="driver.js"></script>
-
-                <!-- end of page -->
-            </div>
-            <!-- end of content -->
-        </div>
+      </script>
     </div>
+    <!-- Main Content -->
+    <div class="ml-64 mt-12 p-5 w-full text-white">
+      <!-- Top Bar -->
+      <!-- TOPBAR PLACEHOLDER -->
+      <div id="topbar">
+        <script>
+          fetch("topbar.html")
+            .then(response => response.text())
+            .then(data => {
+              document.getElementById("topbar").innerHTML = data;
+
+              // Attach logout handler after topbar is loaded
+              const logoutBtn = document.querySelector(".logout-btn");
+              if (logoutBtn) logoutBtn.addEventListener("click", confirmLogout);
+            });
+
+          // Global logout function
+          function confirmLogout(e) {
+            e.preventDefault(); // Prevent <a href="#"> default action
+            Swal.fire({
+              title: 'Log out?',
+              text: "You'll be signed out!",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Yes, log out'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                // Clear only necessary login-related storage
+                localStorage.removeItem("authToken");           // Company login session
+                localStorage.removeItem("loginToken");          // Temp login token for OTP
+                localStorage.removeItem("otpPurpose");          // Used for knowing OTP flow
+                localStorage.removeItem("otpToken");            // OTP token (login/forgot)
+                localStorage.removeItem("otpEmail");            // Email used in OTP
+                localStorage.removeItem("loggedInCompany");     // Company info after login
+                localStorage.removeItem("resendTimeout");       // OTP resend timer
+
+                // Redirect to login page
+                window.location.href = "user-signin.html";
+              }
+            });
+          }
+        </script>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="container  mx-auto p-4">
+        <!-- write the content of the page here -->
+        <div class="container mt-4">
+          <div class="form-container animate__animated animate__fadeIn">
+            <div class="upload-container">
+              <div class="image-upload animation-pulse">
+                <input type="file" accept="image/*" id="profileImage">
+                <img id="previewImage" src="" alt="Profile Image">
+                <p>Upload Profile Image</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="publicName">Public name</label>
+              <input type="text" id="publicName" class="form-control"
+                placeholder="Choose name to be made public to Consumers">
+            </div>
+
+            <div class="form-group">
+              <label for="driverName">Name of Driver</label>
+              <input type="text" id="driverName" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="phoneNumber">Phone number</label>
+              <input type="tel" id="phoneNumber" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="emailAddress">Email Address</label>
+              <input type="email" id="emailAddress" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="residence">Location of Residence</label>
+              <input type="text" id="residence" class="form-control" placeholder="Enter full address">
+            </div>
+
+            <div class="form-group">
+              <label for="vehicleNumber">Vehicle Number</label>
+              <input type="text" id="vehicleNumber" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="vehicleType">Vehicle Type</label>
+              <input type="text" id="vehicleType" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="driverID">Driver's ID Number</label>
+              <div class="password-container">
+                <input type="text" id="driverID" class="form-control">
+                <button class="generate-btn" id="generateID">Generate</button>
+              </div>
+            </div>
+
+            <h3 class="section-title">Legal Identification Document</h3>
+
+            <div class="form-group">
+              <label for="idType">Type of ID</label>
+              <div class="select-container">
+                <select id="idType" class="form-control">
+                  <option value="">Select ID Type</option>
+                  <option value="passport">Passport</option>
+                  <option value="national_id">National ID Card</option>
+                  <option value="drivers_license">Driver's License</option>
+                  <option value="residence_permit">Residence Permit</option>
+                  <option value="social_security">Social Security Card</option>
+                  <option value="voter_id">Voter ID</option>
+                </select>
+                <button class="add-option-btn" id="addIdType">+</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="idNumber">ID Number</label>
+              <input type="text" id="idNumber" class="form-control" placeholder="Enter the ID number/code">
+            </div>
+
+            <div class="form-group">
+              <label>ID Document Images</label>
+              <div class="id-documents-container">
+                <div class="id-upload" id="frontIdUpload">
+                  <input type="file" accept="image/*" id="frontIdImage">
+                  <img id="frontIdPreview" src="" alt="ID Front">
+                  <div class="upload-icon">📄</div>
+                  <p>Front Side</p>
+                </div>
+                <div class="id-upload" id="backIdUpload">
+                  <input type="file" accept="image/*" id="backIdImage">
+                  <img id="backIdPreview" src="" alt="ID Back">
+                  <div class="upload-icon">📄</div>
+                  <p>Back Side</p>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-block animate__animated animate__pulse animate__infinite" id="addDriver">Add
+              Driver</button>
+          </div>
+
+          <div class="drivers-list animate__animated animate__fadeInRight">
+            <h2 class="list-title">List of Drivers</h2>
+
+            <div class="driver-card">
+              <h3>Name of Driver</h3>
+              <p>Vehicle Number: <span>GH34-94ASD</span></p>
+              <p>Driver ID: <span>Driver-000001</span></p>
+              <p>Location: <span>May 09, 2023</span></p>
+            </div>
+
+            <div class="driver-card">
+              <h3>Name of Driver</h3>
+              <p>Vehicle Number: <span>GH39-14BFD</span></p>
+              <p>Driver ID: <span>Driver-000002</span></p>
+              <p>Location: <span>May 12, 2023</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add ID Type Dialog -->
+        <div class="dialog-backdrop" id="addIdTypeDialog">
+          <div class="dialog">
+            <h3>Add New ID Type</h3>
+            <div class="form-group">
+              <label for="newIdType">ID Type Name</label>
+              <input type="text" id="newIdType" class="form-control" placeholder="e.g. Work Permit, Military ID">
+            </div>
+            <div class="dialog-footer">
+              <button class="btn btn-cancel" id="cancelAddIdType">Cancel</button>
+              <button class="btn btn-success" id="saveIdType">Add</button>
+            </div>
+          </div>
+        </div>
+        <script src="driver.js"></script>
+
+        <!-- end of page -->
+      </div>
+      <!-- end of content -->
     </div>
+  </div>
+  </div>
 </body>
 
 </html>
