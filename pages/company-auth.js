@@ -65,28 +65,179 @@ document.addEventListener("DOMContentLoaded", () => {
 // ========================
 // 1. REGISTER COMPANY
 // ========================
+// Password validation with enhanced regex pattern
+// PROPERLY ESCAPED PASSWORD VALIDATION
+function isValidPassword(password) {
+  // First check for whitespace (fail fast)
+  if (/\s/.test(password)) return false;
+  
+  // Then check length (fail fast)
+  if (password.length < 8) return false;
+  
+  // PROPERLY ESCAPED special characters pattern
+  const specialChars = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+  
+  // Check all requirements
+  return /[a-z]/.test(password) && 
+         /[A-Z]/.test(password) &&
+         /\d/.test(password) &&
+         specialChars.test(password);
+}
+// Updated strength checker to match
+function getPasswordStrength(password) {
+  if (!password) return "None";
+  
+  let score = 0;
+  
+  // Length scoring
+  if (password.length >= 12) score += 2;
+  else if (password.length >= 8) score += 1;
+  
+  // Character variety
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  
+  // PROPERLY ESCAPED special char check
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/.test(password)) score++;
+  
+  // Bonus points
+  if ((password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/g) || []).length > 1) score++;
+  if (/[A-Z].*[a-z]|[a-z].*[A-Z]/.test(password)) score++;
+  
+  if (score <= 3) return "Weak";
+  if (score <= 5) return "Medium";
+  return "Strong";
+}
+ 
+// console.log(isValidPassword("fgsTdka124!%$@#")); 
+// Update requirements checklist
+function updateRequirementsChecklist(password) {
+  const requirements = {
+    length: password.length >= 8,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?~]/.test(password),
+    spaces: !/\s/.test(password)
+  };
+  
+  // Update each requirement indicator in the UI
+  document.getElementById("req-length").className = requirements.length ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-lower").className = requirements.lowercase ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-upper").className = requirements.uppercase ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-number").className = requirements.number ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-special").className = requirements.special ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-spaces").className = requirements.spaces ? "text-green-600" : "text-gray-400";
+}
 
-async function handleRegister(e) {
-  e.preventDefault();
-  const form = document.getElementById("registerForm");
+// Initialize password validation
+function initPasswordValidation() {
+  const passwordInput = document.getElementById("password");
+  const passwordFeedback = document.getElementById("passwordFeedback");
+  const passwordStrength = document.getElementById("passwordStrength");
+  const passwordRequirements = document.getElementById("passwordRequirements");
 
-  // Field values
-  const companyName = document.getElementById("companyName").value.trim();
-  const companyEmail = document.getElementById("companyEmail").value.trim();
-  const companyPhoneNumber = document.getElementById("companyPhoneNumber").value.trim();
-  const password = document.getElementById("password").value;
+  if (!passwordInput) return;
 
-  // Error elements
-  const companyError = document.getElementById("companyError");
-  const emailError = document.getElementById("emailError");
-  const passwordError = document.getElementById("passwordError");
+  passwordInput.addEventListener("input", () => {
+    const password = passwordInput.value;
+    
+    // Clear previous feedback
+    passwordFeedback.textContent = "";
+    passwordFeedback.className = "text-sm mt-1";
+    passwordStrength.className = "text-sm mt-1 font-medium";
+    
+    // Handle empty password
+    if (!password) {
+      passwordFeedback.classList.add("hidden");
+      passwordStrength.classList.add("hidden");
+      if (passwordRequirements) passwordRequirements.classList.remove("hidden");
+      return;
+}
+    
+    // Check for whitespace first
+    if (/\s/.test(password)) {
+      passwordFeedback.textContent = "❌ Password cannot contain spaces";
+      passwordFeedback.classList.add("text-red-600");
+      passwordStrength.textContent = "🔴 Invalid Password";
+      passwordStrength.classList.add("text-red-600");
+      updateRequirementsChecklist(password);
+      return;
+    }
+    
+    // Validate password and get strength
+    const valid = isValidPassword(password);
+    const strength = getPasswordStrength(password);
+    
+    // Update requirements checklist
+    updateRequirementsChecklist(password);
+  
+    
+    // Set strength indicator (only if password is valid)
+    if (valid) {
+      switch (strength) {
+        case "Weak":
+          passwordStrength.textContent = "🔴 Weak Password";
+          passwordStrength.classList.add("text-red-600");
+          break;
+        case "Medium":
+          passwordStrength.textContent = "🟠 Medium Strength";
+          passwordStrength.classList.add("text-yellow-600");
+          break;
+        case "Strong":
+          passwordStrength.textContent = "🟢 Password meets all requirements";
+          passwordStrength.classList.add("text-green-600");
+          break;
+      }
+    } else {
+      passwordStrength.textContent = "⚪ Incomplete Password";
+      passwordStrength.classList.add("text-gray-400");
+    }
+  });
+}
 
-  // Hide all errors first
-  companyError.classList.add("hidden");
-  emailError.classList.add("hidden");
-  passwordError.classList.add("hidden");
+// Initialize when DOM is loaded
+document.addEventListener("DOMContentLoaded", initPasswordValidation);
+// Update visual requirements checklist
+function updateRequirementsChecklist(password) {
+  const requirements = {
+    length: password.length >= 8,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    special: /[!@#$%^&*()_+~\-={}[\]|:;"'<>,.?/]/.test(password),
+    spaces: !/\s/.test(password)
+  };
+  
+  // Update each requirement indicator in the UI
+  document.getElementById("req-length").className = requirements.length ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-lower").className = requirements.lowercase ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-upper").className = requirements.uppercase ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-number").className = requirements.number ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-special").className = requirements.special ? "text-green-600" : "text-gray-400";
+  document.getElementById("req-spaces").className = requirements.spaces ? "text-green-600" : "text-gray-400";
+}
+
+
+async function handleRegistration(event) {
+  event.preventDefault();
 
   let hasError = false;
+
+  const password = document.getElementById("password").value;
+  const companyName = document.getElementById("companyName").value;
+  const companyEmail = document.getElementById("companyEmail").value;
+
+  if (/\s/.test(password)) {
+    passwordError.textContent = "❌ Password cannot contain spaces.";
+    passwordError.classList.remove("hidden");
+    hasError = true;
+  } else if (!password || !isValidPassword(password)) {
+    passwordError.textContent = "Password must be at least 8 characters, contain uppercase, lowercase, number, and special character.";
+    passwordError.classList.remove("hidden");
+    hasError = true;
+  }
 
   if (!companyName) {
     companyError.textContent = "Company name is required.";
@@ -97,12 +248,6 @@ async function handleRegister(e) {
   if (!companyEmail || !isValidEmail(companyEmail)) {
     emailError.textContent = "Invalid email format.";
     emailError.classList.remove("hidden");
-    hasError = true;
-  }
-
-  if (!password || !isValidPassword(password)) {
-    passwordError.textContent = "Password must be at least 8 characters, contain uppercase, lowercase, number, and special character.";
-    passwordError.classList.remove("hidden");
     hasError = true;
   }
 
@@ -154,18 +299,24 @@ async function handleRegister(e) {
   }
 }
 
-// Password validation
-function isValidPassword(password) {
-  const passwordPattern =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  return passwordPattern.test(password);
-}
-
-// Email validation
+// Helper function to validate email format
 function isValidEmail(email) {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   return emailPattern.test(email);
 }
+
+// Show loading indicator
+function showLoading(form) {
+  // Implement loading indicator logic here
+  form.querySelector(".loading").classList.remove("hidden");
+}
+
+// Hide loading indicator
+function hideLoading(form) {
+  // Implement hide loading indicator logic here
+  form.querySelector(".loading").classList.add("hidden");
+}
+
 
 
 // ========================

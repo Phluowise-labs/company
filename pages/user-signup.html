@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    
+
 
     <style>
         body {
@@ -80,6 +80,7 @@
                         type="email" id="companyEmail" name="email" placeholder="Enter your email" required>
                 </div>
                 <p id="emailError" class="text-red-500 text-sm mt-1 hidden">Invalid email format.</p>
+
             </div>
 
             <!-- Password -->
@@ -100,6 +101,16 @@
                 <p id="passwordError" class="text-red-500 text-sm mt-1 hidden">
                     Password must be at least 8 characters, contain uppercase, lowercase, number, and special character.
                 </p>
+                <div id="passwordFeedback" class="text-sm mt-1 text-red-600 hidden"></div>
+                <div id="passwordStrength" class="text-sm mt-1 font-medium hidden"></div>
+                <div id="passwordRequirements" class="text-sm text-gray-600 mt-1">
+                    <div id="req-length">✓ 8+ characters</div>
+                    <div id="req-lower">✓ Lowercase letter</div>
+                    <div id="req-upper">✓ Uppercase letter</div>
+                    <div id="req-number">✓ Number</div>
+                    <div id="req-special">✓ Special character</div>
+                    <div id="req-spaces">✓ No spaces</div>
+                </div>
             </div>
 
             <!-- Hidden phone number field (will be submitted as null) -->
@@ -136,7 +147,7 @@
         }
     </script>
 
-<!-- <script>
+    <!-- <script>
     document.getElementById("registerForm").addEventListener("submit", function (e) {
         e.preventDefault(); // Prevent form from submitting until validation is done
 
@@ -194,7 +205,7 @@
     });
 </script> -->
 
-    <script defer src="company-auth.js"></script>
+    <script src="company-auth.js" defer></script>
 </body>
 
 </html>
