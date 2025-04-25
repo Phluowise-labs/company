@@ -243,22 +243,36 @@ function initPasswordValidation() {
 
   if (!passwordInput) return;
 
+  // Hide password requirements initially
+  if (passwordRequirements) {
+    passwordRequirements.classList.add("hidden");
+  }
+
   passwordInput.addEventListener("input", () => {
     const password = passwordInput.value;
-    
-    // Clear previous feedback
+
+    // Show/hide password requirements based on input
+    if (passwordRequirements) {
+      if (password) {
+        passwordRequirements.classList.remove("hidden");
+      } else {
+        passwordRequirements.classList.add("hidden");
+      }
+    }
+
+    // Clear previous feedback styles and content
     passwordFeedback.textContent = "";
     passwordFeedback.className = "text-sm mt-1";
+    passwordStrength.textContent = "";
     passwordStrength.className = "text-sm mt-1 font-medium";
-    
+
     // Handle empty password
     if (!password) {
       passwordFeedback.classList.add("hidden");
       passwordStrength.classList.add("hidden");
-      if (passwordRequirements) passwordRequirements.classList.remove("hidden");
       return;
     }
-    
+
     // Check for whitespace first
     if (/\s/.test(password)) {
       passwordFeedback.textContent = "❌ Password cannot contain spaces";
@@ -268,14 +282,14 @@ function initPasswordValidation() {
       updateRequirementsChecklist(password);
       return;
     }
-    
+
     // Validate password and get strength
     const valid = isValidPassword(password);
     const strength = getPasswordStrength(password);
-    
+
     // Update requirements checklist
     updateRequirementsChecklist(password);
-    
+
     // Set feedback based on validation
     if (valid) {
       passwordFeedback.textContent = "✅ Password meets all requirements";
@@ -284,7 +298,7 @@ function initPasswordValidation() {
       passwordFeedback.textContent = "⚠️ Password doesn't meet all requirements";
       passwordFeedback.classList.add("text-yellow-600");
     }
-    
+
     // Set strength indicator (only if password is valid)
     if (valid) {
       switch (strength) {
@@ -307,6 +321,7 @@ function initPasswordValidation() {
     }
   });
 }
+
 
 // Initialize when DOM is loaded
 document.addEventListener("DOMContentLoaded", initPasswordValidation);
@@ -436,6 +451,42 @@ async function handleLogin(e) {
     });
   }
 }
+
+function updateLoginRequirementsChecklist(password) {
+  const checks = {
+    length: password.length >= 8,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>\/?~]/.test(password),
+    spaces: !/\s/.test(password)
+  };
+
+  document.getElementById("login-req-length").className = checks.length ? "text-green-500" : "text-gray-400";
+  document.getElementById("login-req-lower").className = checks.lowercase ? "text-green-500" : "text-gray-400";
+  document.getElementById("login-req-upper").className = checks.uppercase ? "text-green-500" : "text-gray-400";
+  document.getElementById("login-req-number").className = checks.number ? "text-green-500" : "text-gray-400";
+  document.getElementById("login-req-special").className = checks.special ? "text-green-500" : "text-gray-400";
+  document.getElementById("login-req-spaces").className = checks.spaces ? "text-green-500" : "text-gray-400";
+}
+
+function initLoginPasswordLiveCheck() {
+  const loginInput = document.getElementById("loginPassword");
+  const checklist = document.getElementById("loginPasswordRequirements");
+
+  if (!loginInput || !checklist) return;
+
+  loginInput.addEventListener("input", () => {
+    const password = loginInput.value;
+
+    // Show checklist only if there's input
+    checklist.classList.toggle("hidden", password.length === 0);
+
+    updateLoginRequirementsChecklist(password);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", initLoginPasswordLiveCheck);
 
 
 // Rest of your existing helper functions (isValidEmail, isValidPassword, etc.)

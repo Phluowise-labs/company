@@ -52,16 +52,45 @@
           <span class="absolute inset-y-0 left-0 flex items-center pl-3">
             <i class="fas fa-lock text-gray-500"></i>
           </span>
-          <input class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-10 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" type="password" id="loginPassword" placeholder="Enter password">
+          <input
+            class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-10 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="password"
+            id="loginPassword"
+            placeholder="Enter password"
+          />
           <span class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onclick="togglePassword()">
             <i id="toggleIcon" class="fas fa-eye text-gray-500"></i>
           </span>
         </div>
         <span id="passwordError" class="error-message text-red-500 text-sm"></span>
+      
+        <!-- Password Requirement Checklist -->
+        <div id="loginPasswordRequirements" class="text-sm mt-2 hidden space-y-1">
+          <div id="login-req-length" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Minimum 8 characters
+          </div>
+          <div id="login-req-lower" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Lowercase letter
+          </div>
+          <div id="login-req-upper" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Uppercase letter
+          </div>
+          <div id="login-req-number" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Number
+          </div>
+          <div id="login-req-special" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Special character
+          </div>
+          <div id="login-req-spaces" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> No spaces
+          </div>
+        </div>
+      
         <div class="text-right mt-2">
           <a href="forgot_password.html" class="text-sm text-blue-500 hover:underline">Forgot Password?</a>
         </div>
       </div>
+      
       <div class="flex gap-2 justify-center mb-8">
         <button type="button" id="adminBtn" class="role-toggle bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg" onclick="selectRole('admin')">Admin</button>
         <button type="button" id="branchBtn" class="role-toggle bg-gray-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg" onclick="selectRole('branch')">Branch</button>
