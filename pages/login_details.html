@@ -1,63 +1,75 @@
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Details</title>
+    <title>Tier 1 Details</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    // const isLoggedIn = localStorage.getItem("isLoggedIn");
-  
-    // if (!isLoggedIn) {
-    //   window.location.href = "user-signin.html"; // Redirect to login if not authenticated
-    // }
-  </script>
+
 </head>
+
 <body class="bg-black flex items-center justify-center min-h-screen p-4">
-<style>
+    <style>
         body {
-  font-family: 'Inter', sans-serif;
-}
+            font-family: 'Inter', sans-serif;
+        }
     </style>
-    <div class="  bg-[#F5F5F51A] border-gray-700  text-white rounded-lg p-8 w-full max-w-md">
-        <h1 class="text-center text-2xl font-semibold mb-6">You are Loged In</h1>
+
+    <button onclick="history.back()"
+        class="fixed top-10 left-4 flex items-center text-white/70 hover:text-white transition duration-300 z-50">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="text-base font-medium">Back</span>
+    </button>
+    <div class="bg-[#F5F5F51A] border-gray-700 text-white rounded-lg p-8 w-full max-w-md">
+        <h1 class="text-center text-2xl font-semibold mb-6">Tier 1 Details</h1>
         <form>
             <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Company Name</label>
+                <label class="block text-sm text-gray-400 font-medium mb-2">Company Name</label>
                 <div class="relative">
-                    <input type="text" class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none" placeholder="Company name">
+                    <input type="text" id="companyName"
+                        class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none"
+                        placeholder="Company name">
                     <i class="fas fa-building absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>
             <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Email</label>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Company Email</label>
                 <div class="relative">
-                    <input type="email" class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none" placeholder="Change email">
+                    <input type="email" id="companyEmail"
+                        class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none"
+                        placeholder="Company email">
                     <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Branch Code</label>
-                <div class="relative">
-                    <input type="text" class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none " >
-                    <i class="fas fa-code-branch absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Password</label>
-                <div class="relative">
-                    <input type="password" class="w-full bg-[#060606B2] text-white rounded-lg py-3 pl-10 pr-4 focus:outline-none" >
-                    <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
-                <a href="#" class="text-sm text-gray-400 hover:underline mt-2 inline-block">Forgot Password?</a>
-            </div>
-            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 focus:outline-none">Save</button>
+
+            <button type="submit"
+                class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 focus:outline-none"
+                onclick="event.preventDefault(); Swal.fire({ title: 'Your Company name and email has been updated', customClass: { popup: 'text-xs' } });">
+                Update
+            </button>
         </form>
-        <div class="text-center mt-4">
-            <span class="text-gray-400">or want to logout? </span>
-            <a href="#" class="text-blue-400 hover:underline">Log Out</a>
-        </div>
+
     </div>
+
+    <script>
+        // Load company data when the page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            const companyData = JSON.parse(localStorage.getItem('loggedInCompany'));
+
+            if (companyData) {
+                document.getElementById('companyName').value = companyData.companyName || '';
+                document.getElementById('companyEmail').value = companyData.companyEmail || '';
+            } else {
+                console.log('No company data found in localStorage');
+            }
+        });
+
+
+    </script>
 </body>
+
 </html>

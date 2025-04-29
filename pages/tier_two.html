@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Template Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="bg-black flex items-center justify-center min-h-screen p-4" style="font-family: 'Inter', sans-serif;">
+    <button onclick="history.back()"
+        class="fixed top-10 left-4 flex items-center text-white/70 hover:text-white transition duration-300 z-50">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="text-base font-medium">Back</span>
+    </button>
+
+    <div
+        class="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-8 w-full max-w-md text-white">
+        <h2 class="text-2xl font-bold mb-6 text-center">Verify Your Identity</h2>
+
+        <form id="verificationForm" class="space-y-5" enctype="multipart/form-data"
+            onsubmit="console.log('Form is submitting');">
+
+            <!-- Full Name -->
+            <div>
+                <label class="block mb-2 text-sm font-medium" for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="fullName" required
+                    class="w-full p-3 rounded-lg bg-white/10 border border-white/20 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            </div>
+
+            <!-- Email Address -->
+            <div>
+                <label class="block mb-2 text-sm font-medium" for="email">Email Address</label>
+                <input type="email" id="email" name="email" required
+                    class="w-full p-3 rounded-lg bg-white/10 border border-white/20 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            </div>
+
+            <!-- Date of Birth -->
+            <div>
+                <label class="block mb-2 text-sm font-medium" for="dob">Date of Birth</label>
+                <input type="date" id="dob" name="dob" required
+                    class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            </div>
+            <!-- Ghana Card ID Number -->
+            <div class="form-group">
+                <label for="ghanaCardId">Ghana Card ID Number</label>
+                <input type="text" id="ghanaCardId" name="ghanaCardId" required placeholder="1234567890" maxlength="17"
+                    class="w-full p-3 rounded-lg bg-white/10 border border-white/20 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    oninput="formatGhanaCard(this)" />
+            </div>
+
+            <script>
+                function formatGhanaCard(input) {
+                    let digits = input.value.replace(/\D/g, '').slice(0, 10); // Only digits, max 10
+                    if (digits.length === 0) {
+                        input.value = '';
+                    } else if (digits.length <= 9) {
+                        input.value = `GHA-${digits}`;
+                    } else {
+                        input.value = `GHA-${digits.slice(0, 9)}-${digits.slice(9)}`;
+                    }
+                }
+
+                document.getElementById('ghanaCardId').addEventListener('paste', function (e) {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                    const digits = pasted.replace(/\D/g, '').slice(0, 10);
+                    this.value = digits.length <= 9 ? `GHA-${digits}` : `GHA-${digits.slice(0, 9)}-${digits.slice(9)}`;
+                });
+            </script>
+
+
+
+
+            <!-- Ghana Card Upload -->
+            <div>
+                <label class="block mb-2 text-sm font-medium" for="ghanaCardFront">Ghana Card (Front)</label>
+                <input type="file" id="ghanaCardFront" name="ghanaCardFront" accept="image/*,.pdf" required
+                    class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-gray-400 file:bg-blue-600 file:border-0 file:rounded-lg file:px-4 file:py-2 file:text-white hover:file:bg-blue-700">
+                <!-- Preview container -->
+                <div id="frontCardPreview" class="mt-2 rounded-lg overflow-hidden hidden">
+                    <img src="" alt="Front Card Preview" class="w-full h-auto object-contain max-h-40">
+                    <button type="button" onclick="removePreview('ghanaCardFront')"
+                        class="w-full mt-1 bg-red-500 hover:bg-red-600 text-white text-sm py-1 rounded transition">
+                        Remove
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block mb-2 text-sm font-medium" for="ghanaCardBack">Ghana Card (Back)</label>
+                <input type="file" id="ghanaCardBack" name="ghanaCardBack" accept="image/*,.pdf" required
+                    class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-gray-400 file:bg-blue-600 file:border-0 file:rounded-lg file:px-4 file:py-2 file:text-white hover:file:bg-blue-700">
+                <!-- Preview container -->
+                <div id="backCardPreview" class="mt-2 rounded-lg overflow-hidden hidden">
+                    <img src="" alt="Back Card Preview" class="w-full h-auto object-contain max-h-40">
+                    <button type="button" onclick="removePreview('ghanaCardBack')"
+                        class="w-full mt-1 bg-red-500 hover:bg-red-600 text-white text-sm py-1 rounded transition">
+                        Remove
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selfie Choice -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium">Provide a Selfie</label>
+
+                <div class="flex gap-4">
+                    <button type="button" id="uploadOption"
+                        class="flex-1 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold transition">
+                        Upload Photo
+                    </button>
+                    <button type="button" id="liveOption"
+                        class="flex-1 py-2 bg-green-500 hover:bg-green-600 rounded-lg font-semibold transition">
+                        Take Live Photo
+                    </button>
+                </div>
+
+                <!-- Upload Input -->
+                <input type="file" id="selfieUpload" name="selfieUpload" accept="image/*"
+                    class="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-gray-400 file:bg-blue-600 file:border-0 file:rounded-lg file:px-4 file:py-2 file:text-white hover:file:bg-blue-700 hidden mt-2">
+
+                <!-- Uploaded selfie preview -->
+                <div id="uploadedSelfiePreview" class="mt-2 rounded-lg overflow-hidden hidden">
+                    <img src="" alt="Uploaded Selfie Preview" class="w-full h-auto object-contain max-h-40">
+                    <button type="button" onclick="removePreview('selfieUpload')"
+                        class="w-full mt-1 bg-red-500 hover:bg-red-600 text-white text-sm py-1 rounded transition">
+                        Remove
+                    </button>
+                </div>
+
+                <!-- Live Camera -->
+                <div id="liveCameraSection" class="hidden mt-4 space-y-2">
+                    <video id="camera" autoplay playsinline class="w-full rounded-lg border border-white/20"></video>
+                    <button type="button" id="captureBtn"
+                        class="w-full py-2 mt-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">
+                        Capture Selfie
+                    </button>
+                    <canvas id="selfieCanvas" class="hidden"></canvas>
+                    <input type="hidden" id="selfieData" name="selfieData">
+
+                    <!-- Captured selfie preview -->
+                    <div id="capturedSelfiePreview" class="mt-2 rounded-lg overflow-hidden hidden">
+                        <img src="" alt="Captured Selfie Preview" class="w-full h-auto object-contain max-h-40">
+                        <button type="button" id="retakeBtn"
+                            class="w-full mt-1 bg-red-500 hover:bg-red-600 text-white text-sm py-1 rounded transition">
+                            Retake
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                class="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-white tracking-wide transition">
+                Submit for Verification
+            </button>
+
+        </form>
+    </div>
+    <script>
+        const uploadOption = document.getElementById('uploadOption');
+        const liveOption = document.getElementById('liveOption');
+        const selfieUpload = document.getElementById('selfieUpload');
+        const liveCameraSection = document.getElementById('liveCameraSection');
+        const camera = document.getElementById('camera');
+        const captureBtn = document.getElementById('captureBtn');
+        const selfieCanvas = document.getElementById('selfieCanvas');
+        const selfieDataInput = document.getElementById('selfieData');
+        const capturedSelfiePreview = document.getElementById('capturedSelfiePreview');
+        const uploadedSelfiePreview = document.getElementById('uploadedSelfiePreview');
+        const retakeBtn = document.getElementById('retakeBtn');
+
+        let frontCardDataURL = '';
+        let backCardDataURL = '';
+        let selfieDataURL = '';
+
+        const allowedMimeTypes = [
+            'image/png', 'image/jpeg', 'image/jpg',
+            'image/webp', 'image/gif', 'image/heic', 'image/heif'
+        ];
+
+        function handleImagePreview(event, previewId, type) {
+            const file = event.target.files[0];
+            const previewContainer = document.getElementById(previewId);
+            const previewImg = previewContainer.querySelector('img');
+
+            if (!file || !file.type.startsWith('image/') || !allowedMimeTypes.includes(file.type)) {
+                alert('Only standard image files are allowed (PNG, JPEG, WEBP, HEIC, etc).');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                previewImg.alt = file.name;
+                previewContainer.classList.remove('hidden');
+
+                if (type === 'front') frontCardDataURL = e.target.result;
+                else if (type === 'back') backCardDataURL = e.target.result;
+                else if (type === 'selfie') selfieDataURL = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById('ghanaCardFront').addEventListener('change', function (e) {
+            handleImagePreview(e, 'frontCardPreview', 'front');
+        });
+
+        document.getElementById('ghanaCardBack').addEventListener('change', function (e) {
+            handleImagePreview(e, 'backCardPreview', 'back');
+        });
+
+        selfieUpload.addEventListener('change', function (e) {
+            handleImagePreview(e, 'uploadedSelfiePreview', 'selfie');
+        });
+
+        function removePreview(inputId) {
+            const input = document.getElementById(inputId);
+            input.value = '';
+
+            let previewContainer;
+            switch (inputId) {
+                case 'ghanaCardFront':
+                    previewContainer = document.getElementById('frontCardPreview');
+                    frontCardDataURL = '';
+                    break;
+                case 'ghanaCardBack':
+                    previewContainer = document.getElementById('backCardPreview');
+                    backCardDataURL = '';
+                    break;
+                case 'selfieUpload':
+                    previewContainer = document.getElementById('uploadedSelfiePreview');
+                    selfieDataURL = '';
+                    break;
+            }
+
+            if (previewContainer) {
+                previewContainer.classList.add('hidden');
+                const previewImg = previewContainer.querySelector('img');
+                previewImg.src = '';
+            }
+        }
+
+        uploadOption.addEventListener('click', () => {
+            selfieUpload.classList.remove('hidden');
+            liveCameraSection.classList.add('hidden');
+            stopCamera();
+        });
+
+        liveOption.addEventListener('click', () => {
+            selfieUpload.classList.add('hidden');
+            liveCameraSection.classList.remove('hidden');
+            startCamera();
+        });
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    camera.srcObject = stream;
+                })
+                .catch(() => {
+                    alert('Could not access camera. Please allow camera access.');
+                });
+        }
+
+        function stopCamera() {
+            if (camera.srcObject) {
+                const tracks = camera.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                camera.srcObject = null;
+            }
+        }
+
+        captureBtn.addEventListener('click', () => {
+            const context = selfieCanvas.getContext('2d');
+            selfieCanvas.width = camera.videoWidth;
+            selfieCanvas.height = camera.videoHeight;
+            context.drawImage(camera, 0, 0, selfieCanvas.width, selfieCanvas.height);
+
+            const dataURL = selfieCanvas.toDataURL('image/png');
+            selfieDataInput.value = dataURL;
+            selfieDataURL = dataURL;
+
+            const previewImg = capturedSelfiePreview.querySelector('img');
+            previewImg.src = dataURL;
+            capturedSelfiePreview.classList.remove('hidden');
+            captureBtn.classList.add('hidden');
+        });
+
+        retakeBtn.addEventListener('click', () => {
+            capturedSelfiePreview.classList.add('hidden');
+            captureBtn.classList.remove('hidden');
+            selfieDataInput.value = '';
+            selfieDataURL = '';
+        });
+
+        const form = document.getElementById('verificationForm');
+        // Function to get the file extension (e.g., .png, .jpg)
+        function getFileExtension(fileName) {
+            return fileName.split('.').pop().toLowerCase();
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const fullNameRaw = formData.get('fullName').trim();
+            const ghanaCardId = formData.get('ghanaCardId').trim();
+
+            // Ghana Card ID should match this pattern
+            const ghanaCardPattern = /^GHA-\d{9}-\d$/;
+            if (!ghanaCardPattern.test(ghanaCardId)) {
+                alert('Invalid Ghana Card ID. It must be in the format: GHA-XXXXXXXXX-X');
+                return;
+            }
+
+            // Split the name into first and last name
+            const nameParts = fullNameRaw.split(' ');
+            const firstName = nameParts[0];
+            const lastName = nameParts.slice(1).join(' ');
+            const fullName = `${firstName}_${lastName}`;
+            const dateStr = new Date().toISOString().split('T')[0];
+
+            const data = {};
+            formData.forEach((value, key) => {
+                // Add form data excluding base64 images
+                if (key !== 'frontCardImage' && key !== 'backCardImage' && key !== 'selfieImage') {
+                    data[key] = value;
+                }
+            });
+
+            // Ensure the image paths are set correctly
+            if (!frontCardDataURL || !backCardDataURL || !selfieDataURL) {
+                alert('Please make sure all images are uploaded.');
+                return;
+            }
+
+            // Set the image paths instead of storing the base64 data
+            const frontCardExtension = getFileExtension(frontCardDataURL);
+            const backCardExtension = getFileExtension(backCardDataURL);
+            const selfieExtension = getFileExtension(selfieDataURL);
+
+            data.frontCardPath = `card_uploads/${fullName}_front.${frontCardExtension}`;
+            data.backCardPath = `card_uploads/${fullName}_back.${backCardExtension}`;
+            data.selfiePath = `selfie_uploads/${dateStr}_${fullName}.${selfieExtension}`;
+
+            // Store only necessary metadata in localStorage (no base64 images)
+            localStorage.setItem('identityVerification', JSON.stringify(data));
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Verification Submitted',
+                text: 'Your identity verification has been submitted and is pending review.',
+                background: '#1E1E1E',
+                color: '#FFFFFF',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                window.location.href = 'account_verification.html';
+            });
+        });
+
+    </script>
+
+
+
+</body>
+
+</html>
