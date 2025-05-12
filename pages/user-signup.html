@@ -147,64 +147,7 @@
         }
     </script>
 
-    <!-- <script>
-    document.getElementById("registerForm").addEventListener("submit", function (e) {
-        e.preventDefault(); // Prevent form from submitting until validation is done
-
-        // Input elements
-        const companyName = document.getElementById("companyName");
-        const email = document.getElementById("companyEmail");
-        const password = document.getElementById("password");
-
-        // Error elements
-        const companyError = document.getElementById("companyError");
-        const emailError = document.getElementById("emailError");
-        const passwordError = document.getElementById("passwordError");
-
-        // Validation flags
-        let isValid = true;
-
-        // Validate company name
-        if (companyName.value.trim() === "") {
-            companyError.classList.remove("hidden");
-            isValid = false;
-        } else {
-            companyError.classList.add("hidden");
-        }
-
-        // Validate email
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(email.value.trim())) {
-            emailError.classList.remove("hidden");
-            isValid = false;
-        } else {
-            emailError.classList.add("hidden");
-        }
-
-        // Validate password
-        const passwordPattern =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-        if (!passwordPattern.test(password.value)) {
-            passwordError.classList.remove("hidden");
-            isValid = false;
-        } else {
-            passwordError.classList.add("hidden");
-        }
-
-        // If all valid, proceed to submit
-        if (isValid) {
-            // Optional: Add loading indicator
-            const submitBtn = document.getElementById("submitButton");
-            submitBtn.classList.add("btn-loading");
-
-            // Simulate form submission or trigger backend handler
-            setTimeout(() => {
-                document.getElementById("registerForm").submit();
-            }, 500); // Adjust timing or call your actual submit logic here
-        }
-    });
-</script> -->
-
+    
     <script src="company-auth.js" defer></script>
 </body>
 

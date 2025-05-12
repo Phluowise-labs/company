@@ -536,7 +536,6 @@ function initLoginPasswordLiveCheck() {
 document.addEventListener("DOMContentLoaded", initLoginPasswordLiveCheck);
 
 // Rest of your existing helper functions (isValidEmail, isValidPassword, etc.)
-
 // ========================
 // 3. FORGOT PASSWORD - Send OTP
 // ========================
@@ -545,10 +544,12 @@ async function handleForgotPassword(e) {
   const form = document.getElementById("forgotForm");
   const messageElement = document.getElementById("forgotMessage");
 
-  const email = document.getElementById("forgotEmail").value;
+  const email = document.getElementById("forgotEmail").value.trim();
+  console.log("Forgot Password Attempt for Email:", email);
 
   try {
     showLoading(form);
+
     const response = await fetch(`${baseUrl}/company/forgot-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -561,7 +562,6 @@ async function handleForgotPassword(e) {
     if (response.ok) {
       showMessage(messageElement, result.message, "success");
 
-      // Store all necessary tokens for the reset flow
       localStorage.setItem(STORAGE_KEYS.OTP_PURPOSE, "forgot");
       localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token);
       localStorage.setItem(STORAGE_KEYS.OTP_EMAIL, email);
@@ -569,13 +569,15 @@ async function handleForgotPassword(e) {
 
       setTimeout(() => (window.location.href = "otp-verification.html"), 1500);
     } else {
-      showMessage(
-        messageElement,
-        result.message || "Failed to send OTP.",
-        "error"
-      );
+      const errorMessage =
+        result.detail ||
+        result.message ||
+        "Failed to send OTP. Please check the email and try again.";
+      console.warn("Forgot Password Error:", errorMessage);
+      showMessage(messageElement, errorMessage, "error");
     }
   } catch (error) {
+    console.error("Forgot Password Exception:", error);
     showMessage(messageElement, `Error: ${error.message}`, "error");
   } finally {
     hideLoading(form);
@@ -591,13 +593,10 @@ async function handleOtpValidation(e) {
   const errorElement = document.getElementById("errorMessage");
   const verifyButton = document.getElementById("verifyButton");
 
-  // Combine all OTP digits (fixing template literal issue)
+  // Combine all OTP digits
   const otp = Array.from({ length: 6 }, (_, i) =>
     document.getElementById(`otp${i + 1}`).value.trim()
   ).join("");
-
-  // Log OTP value for debugging
-  console.log("Entered OTP:", otp);
 
   // Validate OTP length
   if (otp.length !== 6) {
@@ -611,12 +610,14 @@ async function handleOtpValidation(e) {
   verifyButton.classList.add("btn-loading");
   verifyButton.innerHTML = "Verifying...";
 
+  // Get values from storage
   const registerToken = localStorage.getItem(STORAGE_KEYS.OTP_TOKEN);
   const loginToken = localStorage.getItem(STORAGE_KEYS.LOGIN_TOKEN);
   const purpose = localStorage.getItem(STORAGE_KEYS.OTP_PURPOSE);
   const email = localStorage.getItem(STORAGE_KEYS.OTP_EMAIL);
 
-  // Log tokens and email for debugging
+  // 🔍 DEBUG LOGS
+  console.log("Entered OTP:", otp);
   console.log("Register Token:", registerToken);
   console.log("Login Token:", loginToken);
   console.log("OTP Purpose:", purpose);
@@ -625,62 +626,51 @@ async function handleOtpValidation(e) {
   try {
     let response, result;
 
-    // Check if we have a valid register token or login token and send the request accordingly
     if (registerToken) {
       console.log("Sending request to /company/register-validate-otp...");
       response = await fetch(`${baseUrl}/company/register-validate-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: registerToken,
-          otp: otp,
-        }),
+        body: JSON.stringify({ token: registerToken, otp }),
       });
     } else if (loginToken) {
       console.log("Sending request to /company/validate-otp...");
       response = await fetch(`${baseUrl}/company/validate-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: loginToken,
-          otp: otp,
-        }),
+        body: JSON.stringify({ token: loginToken, otp }),
       });
     } else {
       throw new Error("No OTP session found. Please start the process again.");
     }
 
     result = await response.json();
-
-    // Log the server response for debugging
     console.log("OTP Validation Response:", result);
 
     if (!response.ok) {
-      throw new Error(result.message || "OTP validation failed. Please try again.");
+      throw new Error(
+        result.message || "OTP validation failed. Please try again."
+      );
     }
 
-    // Success handling
+    // Success: Hide error
     errorElement.classList.add("hidden");
 
     if (registerToken) {
-      // Registration success
       localStorage.setItem(
         STORAGE_KEYS.REGISTERED_COMPANY,
         JSON.stringify(result)
       );
       localStorage.removeItem(STORAGE_KEYS.OTP_TOKEN);
-      console.log("Registration successful! Redirecting to login...");
       showSuccessToast("Registration successful! Redirecting to login...");
       setTimeout(() => (window.location.href = "user-signin.html"), 2000);
     } else {
-      // Login/Forgot password success
       localStorage.setItem(
         STORAGE_KEYS.LOGGED_IN_COMPANY,
         JSON.stringify(result)
       );
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, result.token);
 
-      // Only remove these if we're not in forgot password flow
       if (purpose !== "forgot") {
         localStorage.removeItem(STORAGE_KEYS.LOGIN_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.OTP_PURPOSE);
@@ -688,7 +678,6 @@ async function handleOtpValidation(e) {
 
       const redirectUrl =
         purpose === "forgot" ? "setnew_password.html" : "account.html";
-      console.log("OTP verified! Redirecting to the appropriate page...");
       showSuccessToast(
         purpose === "forgot"
           ? "OTP verified! You can now set your new password."
@@ -701,12 +690,11 @@ async function handleOtpValidation(e) {
     errorElement.textContent = error.message;
     errorElement.classList.remove("hidden");
 
-    // If the error suggests an expired/invalid token, clear it
+    // Clear old tokens if expired/invalid
     if (
       error.message.includes("expired") ||
       error.message.includes("invalid")
     ) {
-      console.log("OTP token expired or invalid. Removing tokens from localStorage...");
       localStorage.removeItem(STORAGE_KEYS.OTP_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.LOGIN_TOKEN);
     }
@@ -716,8 +704,6 @@ async function handleOtpValidation(e) {
     verifyButton.textContent = "Verify Code";
   }
 }
-
-
 
 // ========================
 // 5. CHANGE PASSWORD
@@ -928,7 +914,8 @@ function setupResendButton() {
       resendMsg.textContent = "Sending new code...";
       resendMsg.classList.remove("hidden");
 
-      let response, result;
+      let response;
+      let result;
 
       if (registerToken) {
         response = await fetch(`${baseUrl}/company/register-resend-otp`, {
@@ -938,37 +925,48 @@ function setupResendButton() {
         });
 
         result = await response.json();
-        if (!response.ok) throw new Error(result.message || "Failed to resend OTP");
+        if (!response.ok)
+          throw new Error(result.message || "Failed to resend OTP");
 
-        // ✅ Update token
-        localStorage.setItem(STORAGE_KEYS.OTP_TOKEN, result.token);
-
+        // 🔄 Update stored OTP token with the new one
+        if (result.token) {
+          localStorage.setItem(STORAGE_KEYS.OTP_TOKEN, result.token);
+        }
       } else if (loginToken) {
-        const endpoint = purpose === "forgot" ? "/company/forgot-password" : "/company/login";
-        const password = localStorage.getItem(STORAGE_KEYS.OTP_PASSWORD); // ⬅️ Must be stored during login
+        const endpoint =
+          purpose === "forgot" ? "/company/forgot-password" : "/company/login";
 
-        if (!password) throw new Error("Missing login password for resend.");
+        let requestBody = { email };
+
+        // Skip password validation if it's the "forgot" flow
+        if (purpose !== "forgot") {
+          const password = localStorage.getItem(STORAGE_KEYS.OTP_PASSWORD);
+          if (!password) throw new Error("Missing login password for resend.");
+          requestBody.password = password;
+        }
 
         response = await fetch(`${baseUrl}${endpoint}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify(requestBody),
         });
 
         result = await response.json();
-        if (!response.ok) throw new Error(result.message || "Failed to resend OTP");
+        if (!response.ok)
+          throw new Error(result.message || "Failed to resend OTP");
 
-        // ✅ Update token
-        localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token);
+        // 🔄 Update stored login token with the new one
+        if (result.token) {
+          localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token);
+        }
       } else {
         throw new Error("No active OTP session found");
       }
 
       resendMsg.textContent = "New verification code sent!";
-      localStorage.setItem(STORAGE_KEYS.RESEND_TIMEOUT, Date.now() + 60000); // 1 minute cooldown
+      localStorage.setItem(STORAGE_KEYS.RESEND_TIMEOUT, Date.now() + 60000); // 1 min cooldown
       startResendCooldown(60);
     } catch (error) {
-      console.error("Resend OTP Error:", error);
       resendMsg.textContent = error.message;
       resendBtn.disabled = false;
     }
@@ -1047,7 +1045,8 @@ function checkResetPasswordAccess() {
 
 function showMessage(element, message, type) {
   if (!element) return;
-  element.innerHTML = `<p class="${type}">${message}</p>`;
+  const color = type === "success" ? "text-green-500" : "text-red-500";
+  element.innerHTML = `<p class="${color}">${message}</p>`;
   element.classList.remove("hidden");
 }
 
