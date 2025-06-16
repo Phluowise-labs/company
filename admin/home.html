@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Home Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glassmorphism {
+            background: #212121;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .bg-gradient {
+            background: linear-gradient(135deg, #1a1a1a 0%, #121212 100%);
+        }
+
+        .text-increase {
+            color: #10b981;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #10b981;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+        <!-- Main Content -->
+        <div class="ml-64  p-5 w-full text-white">
+            <!-- Top Bar -->
+            <!-- TOPBAR PLACEHOLDER -->
+            <div id="topbar">
+                <script>
+                    fetch("topbar.html")
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById("topbar").innerHTML = data;
+
+                            // Attach logout handler after topbar is loaded
+                            const logoutBtn = document.querySelector(".logout-btn");
+                            if (logoutBtn) logoutBtn.addEventListener("click", confirmLogout);
+                        });
+
+                    // Global logout function
+                    function confirmLogout(e) {
+                        e.preventDefault(); // Prevent <a href="#"> default action
+                        Swal.fire({
+                            title: 'Log out?',
+                            text: "You'll be signed out!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, log out'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Clear only necessary login-related storage
+                                localStorage.removeItem("authToken");           // Company login session
+                                localStorage.removeItem("loginToken");          // Temp login token for OTP
+                                localStorage.removeItem("otpPurpose");          // Used for knowing OTP flow
+                                localStorage.removeItem("otpToken");            // OTP token (login/forgot)
+                                localStorage.removeItem("otpEmail");            // Email used in OTP
+                                localStorage.removeItem("loggedInCompany");     // Company info after login
+                                localStorage.removeItem("resendTimeout");       // OTP resend timer
+
+                                // Redirect to login page
+                                window.location.href = "user-signin.html";
+                            }
+                        });
+                    }
+                </script>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="container mt-10 z-0 mx-auto p-4">
+                <!-- write the content of the page here -->
+                <div class="min-h-screen p-4">
+                    <div class="max-w-6xl mx-auto space-y-6">
+                        <!-- Top cards row -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Total Transaction -->
+                            <div class="glassmorphism p-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h2 class="text-gray-300 font-medium">Total Transaction</h2>
+                                    <div class="bg-green-800/40 px-3 py-1 rounded-full flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-400"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                        </svg>
+                                        <span class="text-green-400 text-sm ml-1" id="transaction-growth">10.0%</span>
+                                    </div>
+                                </div>
+                                <div class="text-3xl font-bold" id="total-amount">GH₵ 930.00</div>
+                            </div>
+
+                            <!-- Booked Orders -->
+                            <div class="glassmorphism p-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h2 class="text-gray-300 font-medium">Booked Orders</h2>
+                                    <div class="bg-green-800/40 px-3 py-1 rounded-full flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-400"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                        </svg>
+                                        <span class="text-green-400 text-sm ml-1" id="orders-growth">20%</span>
+                                    </div>
+                                </div>
+                                <div class="text-3xl font-bold" id="orders-count">50 orders</div>
+                            </div>
+
+                            <!-- Total Requests -->
+                            <div class="glassmorphism p-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h2 class="text-gray-300 font-medium">Total Requests</h2>
+                                </div>
+                                <div class="text-3xl font-bold" id="requests-count">500 orders</div>
+                            </div>
+                        </div>
+
+                        <!-- Chart section -->
+
+                        <!-- Chart section -->
+                        <div class="glassmorphism p-6">
+                            <div class="flex justify-between items-center mb-8">
+                                <h2 class="text-xl font-medium">Transaction analysis (GH₵)</h2>
+                                <div class="flex items-center">
+                                    <div>
+                                        <p>Total Amount : <span class="bg-blue-800/70 px-3 py-1 rounded-lg text-white"
+                                                id="highlight-value">0</span></p>
+                                    </div>
+                                    <div class="relative ml-6">
+                                        <select id="year-selector"
+                                            class="appearance-none bg-gray-700 border border-gray-600 rounded-md px-3 py-1 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <!-- Years will be populated dynamically -->
+                                        </select>
+                                        <div
+                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Canvas for Chart.js -->
+                            <div class="h-64">
+                                <canvas id="transactionChart"></canvas>
+                            </div>
+
+                            <!-- Legend -->
+                            <div class="mt-4 flex items-center">
+                                <div class="w-4 h-4 bg-blue-700 rounded mr-2"></div>
+                                <span>Transaction</span>
+                            </div>
+                        </div>
+
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                        <script>
+                            // Global chart reference
+                            let transactionChart;
+
+                            // First, let's create a function to load the transaction data from account.json
+                            async function loadTransactionData() {
+                                try {
+                                    // In a real application, you would fetch this from your API:
+                                    // const response = await fetch('/api/transactions');
+                                    // const data = await response.json();
+
+                                    // For this example, we'll use the account.json file
+                                    const response = await fetch('account.json');
+                                    if (!response.ok) {
+                                        throw new Error('Failed to load account data');
+                                    }
+                                    const data = await response.json();
+
+                                    // No need to process the data - it's already in the correct format
+                                    const transactionData = data.transactions;
+
+                                    // Populate year selector
+                                    populateYearSelector(transactionData);
+
+                                    // Initialize chart with the most recent year's data
+                                    const years = Object.keys(transactionData).sort((a, b) => b - a);
+                                    if (years.length > 0) {
+                                        updateChart(transactionData[years[0]], years[0]);
+                                    }
+                                } catch (error) {
+                                    console.error('Error loading transaction data:', error);
+                                    // Fallback to sample data if JSON file can't be loaded
+                                    const sampleData = {
+                                        "2023": [
+                                            { month: 'Jan', amount: 360 },
+                                            { month: 'Feb', amount: 400 },
+                                            { month: 'Mar', amount: 480 },
+                                            { month: 'Apr', amount: 380 },
+                                            { month: 'May', amount: 300 },
+                                            { month: 'Jun', amount: 380 },
+                                            { month: 'Jul', amount: 400 },
+                                            { month: 'Aug', amount: 640 },
+                                            { month: 'Sep', amount: 440 },
+                                            { month: 'Oct', amount: 420 },
+                                            { month: 'Nov', amount: 340 },
+                                            { month: 'Dec', amount: 460 }
+                                        ],
+                                        "2022": [
+                                            { month: 'Jan', amount: 300 },
+                                            { month: 'Feb', amount: 350 },
+                                            { month: 'Mar', amount: 420 },
+                                            { month: 'Apr', amount: 320 },
+                                            { month: 'May', amount: 280 },
+                                            { month: 'Jun', amount: 350 },
+                                            { month: 'Jul', amount: 380 },
+                                            { month: 'Aug', amount: 500 },
+                                            { month: 'Sep', amount: 400 },
+                                            { month: 'Oct', amount: 380 },
+                                            { month: 'Nov', amount: 300 },
+                                            { month: 'Dec', amount: 420 }
+                                        ]
+                                    };
+                                    populateYearSelector(sampleData);
+                                    updateChart(sampleData["2023"], "2023");
+                                }
+                            }
+
+
+
+                            // Process transaction data to group by year and month
+                            function processTransactionData(transactions) {
+                                const result = {};
+
+                                // Sample processing - adjust according to your actual data structure
+                                // This assumes transactions have date and amount properties
+                                transactions.forEach(transaction => {
+                                    const date = new Date(transaction.date); // Adjust based on your date field
+                                    const year = date.getFullYear();
+                                    const month = date.getMonth(); // 0-11
+
+                                    if (!result[year]) {
+                                        result[year] = Array(12).fill().map((_, i) => ({
+                                            month: getMonthName(i),
+                                            amount: 0
+                                        }));
+                                    }
+
+                                    result[year][month].amount += transaction.amount;
+                                });
+
+                                return result;
+                            }
+
+                            // Helper function to get month name from index
+                            function getMonthName(monthIndex) {
+                                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                return months[monthIndex];
+                            }
+
+                            // Populate the year selector dropdown
+                            function populateYearSelector(data) {
+                                const yearSelector = document.getElementById('year-selector');
+                                yearSelector.innerHTML = '';
+
+                                const years = Object.keys(data).sort((a, b) => b - a);
+                                years.forEach(year => {
+                                    const option = document.createElement('option');
+                                    option.value = year;
+                                    option.textContent = year;
+                                    yearSelector.appendChild(option);
+                                });
+
+                                // Add event listener for year changes
+                                yearSelector.addEventListener('change', (e) => {
+                                    const selectedYear = e.target.value;
+                                    updateChart(data[selectedYear], selectedYear);
+                                });
+                            }
+
+                            // Update the chart with new data
+                            function updateChart(monthlyData, year) {
+                                const ctx = document.getElementById('transactionChart').getContext('2d');
+
+                                // Extract data for chart
+                                const labels = monthlyData.map(item => item.month);
+                                const amounts = monthlyData.map(item => item.amount);
+
+                                // Calculate total for the highlight value
+                                const total = amounts.reduce((sum, amount) => sum + amount, 0);
+                                document.getElementById('highlight-value').textContent = total.toLocaleString();
+
+                                // Destroy previous chart if it exists
+                                if (transactionChart) {
+                                    transactionChart.destroy();
+                                }
+
+                                // Create new chart
+                                transactionChart = new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            label: `Transactions (${year})`,
+                                            data: amounts,
+                                            backgroundColor: labels.map((_, i) =>
+                                                i === new Date().getMonth() && year === new Date().getFullYear().toString()
+                                                    ? '#40444B' // Highlight current month with hover color
+                                                    : '#40444B' // Default color for other bars
+                                            ),
+                                            borderColor: labels.map((_, i) =>
+                                                i === new Date().getMonth() && year === new Date().getFullYear().toString()
+                                                    ? '#3B74FF'
+                                                    : '#E0E0E0' // Light gray border
+                                            ),
+                                            borderWidth: 1,
+                                            borderRadius: 6,
+                                            hoverBackgroundColor: '#3B74FF', // Hover color
+                                            hoverBorderColor: '#3B74FF',
+                                            hoverBorderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        animation: {
+                                            duration: 1000,
+                                            easing: 'easeOutQuart'
+                                        },
+                                        plugins: {
+                                            legend: {
+                                                display: false
+                                            },
+                                            tooltip: {
+                                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                                titleColor: '#f8fafc',
+                                                bodyColor: '#e2e8f0',
+                                                borderColor: 'rgba(71, 85, 105, 0.5)',
+                                                borderWidth: 1,
+                                                padding: 12,
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        return `GH₵${context.raw.toLocaleString()}`;
+                                                    },
+                                                    title: function (context) {
+                                                        return `${context[0].label} ${year}`;
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                grid: {
+                                                    color: 'rgba(71, 85, 105, 0.2)',
+                                                    drawBorder: false
+                                                },
+                                                ticks: {
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    callback: function (value) {
+                                                        return 'GH₵' + value.toLocaleString();
+                                                    },
+                                                    font: {
+                                                        weight: '500'
+                                                    }
+                                                },
+                                                title: {
+                                                    display: true,
+                                                    text: 'Amount (GH₵)',
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    font: {
+                                                        size: 14,
+                                                        weight: '600'
+                                                    }
+                                                }
+                                            },
+                                            x: {
+                                                grid: {
+                                                    display: false,
+                                                    drawBorder: false
+                                                },
+                                                ticks: {
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    font: {
+                                                        weight: '500'
+                                                    }
+                                                },
+                                                title: {
+                                                    display: true,
+                                                    text: 'Months',
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    font: {
+                                                        size: 14,
+                                                        weight: '600'
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        // Custom hover effects
+                                        interaction: {
+                                            intersect: false,
+                                            mode: 'index'
+                                        },
+                                        // Custom bar appearance
+                                        elements: {
+                                            bar: {
+                                                backgroundColor: '#F5F5F5', // Default color
+                                                borderColor: '#E0E0E0',     // Default border
+                                                borderWidth: 1,
+                                                borderRadius: 6,
+                                                hoverBackgroundColor: '#3B74FF', // Hover color
+                                                hoverBorderColor: '#3B74FF'
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            // Initialize the chart when the page loads
+                            document.addEventListener('DOMContentLoaded', loadTransactionData);
+                        </script>
+                        <!-- End of chart section -->
+
+                        <!-- Bottom section -->
+                        <!-- Account Withdrawal Method Section -->
+<div class="rounded-xl bg-gray-800 overflow-hidden">
+    <!-- Header -->
+    <div class="bg-blue-500 p-4 flex justify-center items-center">
+        <span class="text-white text-lg font-medium">Set Account Withdrawal Method</span>
+    </div>
+    
+    <!-- Set Automatically Toggle -->
+    <div class="p-4 flex justify-between items-center border-b border-gray-700">
+        <span class="text-gray-300">Set Automatically</span>
+        <label class="relative inline-block w-12 h-6">
+            <input type="checkbox" id="auto-toggle" checked class="opacity-0 w-0 h-0">
+            <span class="absolute cursor-pointer inset-0 bg-gray-600 rounded-full transition-all duration-300 before:content-[''] before:absolute before:h-5 before:w-5 before:left-0.5 before:bottom-0.5 before:bg-white before:rounded-full before:transition-all before:duration-300 checked:before:translate-x-6 checked:bg-green-500"></span>
+        </label>
+    </div>
+    
+    <!-- Set Manually Toggle -->
+    <div class="p-4 flex justify-between items-center">
+        <span class="text-gray-300">Set Manually</span>
+        <label class="relative inline-block w-12 h-6">
+            <input type="checkbox" id="manual-toggle" class="opacity-0 w-0 h-0">
+            <span class="absolute cursor-pointer inset-0 bg-gray-600 rounded-full transition-all duration-300 before:content-[''] before:absolute before:h-5 before:w-5 before:left-0.5 before:bottom-0.5 before:bg-white before:rounded-full before:transition-all before:duration-300 checked:before:translate-x-6 checked:bg-green-500"></span>
+        </label>
+    </div>
+</div>                    </div>
+
+                    <!-- end of page -->
+                </div>
+                <!-- end of content -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // Event listeners for interactive elements
+        document.getElementById('pay-button').addEventListener('click', function () {
+            alert('Payment process initiated!');
+        });
+
+
+        document.getElementById('payment-method').addEventListener('click', function () {
+            alert('Set your payment method here!');
+            window.location.href = 'payment_method.html';
+        });
+
+        // Toggle switches - make them mutually exclusive for manual and auto
+        document.getElementById('auto-toggle').addEventListener('change', function () {
+            if (this.checked) {
+                document.getElementById('manual-toggle').checked = false;
+            }
+        });
+
+        document.getElementById('manual-toggle').addEventListener('change', function () {
+            if (this.checked) {
+                document.getElementById('auto-toggle').checked = false;
+            }
+        });        
+    </script>
+    <script>
+
+
+        // Add the withdrawal method indicator
+        function setupWithdrawalMethodIndicator() {
+            // Get the withdrawal method element
+            const withdrawalMethodEl = document.querySelector('.glassmorphism.p-6.flex.justify-between.items-center:first-of-type');
+
+            // Create the indicator element
+            const indicator = document.createElement('div');
+            indicator.className = 'h-3 w-3 bg-green-500 rounded-full mr-2';
+
+            // Insert before the toggle switch
+            const toggleSwitch = withdrawalMethodEl.querySelector('.toggle-switch');
+            withdrawalMethodEl.insertBefore(indicator, toggleSwitch);
+
+            // Update the text to include the indicator
+            withdrawalMethodEl.querySelector('span').textContent = 'Withdrawal Method (Set)';
+        }
+
+        // Create a modal component
+        function createModal(title, message) {
+            // Create modal backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+
+            // Create modal content
+            const modal = document.createElement('div');
+            modal.className = 'glassmorphism p-6 rounded-lg max-w-md w-full';
+
+            modal.innerHTML = `
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-medium text-white">${title}</h3>
+      <button class="modal-close text-gray-400 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="text-gray-300">
+      ${message}
+    </div>
+    <div class="mt-6 flex justify-end">
+      <button class="modal-close bg-blue-700 hover:bg-blue-800 text-white py-2 px-4 rounded-md transition">
+        OK
+      </button>
+    </div>
+  `;
+
+            backdrop.appendChild(modal);
+            document.body.appendChild(backdrop);
+
+            // Add event listeners to close buttons
+            const closeButtons = backdrop.querySelectorAll('.modal-close');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    backdrop.remove();
+                });
+            });
+
+            return backdrop;
+        }
+
+        // Setup the toggle event listeners for withdrawal methods
+        function setupWithdrawalMethodToggles() {
+            // Auto toggle
+            document.getElementById('auto-toggle').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('manual-toggle').checked = false;
+                    createModal('Automatic Withdrawal', 'Withdrawal will automatically be processed.');
+                }
+            });
+
+            // Manual toggle
+            document.getElementById('manual-toggle').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('auto-toggle').checked = false;
+                    createModal('Manual Withdrawal', 'By setting account to manual. You will have to confirm each transaction before withdrawal.');
+                }
+            });
+        }
+
+        // Initialize all new features
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load transaction data from JSON
+            loadTransactionData();
+
+            // Setup the withdrawal indicator
+            setupWithdrawalMethodIndicator();
+
+            // Setup withdrawal method toggles with modals
+            setupWithdrawalMethodToggles();
+
+            // Initialize the countdown (from existing code)
+            updateCountdown({ hours: 12, minutes: 24, seconds: 29 });
+
+            // Initialize user cards (from existing code)
+            createUserCards(users);
+        });
+    </script>
+
+</body>
+
+</html>

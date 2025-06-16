@@ -1,0 +1,82 @@
+{
+    "deleted_users": [
+        {
+            "id": "USR123",
+            "name": "Michael Brown",
+            "email": "m.brown@example.com",
+            "deletionDate": "2024-03-10T09:15:00",
+            "reason": "Account inactive for 6 months",
+            "type": "regular",
+            "joinDate": "2023-06-15T14:30:00",
+            "lastActive": "2023-09-10T16:45:00",
+            "deletedBy": "system",
+            "recoverable": true,
+            "recoverableUntil": "2024-04-10T09:15:00"
+        },
+        {
+            "id": "USR456",
+            "name": "Emma Wilson",
+            "email": "e.wilson@example.com",
+            "deletionDate": "2024-03-12T11:30:00",
+            "reason": "User requested account deletion",
+            "type": "premium",
+            "joinDate": "2023-08-20T10:00:00",
+            "lastActive": "2024-03-11T23:45:00",
+            "deletedBy": "user",
+            "recoverable": true,
+            "recoverableUntil": "2024-04-12T11:30:00"
+        },
+        {
+            "id": "USR789",
+            "name": "David Chen",
+            "email": "d.chen@example.com",
+            "deletionDate": "2024-03-15T08:20:00",
+            "reason": "Multiple policy violations",
+            "type": "regular",
+            "joinDate": "2023-11-05T16:15:00",
+            "lastActive": "2024-03-14T22:10:00",
+            "deletedBy": "admin",
+            "recoverable": false,
+            "violations": [
+                {
+                    "date": "2024-02-15T14:20:00",
+                    "type": "inappropriate_content",
+                    "description": "Posted prohibited content"
+                },
+                {
+                    "date": "2024-03-10T09:45:00",
+                    "type": "harassment",
+                    "description": "Multiple user complaints"
+                }
+            ]
+        },
+        {
+            "id": "USR101",
+            "name": "Lisa Martinez",
+            "email": "l.martinez@example.com",
+            "deletionDate": "2024-03-14T15:45:00",
+            "reason": "Fraudulent activity detected",
+            "type": "premium",
+            "joinDate": "2023-12-01T11:30:00",
+            "lastActive": "2024-03-14T15:40:00",
+            "deletedBy": "system",
+            "recoverable": false,
+            "fraudDetails": {
+                "detectionDate": "2024-03-14T15:30:00",
+                "type": "payment_fraud",
+                "severity": "high"
+            }
+        }
+    ],
+    "metadata": {
+        "totalDeleted": 4,
+        "lastUpdated": "2024-03-15T14:30:00",
+        "deletionReasons": {
+            "inactivity": 1,
+            "user_requested": 1,
+            "policy_violation": 1,
+            "fraud": 1
+        },
+        "recoverableCount": 2
+    }
+} 

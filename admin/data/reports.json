@@ -1,0 +1,114 @@
+{
+    "reports": [
+        {
+            "id": "REP001",
+            "type": "company",
+            "name": "TechCorp Solutions",
+            "companyId": "COMP123",
+            "reportInformation": "Payment delayed for 3 consecutive months. Multiple warnings issued.",
+            "timeJoined": "2023-09-15T10:30:00",
+            "status": "pending",
+            "media": [
+                {
+                    "type": "image",
+                    "url": "../images/reports/payment_screenshot1.jpg",
+                    "caption": "Payment history screenshot"
+                },
+                {
+                    "type": "document",
+                    "url": "../documents/warning_letter.pdf",
+                    "caption": "Warning letter"
+                }
+            ],
+            "timestamp": "2024-03-15T14:30:00"
+        },
+        {
+            "id": "REP002",
+            "type": "user",
+            "name": "John Smith",
+            "userId": "USR456",
+            "reportInformation": "Inappropriate content posted in product reviews. Multiple user complaints received.",
+            "timeJoined": "2023-11-20T15:45:00",
+            "status": "resolved",
+            "media": [
+                {
+                    "type": "image",
+                    "url": "../images/reports/content_violation1.jpg",
+                    "caption": "Screenshot of violation"
+                },
+                {
+                    "type": "video",
+                    "url": "../videos/user_behavior.mp4",
+                    "caption": "User behavior recording"
+                }
+            ],
+            "timestamp": "2024-03-14T09:15:00"
+        },
+        {
+            "id": "REP003",
+            "type": "company",
+            "name": "Global Retail Inc",
+            "companyId": "COMP789",
+            "reportInformation": "Multiple customer complaints about product quality and delivery delays.",
+            "timeJoined": "2023-08-01T09:00:00",
+            "status": "investigating",
+            "media": [
+                {
+                    "type": "image",
+                    "url": "../images/reports/customer_complaint1.jpg",
+                    "caption": "Customer complaint screenshot"
+                },
+                {
+                    "type": "image",
+                    "url": "../images/reports/delivery_delay.jpg",
+                    "caption": "Delivery tracking"
+                }
+            ],
+            "timestamp": "2024-03-13T16:45:00"
+        },
+        {
+            "id": "REP004",
+            "type": "user",
+            "name": "Sarah Johnson",
+            "userId": "USR789",
+            "reportInformation": "Suspected fraudulent activity in transactions.",
+            "timeJoined": "2024-01-10T11:20:00",
+            "status": "urgent",
+            "media": [
+                {
+                    "type": "document",
+                    "url": "../documents/transaction_log.pdf",
+                    "caption": "Transaction history"
+                }
+            ],
+            "timestamp": "2024-03-15T10:30:00"
+        },
+        {
+            "id": "REP005",
+            "type": "company",
+            "name": "Fresh Foods Market",
+            "companyId": "COMP456",
+            "reportInformation": "License expired. Operating without proper documentation.",
+            "timeJoined": "2023-12-05T13:15:00",
+            "status": "pending",
+            "media": [
+                {
+                    "type": "image",
+                    "url": "../images/reports/expired_license.jpg",
+                    "caption": "Expired license document"
+                }
+            ],
+            "timestamp": "2024-03-12T11:20:00"
+        }
+    ],
+    "metadata": {
+        "totalReports": 5,
+        "lastUpdated": "2024-03-15T14:30:00",
+        "statusCounts": {
+            "pending": 2,
+            "resolved": 1,
+            "investigating": 1,
+            "urgent": 1
+        }
+    }
+} 

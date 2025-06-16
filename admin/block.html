@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Block Companies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glassmorphism {
+            background: #212121;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .bg-gradient {
+            background: linear-gradient(135deg, #1a1a1a 0%, #121212 100%);
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 p-5 w-full text-white">
+            <!-- Top Bar -->
+            <div id="topbar">
+                <script>
+                    fetch("topbar.html")
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById("topbar").innerHTML = data;
+                            const logoutBtn = document.querySelector(".logout-btn");
+                            if (logoutBtn) logoutBtn.addEventListener("click", confirmLogout);
+                        });
+
+                    function confirmLogout(e) {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Log out?',
+                            text: "You'll be signed out!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, log out'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                localStorage.removeItem("authToken");
+                                localStorage.removeItem("loginToken");
+                                localStorage.removeItem("otpPurpose");
+                                localStorage.removeItem("otpToken");
+                                localStorage.removeItem("otpEmail");
+                                localStorage.removeItem("loggedInCompany");
+                                localStorage.removeItem("resendTimeout");
+                                window.location.href = "user-signin.html";
+                            }
+                        });
+                    }
+                </script>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="container mx-auto p-4 mt-10">
+                <!-- Block Page Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Block Page</h1>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="glassmorphism p-4 mb-6">
+                    <div class="relative">
+                        <input type="text" id="company-search" placeholder="Search company..."
+                            class="w-full bg-gray-800 text-white px-4 py-2 rounded-lg pl-10 search-input focus:outline-none"
+                            onkeyup="filterCompanies()">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- Companies Table -->
+                <div class="glassmorphism overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-700">
+                            <thead class="bg-gray-800">
+                                <tr>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Name of Company
+                                    </th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Time of Joined
+                                    </th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Date
+                                    </th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700" id="companies-table-body">
+                                <!-- Table rows will be populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - Replace with actual API call
+        const companies = [
+            {
+                name: "Betagryd",
+                timeJoined: "10:30 AM",
+                date: "2024-03-15",
+                isBlocked: false
+            },
+            // Add more companies as needed
+        ];
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function toggleBlockStatus(index) {
+            companies[index].isBlocked = !companies[index].isBlocked;
+            renderCompanies(companies);
+
+            // Show notification
+            Swal.fire({
+                icon: 'success',
+                title: `Company ${companies[index].isBlocked ? 'Blocked' : 'Unblocked'}`,
+                text: `${companies[index].name} has been ${companies[index].isBlocked ? 'blocked' : 'unblocked'} successfully.`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+
+        function filterCompanies() {
+            const searchTerm = document.getElementById('company-search').value.toLowerCase();
+            const filteredCompanies = companies.filter(company =>
+                company.name.toLowerCase().includes(searchTerm)
+            );
+            renderCompanies(filteredCompanies);
+        }
+
+        function renderCompanies(companiesToRender) {
+            const tableBody = document.getElementById('companies-table-body');
+            tableBody.innerHTML = companiesToRender.map((company, index) => `
+                <tr class="hover:bg-gray-700">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
+                        ${company.name}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
+                        ${company.timeJoined}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
+                        ${formatDate(company.date)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button 
+                            onclick="toggleBlockStatus(${index})"
+                            class="${company.isBlocked ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white px-4 py-2 rounded-md transition-colors">
+                            ${company.isBlocked ? 'Unblock' : 'Block'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Initial render
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCompanies(companies);
+        });
+    </script>
+</body>
+
+</html>

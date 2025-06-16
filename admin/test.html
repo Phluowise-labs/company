@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Template Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+        <!-- Main Content -->
+        <div class="ml-64 p-5 w-full text-white">
+            <!-- Top Bar -->
+           <!-- TOPBAR PLACEHOLDER -->
+            <div id="topbar">
+                <script>
+                    fetch("topbar.html")
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById("topbar").innerHTML = data;
+
+                            // Attach logout handler after topbar is loaded
+                            const logoutBtn = document.querySelector(".logout-btn");
+                            if (logoutBtn) logoutBtn.addEventListener("click", confirmLogout);
+                        });
+
+                    // // Global logout function
+                    // function confirmLogout(e) {
+                    //     e.preventDefault(); // Prevent <a href="#"> default action
+                    //     Swal.fire({
+                    //         title: 'Log out?',
+                    //         text: "You'll be signed out!",
+                    //         icon: 'warning',
+                    //         showCancelButton: true,
+                    //         confirmButtonText: 'Yes, log out'
+                    //     }).then((result) => {
+                    //         if (result.isConfirmed) {
+                    //             // Clear only necessary login-related storage
+                    //             localStorage.removeItem("authToken");           // Company login session
+                    //             localStorage.removeItem("loginToken");          // Temp login token for OTP
+                    //             localStorage.removeItem("otpPurpose");          // Used for knowing OTP flow
+                    //             localStorage.removeItem("otpToken");            // OTP token (login/forgot)
+                    //             localStorage.removeItem("otpEmail");            // Email used in OTP
+                    //             localStorage.removeItem("loggedInCompany");     // Company info after login
+                    //             localStorage.removeItem("resendTimeout");       // OTP resend timer
+
+                    //             // Redirect to login page
+                    //             window.location.href = "user-signin.html";
+                    //         }
+                    //     });
+                    // }
+                </script>
+            </div>
+            <!-- Main Content Area -->
+            <div class="container mx-auto p-4">
+                <!-- write the content of the page here -->
+
+
+                <!-- end of page -->
+            </div>
+            <!-- end of content -->
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>

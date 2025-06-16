@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Reports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glassmorphism {
+            background: #212121;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .bg-gradient {
+            background: linear-gradient(135deg, #1a1a1a 0%, #121212 100%);
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+
+        .tab-active {
+            border-bottom: 2px solid #3B82F6;
+            color: #3B82F6;
+        }
+
+        /* Right Panel Styles */
+        .right-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: calc(100vh - 80px);
+            /* Adjust for topbar */
+            width: 0;
+            background: #1a1a1a;
+            transition: width 0.3s ease-in-out;
+            overflow-y: auto;
+            margin-top: 80px;
+            z-index: 40;
+        }
+
+        .right-panel.open {
+            width: 400px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .right-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .right-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .right-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .right-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Content wrapper adjustment */
+        .content-wrapper.panel-open {
+            margin-right: 400px;
+        }
+
+        /* Panel content container */
+        .panel-content {
+            padding: 1rem;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Section styles */
+        .details-section {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .details-section:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Status buttons container */
+        .status-buttons-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        /* Media items */
+        .media-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .media-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 0.75rem;
+        }
+
+        /* Status history items */
+        .status-history-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-history-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Status Badge Styles */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-badge.pending {
+            background-color: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+        }
+
+        .status-badge.investigating {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .status-badge.urgent {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .status-badge.resolved {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        /* Main Content Spacing */
+        .content-wrapper {
+            transition: margin-right 0.3s ease-in-out;
+            padding-right: 1rem;
+        }
+
+        /* Media Items */
+        .media-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .media-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 text-white">
+            <!-- Top Bar -->
+            <div id="topbar" class="fixed top-0 right-0 left-64 z-10">
+                <script>
+                    fetch("topbar.html")
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById("topbar").innerHTML = data;
+                            const logoutBtn = document.querySelector(".logout-btn");
+                            if (logoutBtn) logoutBtn.addEventListener("click", confirmLogout);
+                        });
+
+                    function confirmLogout(e) {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Log out?',
+                            text: "You'll be signed out!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, log out'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                localStorage.removeItem("authToken");
+                                localStorage.removeItem("loginToken");
+                                localStorage.removeItem("otpPurpose");
+                                localStorage.removeItem("otpToken");
+                                localStorage.removeItem("otpEmail");
+                                localStorage.removeItem("loggedInCompany");
+                                localStorage.removeItem("resendTimeout");
+                                window.location.href = "user-signin.html";
+                            }
+                        });
+                    }
+                </script>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <div class="content-wrapper p-8">
+                    <!-- Tabs -->
+                    <div class="flex space-x-4 mb-8">
+                        <button class="tab-active px-4 py-2 font-medium text-lg"
+                            onclick="switchTab('reports')">Reports</button>
+                        <button class="px-4 py-2 font-medium text-lg text-gray-400 hover:text-gray-200"
+                            onclick="switchTab('deleted')">Deleted Users</button>
+                    </div>
+
+                    <!-- Search and Filters -->
+                    <div class="glassmorphism p-6 mb-8">
+                        <div class="filters flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+                            <div class="flex-1 relative">
+                                <input type="text" id="search-input" placeholder="Search..."
+                                    class="w-full bg-gray-800 text-white px-4 py-3 rounded-lg pl-10 search-input focus:outline-none">
+                                <i
+                                    class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                            <div class="flex space-x-3">
+                                <select id="company-filter" class="bg-gray-800 text-white px-4 py-3 rounded-lg">
+                                    <option value="">All Companies</option>
+                                </select>
+                                <select id="user-filter" class="bg-gray-800 text-white px-4 py-3 rounded-lg">
+                                    <option value="">All Users</option>
+                                </select>
+                                <select id="status-filter" class="bg-gray-800 text-white px-4 py-3 rounded-lg">
+                                    <option value="">All Statuses</option>
+                                </select>
+                                <button id="reset-filters" class="bg-gray-800 px-6 py-3 rounded-lg hover:bg-gray-700">
+                                    <i class="fas fa-undo mr-2"></i>Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Reports Counter -->
+                    <div class="mb-8">
+                        <p class="text-gray-400 text-lg">Total reports: <span class="text-white font-bold"
+                                id="total-reports">0</span></p>
+                    </div>
+
+                    <!-- Reports Container -->
+                    <div class="reports-container grid grid-cols-1 gap-6">
+                        <!-- Reports will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- Right Details Panel -->
+                <div class="right-panel glassmorphism">
+                    <!-- Report details will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentReports = [];
+        let deletedUsers = [];
+        let currentTab = 'reports';
+        let currentReportId = null;
+        let currentFilters = {
+            company: '',
+            user: '',
+            status: '',
+            searchQuery: ''
+        };
+
+        // Add filter functions
+        function applyFilters() {
+            let filteredReports = [...currentReports];
+
+            // Apply company filter
+            if (currentFilters.company) {
+                filteredReports = filteredReports.filter(report =>
+                    report.name.toLowerCase().includes(currentFilters.company.toLowerCase())
+                );
+            }
+
+            // Apply user filter
+            if (currentFilters.user) {
+                filteredReports = filteredReports.filter(report =>
+                    report.name.toLowerCase().includes(currentFilters.user.toLowerCase())
+                );
+            }
+
+            // Apply status filter
+            if (currentFilters.status) {
+                filteredReports = filteredReports.filter(report =>
+                    report.status.toLowerCase() === currentFilters.status.toLowerCase()
+                );
+            }
+
+            // Apply search query
+            if (currentFilters.searchQuery) {
+                filteredReports = filteredReports.filter(report =>
+                    report.id.toString().includes(currentFilters.searchQuery) ||
+                    report.name.toLowerCase().includes(currentFilters.searchQuery.toLowerCase()) ||
+                    report.reportInformation.toLowerCase().includes(currentFilters.searchQuery.toLowerCase())
+                );
+            }
+
+            renderReports(filteredReports);
+        }
+
+        // Update search functionality
+        function handleSearch(event) {
+            currentFilters.searchQuery = event.target.value.trim();
+            applyFilters();
+        }
+
+        // Company filter dropdown
+        function setupCompanyFilter() {
+            const companies = [...new Set(currentReports
+                .filter(report => report.type === 'company')
+                .map(report => report.name))];
+            const dropdown = document.getElementById('company-filter');
+            dropdown.innerHTML = '<option value="">All Companies</option>' +
+                companies.map(company => `<option value="${company}">${company}</option>`).join('');
+
+            dropdown.addEventListener('change', (e) => {
+                currentFilters.company = e.target.value;
+                applyFilters();
+            });
+        }
+
+        // User filter dropdown
+        function setupUserFilter() {
+            const users = [...new Set(currentReports
+                .filter(report => report.type === 'user')
+                .map(report => report.name))];
+            const dropdown = document.getElementById('user-filter');
+            dropdown.innerHTML = '<option value="">All Users</option>' +
+                users.map(user => `<option value="${user}">${user}</option>`).join('');
+
+            dropdown.addEventListener('change', (e) => {
+                currentFilters.user = e.target.value;
+                applyFilters();
+            });
+        }
+
+        // Status filter dropdown
+        function setupStatusFilter() {
+            const statuses = [...new Set(currentReports.map(report => report.status))];
+            const dropdown = document.getElementById('status-filter');
+            dropdown.innerHTML = '<option value="">All Statuses</option>' +
+                statuses.map(status => `<option value="${status}">${status}</option>`).join('');
+
+            dropdown.addEventListener('change', (e) => {
+                currentFilters.status = e.target.value;
+                applyFilters();
+            });
+        }
+
+        // Reset filters
+        function resetFilters() {
+            currentFilters = {
+                company: '',
+                user: '',
+                status: '',
+                searchQuery: ''
+            };
+
+            // Reset dropdowns
+            document.getElementById('company-filter').value = '';
+            document.getElementById('user-filter').value = '';
+            document.getElementById('status-filter').value = '';
+            document.getElementById('search-input').value = '';
+
+            applyFilters();
+        }
+
+        // Modify initializeData to setup filters
+        async function initializeData() {
+            try {
+                const savedReports = localStorage.getItem('reports');
+                const savedMetadata = localStorage.getItem('reportsMetadata');
+
+                if (savedReports && savedMetadata) {
+                    currentReports = JSON.parse(savedReports);
+                    updateTotalCount(JSON.parse(savedMetadata).totalReports);
+                } else {
+                    await fetchData();
+                }
+
+                // Setup filters after data is loaded
+                setupCompanyFilter();
+                setupUserFilter();
+                setupStatusFilter();
+
+                // Setup search input listener
+                const searchInput = document.getElementById('search-input');
+                searchInput.addEventListener('input', handleSearch);
+
+                // Add reset filters button listener
+                const resetButton = document.getElementById('reset-filters');
+                if (resetButton) {
+                    resetButton.addEventListener('click', resetFilters);
+                }
+
+                renderReports(currentReports);
+            } catch (error) {
+                console.error('Error initializing data:', error);
+                showError('Failed to load data. Please try again.');
+            }
+        }
+
+        // Fetch data based on current tab
+        async function fetchData() {
+            try {
+                const response = await fetch(currentTab === 'reports' ? 'data/reports.json' : 'data/deleted_users.json');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch ${currentTab} data`);
+                }
+                const data = await response.json();
+
+                if (currentTab === 'reports') {
+                    currentReports = data.reports;
+                    updateTotalCount(data.metadata.totalReports);
+                    saveToLocalStorage(currentReports, data.metadata);
+                    renderReports(currentReports);
+                } else {
+                    deletedUsers = data.deleted_users;
+                    updateTotalCount(data.metadata.totalDeleted);
+                    renderDeletedUsers(deletedUsers);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                showError(`Failed to load ${currentTab} data. Please try again.`);
+            }
+        }
+
+        // Save data to localStorage
+        function saveToLocalStorage(reports, metadata) {
+            try {
+                localStorage.setItem('reports', JSON.stringify(reports));
+                localStorage.setItem('reportsMetadata', JSON.stringify(metadata));
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+            }
+        }
+
+        // Update metadata when reports change
+        function updateMetadata() {
+            const metadata = {
+                totalReports: currentReports.length,
+                lastUpdated: new Date().toISOString(),
+                statusCounts: currentReports.reduce((acc, report) => {
+                    acc[report.status] = (acc[report.status] || 0) + 1;
+                    return acc;
+                }, {})
+            };
+
+            // Save updated metadata
+            saveToLocalStorage(currentReports, metadata);
+            updateTotalCount(metadata.totalReports);
+        }
+
+        function updateTotalCount(count) {
+            document.getElementById('total-reports').textContent = count;
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getStatusBadge(status) {
+            const colors = {
+                pending: 'bg-yellow-500',
+                resolved: 'bg-green-500',
+                investigating: 'bg-blue-500',
+                urgent: 'bg-red-500'
+            };
+            return `<span class="${colors[status] || 'bg-gray-500'} text-white text-xs px-2 py-1 rounded-full">${status}</span>`;
+        }
+
+        function renderReports(reports) {
+            const container = document.querySelector('.reports-container');
+            if (!container) return;
+
+            container.innerHTML = reports.map(report => `
+                <div class="report-item glassmorphism p-4 cursor-pointer hover:bg-gray-700/50 transition-all"
+                     onclick="showReportDetails('${report.id}')">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-sm text-gray-400">#${report.id}</span>
+                            <h3 class="text-lg font-medium">${report.name}</h3>
+                        </div>
+                        <span class="status-badge ${report.status.toLowerCase()}">${report.status}</span>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-2">${report.reportInformation}</p>
+                    <div class="flex justify-between items-center text-sm text-gray-400">
+                        <span>Type: ${report.type}</span>
+                        <span>${new Date(report.timestamp).toLocaleString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderDeletedUsers(users) {
+            const container = document.querySelector('.reports-container');
+            if (!container) return;
+
+            container.innerHTML = users.map(user => `
+                <div class="report-item glassmorphism p-4 cursor-pointer hover:bg-gray-700/50 transition-all">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-sm text-gray-400">#${user.id}</span>
+                            <h3 class="text-lg font-medium">${user.name}</h3>
+                            <p class="text-sm text-gray-400">${user.email}</p>
+                        </div>
+                        <span class="status-badge ${user.recoverable ? 'pending' : 'resolved'}">
+                            ${user.recoverable ? 'Recoverable' : 'Permanent'}
+                        </span>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-2">${user.reason}</p>
+                    <div class="flex justify-between items-center text-sm text-gray-400">
+                        <span>Deleted by: ${user.deletedBy}</span>
+                        <span>${new Date(user.deletionDate).toLocaleString()}</span>
+                    </div>
+                    ${user.recoverable ? `
+                        <div class="mt-3 text-sm">
+                            <span class="text-yellow-500">
+                                <i class="fas fa-clock mr-1"></i>
+                                Recoverable until: ${new Date(user.recoverableUntil).toLocaleString()}
+                            </span>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function showReportDetails(reportId) {
+            const report = currentReports.find(r => r.id === reportId);
+            if (!report) return;
+
+            currentReportId = reportId;
+            const detailsPanel = document.querySelector('.right-panel');
+            const contentWrapper = document.querySelector('.content-wrapper');
+
+            detailsPanel.innerHTML = `
+                <div class="panel-content">
+                    <div class="details-section">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-sm text-gray-400">#${report.id}</span>
+                                <h2 class="text-xl font-medium mb-2">${report.name}</h2>
+                                <div class="flex items-center space-x-2">
+                                    <span class="status-badge ${report.status.toLowerCase()}">${report.status}</span>
+                                    <span class="text-gray-400">|</span>
+                                    <span class="text-gray-400">${report.type}</span>
+                                </div>
+                            </div>
+                            <button onclick="closeDetailsPanel()" class="text-gray-400 hover:text-white">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-gray-300 text-sm">${report.reportInformation}</p>
+                        </div>
+                    </div>
+
+                    <div class="details-section">
+                        <h3 class="text-base font-medium mb-2">Update Status</h3>
+                        <div class="status-buttons-container">
+                            ${Object.keys(statusRules).map(status => `
+                                <button onclick="updateReportStatus('${status}')"
+                                    class="status-button ${status} ${report.status === status ? 'active' : ''}">
+                                    <i class="fas fa-${getStatusIcon(status)} mr-2"></i>
+                                    ${status.charAt(0).toUpperCase() + status.slice(1)}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <textarea id="status-comment" placeholder="Add a comment about this status change..."
+                            class="w-full bg-gray-700 text-white rounded p-2 mt-2 text-sm min-h-[60px]"></textarea>
+                    </div>
+
+                    ${report.media && report.media.length > 0 ? `
+                        <div class="details-section">
+                            <h3 class="text-base font-medium mb-2">Media</h3>
+                            <div class="media-grid">
+                                ${report.media.map(item => `
+                                    <div class="media-item">
+                                        <div class="flex items-center mb-2">
+                                            <i class="fas fa-${item.type === 'image' ? 'image' :
+                    item.type === 'document' ? 'file-pdf' :
+                        item.type === 'video' ? 'video' : 'file'} 
+                                               text-blue-400"></i>
+                                            <span class="ml-2">${item.type}</span>
+                                        </div>
+                                        <p class="text-sm text-gray-400 mb-2">${item.caption}</p>
+                                        <a href="${item.url}" target="_blank" 
+                                           class="text-blue-400 hover:text-blue-300 text-sm inline-flex items-center">
+                                           <i class="fas fa-external-link-alt mr-1"></i> View
+                                        </a>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="details-section">
+                        <h3 class="text-base font-medium mb-2">Timeline</h3>
+                        <div class="space-y-2 text-sm text-gray-400">
+                            <p class="flex items-center">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                Joined: ${new Date(report.timeJoined).toLocaleString()}
+                            </p>
+                            <p class="flex items-center">
+                                <i class="fas fa-flag mr-2"></i>
+                                Reported: ${new Date(report.timestamp).toLocaleString()}
+                            </p>
+                        </div>
+                    </div>
+
+                    ${report.statusHistory ? `
+                        <div class="details-section">
+                            <h3 class="text-base font-medium mb-2">Status History</h3>
+                            ${report.statusHistory.map(history => `
+                                <div class="status-history-item">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="status-badge ${history.from}">${history.from}</span>
+                                            <i class="fas fa-arrow-right text-gray-400"></i>
+                                            <span class="status-badge ${history.to}">${history.to}</span>
+                                        </div>
+                                        <span class="text-xs text-gray-400">
+                                            ${new Date(history.timestamp).toLocaleString()}
+                                        </span>
+                                    </div>
+                                    ${history.comment ? `
+                                        <div class="mt-2 text-sm text-gray-300 bg-gray-800/50 p-2 rounded">
+                                            <i class="fas fa-comment text-gray-400 mr-1"></i>
+                                            ${history.comment}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            detailsPanel.classList.add('open');
+            contentWrapper.classList.add('panel-open');
+        }
+
+        function closeDetailsPanel() {
+            const detailsPanel = document.querySelector('.right-panel');
+            const contentWrapper = document.querySelector('.content-wrapper');
+
+            detailsPanel.classList.remove('open');
+            contentWrapper.classList.remove('panel-open');
+            currentReportId = null;
+        }
+
+        function showDeletedUserDetails(userId) {
+            const user = deletedUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            const panel = document.getElementById('report-details-panel');
+            const content = document.getElementById('report-content');
+            const media = document.getElementById('report-media');
+            const contentWrapper = document.querySelector('.content-wrapper');
+
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-lg">${user.name}</p>
+                            <p class="text-sm text-gray-400">${user.email}</p>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-full ${user.recoverable ? 'bg-green-500' : 'bg-red-500'}">
+                            ${user.recoverable ? 'Recoverable' : 'Non-recoverable'}
+                        </span>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-4">
+                        <h4 class="text-sm font-medium text-gray-400 mb-2">Deletion Information</h4>
+                        <p class="text-base leading-relaxed">${user.reason}</p>
+                        ${user.violations ? `
+                            <div class="mt-4">
+                                <h4 class="text-sm font-medium text-gray-400 mb-2">Violations</h4>
+                                ${user.violations.map(v => `
+                                    <div class="mb-2">
+                                        <p class="text-sm text-red-400">${formatDate(v.date)} - ${v.type}</p>
+                                        <p class="text-sm">${v.description}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        ${user.fraudDetails ? `
+                            <div class="mt-4">
+                                <h4 class="text-sm font-medium text-gray-400 mb-2">Fraud Details</h4>
+                                <p class="text-sm text-red-400">Type: ${user.fraudDetails.type}</p>
+                                <p class="text-sm">Severity: ${user.fraudDetails.severity}</p>
+                                <p class="text-sm">Detected: ${formatDate(user.fraudDetails.detectionDate)}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-400">
+                        <p>Joined: ${formatDate(user.joinDate)}</p>
+                        <p>Deleted: ${formatDate(user.deletionDate)}</p>
+                    </div>
+                    ${user.recoverable ? `
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-400">Recoverable until: ${formatDate(user.recoverableUntil)}</p>
+                            <button onclick="recoverUser('${user.id}')" 
+                                    class="mt-2 w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
+                                Recover Account
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            media.innerHTML = ''; // Clear media section for deleted users
+            panel.classList.add('open');
+            contentWrapper.classList.add('panel-open');
+        }
+
+        function recoverUser(userId) {
+            // This would typically make an API call to recover the user
+            Swal.fire({
+                title: 'Recover Account?',
+                text: 'Are you sure you want to recover this account?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, recover it',
+                cancelButtonText: 'No, cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Account Recovered!',
+                        text: 'The account has been successfully recovered.',
+                        icon: 'success'
+                    }).then(() => {
+                        // Refresh the deleted users list
+                        fetchData();
+                        closeReportDetails();
+                    });
+                }
+            });
+        }
+
+        function showError(message) {
+            const container = document.getElementById('error-container');
+            const messageElement = document.getElementById('error-message');
+            if (container && messageElement) {
+                messageElement.textContent = message;
+                container.classList.remove('hidden');
+                setTimeout(() => {
+                    container.classList.add('hidden');
+                }, 5000);
+            } else {
+                console.error('Error:', message);
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const buttons = document.querySelectorAll('.flex.space-x-4.mb-8 button');
+            buttons.forEach(button => {
+                button.classList.remove('tab-active');
+                if (button.textContent.toLowerCase().includes(tab)) {
+                    button.classList.add('tab-active');
+                }
+            });
+
+            // Clear current data
+            if (tab === 'reports') {
+                initializeData();
+            } else {
+                fetchData();
+            }
+        }
+
+        // Filter functionality
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            if (currentTab === 'reports') {
+                const filteredReports = currentReports.filter(report =>
+                    report.name.toLowerCase().includes(searchTerm) ||
+                    report.reportInformation.toLowerCase().includes(searchTerm)
+                );
+                renderReports(filteredReports);
+            } else {
+                const filteredUsers = deletedUsers.filter(user =>
+                    user.name.toLowerCase().includes(searchTerm) ||
+                    user.email.toLowerCase().includes(searchTerm) ||
+                    user.reason.toLowerCase().includes(searchTerm)
+                );
+                renderDeletedUsers(filteredUsers);
+            }
+        });
+
+        // Initialize the page with localStorage data
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeData();
+        });
+
+        // Define status flow rules
+        const statusRules = {
+            pending: {
+                icon: 'clock',
+                color: 'yellow-500',
+                description: 'Report is awaiting initial review',
+                allowedNext: ['investigating', 'urgent', 'resolved'],
+                requiredActions: ['Review report details', 'Check attached media', 'Verify report source']
+            },
+            investigating: {
+                icon: 'search',
+                color: 'blue-500',
+                description: 'Report is under investigation',
+                allowedNext: ['urgent', 'resolved'],
+                requiredActions: ['Analyze evidence', 'Contact involved parties', 'Document findings']
+            },
+            urgent: {
+                icon: 'exclamation-triangle',
+                color: 'red-500',
+                description: 'Report requires immediate attention',
+                allowedNext: ['investigating', 'resolved'],
+                requiredActions: ['Immediate review', 'Escalate to management', 'Take immediate action']
+            },
+            resolved: {
+                icon: 'check-circle',
+                color: 'green-500',
+                description: 'Report has been resolved',
+                allowedNext: ['investigating', 'urgent'],
+                requiredActions: ['Document resolution', 'Notify involved parties', 'Archive report']
+            }
+        };
+
+        function getStatusIcon(status) {
+            return statusRules[status]?.icon || 'question-circle';
+        }
+
+        // Status management functions
+        function updateStatusUI(report) {
+            const statusButtons = document.querySelectorAll('.status-button');
+            statusButtons.forEach(button => {
+                const status = button.textContent.trim().toLowerCase();
+                button.classList.toggle('active', report.status === status);
+            });
+        }
+
+        async function updateReportStatus(newStatus) {
+            if (!currentReportId) return;
+
+            const report = currentReports.find(r => r.id === currentReportId);
+            if (!report) return;
+
+            if (report.status === newStatus) {
+                Swal.fire({
+                    title: 'No Change',
+                    text: `The report is already in ${newStatus} status.`,
+                    icon: 'info',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            const currentStatusRules = statusRules[report.status];
+            if (!currentStatusRules.allowedNext.includes(newStatus)) {
+                Swal.fire({
+                    title: 'Invalid Status Change',
+                    html: `Cannot change status from <b>${report.status}</b> to <b>${newStatus}</b>.<br>
+                          Allowed next statuses are: ${currentStatusRules.allowedNext.join(', ')}`,
+                    icon: 'warning'
+                });
+                return;
+            }
+
+            const comment = document.getElementById('status-comment').value.trim();
+            const newStatusRules = statusRules[newStatus];
+
+            const result = await Swal.fire({
+                title: `Update Status to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}?`,
+                html: `
+                    <div class="text-left">
+                        <p class="mb-2">${newStatusRules.description}</p>
+                        <p class="font-medium mb-1">Required actions:</p>
+                        <ul class="list-disc pl-5">
+                            ${newStatusRules.requiredActions.map(action => `<li>${action}</li>`).join('')}
+                        </ul>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, update status',
+                cancelButtonText: 'Cancel'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const previousStatus = report.status;
+                    report.status = newStatus;
+
+                    if (!report.statusHistory) {
+                        report.statusHistory = [];
+                    }
+
+                    report.statusHistory.unshift({
+                        from: previousStatus,
+                        to: newStatus,
+                        timestamp: new Date().toISOString(),
+                        changedBy: 'Admin',
+                        comment: comment || null
+                    });
+
+                    // Update localStorage
+                    updateMetadata();
+
+                    document.getElementById('status-comment').value = '';
+
+                    await Swal.fire({
+                        title: 'Status Updated!',
+                        text: `Report status has been changed from ${previousStatus} to ${newStatus}`,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    showReportDetails(currentReportId);
+                    renderReports(currentReports);
+                    updateStatusUI(report);
+
+                } catch (error) {
+                    console.error('Error updating status:', error);
+                    showError('Failed to update status. Please try again.');
+                }
+            }
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                pending: 'yellow-500',
+                investigating: 'blue-500',
+                urgent: 'red-500',
+                resolved: 'green-500'
+            };
+            return colors[status] || 'gray-500';
+        }
+
+        // Add CSS for status badges and buttons
+        const style = document.createElement('style');
+        style.textContent = `
+            .status-badge {
+                padding: 0.25rem 0.75rem;
+                border-radius: 9999px;
+                font-size: 0.875rem;
+                font-weight: 500;
+            }
+            .status-badge.pending { background-color: rgba(234, 179, 8, 0.2); color: #eab308; }
+            .status-badge.investigating { background-color: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+            .status-badge.urgent { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; }
+            .status-badge.resolved { background-color: rgba(34, 197, 94, 0.2); color: #22c55e; }
+
+            .status-button {
+                padding: 0.75rem 1rem;
+                border-radius: 0.5rem;
+                font-size: 0.875rem;
+                font-weight: 500;
+                transition: all 0.2s;
+                opacity: 0.7;
+            }
+            .status-button:hover { opacity: 1; }
+            .status-button.active { opacity: 1; }
+            .status-button.pending { background-color: rgba(234, 179, 8, 0.2); color: #eab308; }
+            .status-button.investigating { background-color: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+            .status-button.urgent { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; }
+            .status-button.resolved { background-color: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>

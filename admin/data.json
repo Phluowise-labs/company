@@ -1,0 +1,168 @@
+{
+    "recentTransactions": [
+        {
+            "id": "TR001",
+            "image": "../images/user.png",
+            "name": "John Doe",
+            "location": "Accra, Ghana",
+            "status": "Payment Successful",
+            "time": "10:30 AM",
+            "date": "2024-03-15",
+            "amountReceived": "2,500.00",
+            "amountPhluowise": "2,375.00",
+            "paymentMethod": "MTN Momo"
+        },
+        {
+            "id": "TR002",
+            "image": "../images/user.png",
+            "name": "Sarah Williams",
+            "location": "Kumasi, Ghana",
+            "status": "Payment Successful",
+            "time": "11:45 AM",
+            "date": "2024-03-15",
+            "amountReceived": "1,800.00",
+            "amountPhluowise": "1,710.00",
+            "paymentMethod": "Bank Transfer"
+        },
+        {
+            "id": "TR003",
+            "image": "../images/user.png",
+            "name": "Michael Brown",
+            "location": "Tamale, Ghana",
+            "status": "Payment Successful",
+            "time": "02:15 PM",
+            "date": "2024-03-15",
+            "amountReceived": "3,200.00",
+            "amountPhluowise": "3,040.00",
+            "paymentMethod": "Vodafone Cash"
+        },
+        {
+            "id": "TR004",
+            "image": "../images/user.png",
+            "name": "Emma Johnson",
+            "location": "Cape Coast, Ghana",
+            "status": "Pending",
+            "time": "03:20 PM",
+            "date": "2024-03-15",
+            "amountReceived": "1,500.00",
+            "amountPhluowise": "1,425.00",
+            "paymentMethod": "AirtelTigo Money"
+        },
+        {
+            "id": "TR005",
+            "image": "../images/user.png",
+            "name": "David Mensah",
+            "location": "Tema, Ghana",
+            "status": "Payment Successful",
+            "time": "09:15 AM",
+            "date": "2024-03-14",
+            "amountReceived": "4,200.00",
+            "amountPhluowise": "3,990.00",
+            "paymentMethod": "MTN Momo"
+        },
+        {
+            "id": "TR006",
+            "image": "../images/user.png",
+            "name": "Grace Addo",
+            "location": "Takoradi, Ghana",
+            "status": "Payment Successful",
+            "time": "01:30 PM",
+            "date": "2024-03-14",
+            "amountReceived": "2,800.00",
+            "amountPhluowise": "2,660.00",
+            "paymentMethod": "Bank Transfer"
+        },
+        {
+            "id": "TR007",
+            "image": "../images/user.png",
+            "name": "Samuel Owusu",
+            "location": "Ho, Ghana",
+            "status": "Payment Successful",
+            "time": "11:20 AM",
+            "date": "2024-03-14",
+            "amountReceived": "1,900.00",
+            "amountPhluowise": "1,805.00",
+            "paymentMethod": "MTN Momo"
+        },
+        {
+            "id": "TR008",
+            "image": "../images/user.png",
+            "name": "Patricia Kumi",
+            "location": "Sunyani, Ghana",
+            "status": "Pending",
+            "time": "04:45 PM",
+            "date": "2024-03-14",
+            "amountReceived": "3,500.00",
+            "amountPhluowise": "3,325.00",
+            "paymentMethod": "Vodafone Cash"
+        },
+        {
+            "id": "TR009",
+            "image": "../images/user.png",
+            "name": "Daniel Asare",
+            "location": "Koforidua, Ghana",
+            "status": "Payment Successful",
+            "time": "10:00 AM",
+            "date": "2024-03-13",
+            "amountReceived": "2,100.00",
+            "amountPhluowise": "1,995.00",
+            "paymentMethod": "AirtelTigo Money"
+        },
+        {
+            "id": "TR010",
+            "image": "../images/user.png",
+            "name": "Elizabeth Boateng",
+            "location": "Accra, Ghana",
+            "status": "Payment Successful",
+            "time": "02:50 PM",
+            "date": "2024-03-13",
+            "amountReceived": "5,000.00",
+            "amountPhluowise": "4,750.00",
+            "paymentMethod": "Bank Transfer"
+        }
+    ],
+    "yearlyData": {
+        "2024": [
+            { "month": "Jan", "amount": 380 },
+            { "month": "Feb", "amount": 420 },
+            { "month": "Mar", "amount": 500 },
+            { "month": "Apr", "amount": 400 },
+            { "month": "May", "amount": 320 },
+            { "month": "Jun", "amount": 400 },
+            { "month": "Jul", "amount": 420 },
+            { "month": "Aug", "amount": 680 },
+            { "month": "Sep", "amount": 460 },
+            { "month": "Oct", "amount": 440 },
+            { "month": "Nov", "amount": 360 },
+            { "month": "Dec", "amount": 480 }
+        ],
+        "2023": [
+            { "month": "Jan", "amount": 360 },
+            { "month": "Feb", "amount": 400 },
+            { "month": "Mar", "amount": 480 },
+            { "month": "Apr", "amount": 380 },
+            { "month": "May", "amount": 300 },
+            { "month": "Jun", "amount": 380 },
+            { "month": "Jul", "amount": 400 },
+            { "month": "Aug", "amount": 640 },
+            { "month": "Sep", "amount": 440 },
+            { "month": "Oct", "amount": 420 },
+            { "month": "Nov", "amount": 340 },
+            { "month": "Dec", "amount": 460 }
+        ],
+        "2022": [
+            { "month": "Jan", "amount": 300 },
+            { "month": "Feb", "amount": 350 },
+            { "month": "Mar", "amount": 420 },
+            { "month": "Apr", "amount": 320 },
+            { "month": "May", "amount": 280 },
+            { "month": "Jun", "amount": 350 },
+            { "month": "Jul", "amount": 380 },
+            { "month": "Aug", "amount": 500 },
+            { "month": "Sep", "amount": 400 },
+            { "month": "Oct", "amount": 380 },
+            { "month": "Nov", "amount": 300 },
+            { "month": "Dec", "amount": 420 }
+        ]
+    }
+} 

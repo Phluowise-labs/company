@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions Dashboard</title>
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Custom Scrollbar Styling */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 2px;
+            height: 2px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 1px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* For Firefox */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-black text-white">
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 p-5 w-[calc(100%-16rem)] text-white overflow-x-hidden">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-2xl font-bold">Transactions Dashboard</h1>
+                <div class="flex items-center space-x-4">
+                    <button onclick="exportToExcel()"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        Export to Excel
+                    </button>
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search transactions..."
+                            class="bg-gray-800 text-white px-4 py-2 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <!-- Total Transactions -->
+                <div class="glassmorphism p-6 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-gray-300 font-medium">Total Transactions</h2>
+                        <div class="bg-green-800/40 px-3 py-1 rounded-full">
+                            <span class="text-green-400 text-sm" id="transaction-count">0</span>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold" id="total-transactions">0</div>
+                </div>
+
+                <!-- Total Amount Received -->
+                <div class="glassmorphism p-6 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-gray-300 font-medium">Total Amount Received</h2>
+                        <div class="bg-blue-800/40 px-3 py-1 rounded-full">
+                            <span class="text-blue-400 text-sm" id="amount-growth">0%</span>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold" id="total-amount-received">GH₵ 0.00</div>
+                </div>
+
+                <!-- Amount to Phluowise -->
+                <div class="glassmorphism p-6 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-gray-300 font-medium">Amount to Phluowise</h2>
+                        <div class="bg-purple-800/40 px-3 py-1 rounded-full">
+                            <span class="text-purple-400 text-sm" id="phluowise-growth">0%</span>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold" id="total-amount-phluowise">GH₵ 0.00</div>
+                </div>
+
+                <!-- Success Rate -->
+                <div class="glassmorphism p-6 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-gray-300 font-medium">Success Rate</h2>
+                        <div class="bg-yellow-800/40 px-3 py-1 rounded-full">
+                            <span class="text-yellow-400 text-sm" id="success-rate">0%</span>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold" id="success-rate-value">0%</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Transaction Analysis Chart -->
+                <div class="glassmorphism p-6 rounded-lg">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-xl font-medium">Transaction Analysis (GH₵)</h2>
+                        <div class="flex items-center">
+                            <div>
+                                <p>Total Amount : <span class="bg-blue-800/70 px-3 py-1 rounded-lg text-white"
+                                        id="highlight-value">0</span></p>
+                            </div>
+                            <div class="relative ml-6">
+                                <select id="year-selector"
+                                    class="appearance-none bg-gray-700 border border-gray-600 rounded-md px-3 py-1 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <!-- Years will be populated dynamically -->
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="transactionChart"></canvas>
+                    </div>
+                    <!-- Legend -->
+                    <div class="mt-4 flex items-center">
+                        <div class="w-4 h-4 bg-blue-700 rounded mr-2"></div>
+                        <span>Transaction</span>
+                    </div>
+                </div>
+
+                <!-- Payment Method Distribution -->
+                <div class="glassmorphism p-6 rounded-lg">
+                    <h2 class="text-xl font-medium mb-4">Payment Method Distribution</h2>
+                    <div class="h-64">
+                        <canvas id="paymentMethodChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction List Section -->
+            <div class="glassmorphism rounded-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-medium">Recent Transactions</h2>
+                    <div class="flex space-x-4">
+                        <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded"
+                            onclick="showTab('cards_view')">Cards View</button>
+                        <button class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded"
+                            onclick="showTab('table_view')">Table View</button>
+                    </div>
+                </div>
+
+                <!-- Cards View -->
+                <div id="cards_view" class="tab-content">
+                    <div id="cardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4"></div>
+                </div>
+
+                <!-- Table View -->
+                <div id="table_view" class="tab-content hidden">
+                    <div class="overflow-x-auto custom-scrollbar" style="max-height: 600px;">
+                        <table class="min-w-full divide-y divide-gray-700 relative">
+                            <thead class="bg-[#F5F5F51A]">
+                                <tr>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        ID</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        Image</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        Name</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        Location</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        Status</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        Time</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        Date</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        Amount Received</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        Amount to Phluowise</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                        Payment Method</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="bg-zinc-900 divide-y divide-gray-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let transactionsData = [];
+        let trendChart = null;
+        let paymentMethodChart = null;
+        let transactionChart = null;
+
+        // Load and initialize data
+        async function loadTransactions() {
+            try {
+                const response = await fetch('data.json');
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                if (!data || typeof data !== 'object') {
+                    throw new Error('Invalid data format');
+                }
+
+                // Validate and set transactions data
+                if (!Array.isArray(data.recentTransactions)) {
+                    throw new Error('Recent transactions data is missing or invalid');
+                }
+                transactionsData = data.recentTransactions;
+
+                // Validate yearly data
+                if (!data.yearlyData || typeof data.yearlyData !== 'object') {
+                    throw new Error('Yearly data is missing or invalid');
+                }
+
+                // Update summary cards
+                updateSummaryCards();
+
+                // Initialize charts only if we have valid yearly data
+                if (Object.keys(data.yearlyData).length > 0) {
+                    initializeCharts(data.yearlyData);
+                    populateYearSelector(data.yearlyData);
+                } else {
+                    console.warn('No yearly data available for charts');
+                }
+
+                // Render transaction views
+                renderCardsView();
+                renderTableView();
+
+                // Set up event listeners
+                setupEventListeners();
+
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                showError(`Error loading transactions: ${error.message}`);
+
+                // Show error state in UI components
+                document.getElementById('cardsContainer').innerHTML = `
+                    <div class="col-span-full text-center text-red-500 p-4">
+                        Failed to load transactions: ${error.message}
+                    </div>
+                `;
+                document.getElementById('tableBody').innerHTML = `
+                    <tr>
+                        <td colspan="10" class="px-6 py-4 text-center text-red-500">
+                            Failed to load transactions: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Update summary cards with calculated values
+        function updateSummaryCards() {
+            // Total transactions
+            document.getElementById('total-transactions').textContent = transactionsData.length;
+            document.getElementById('transaction-count').textContent = `+${transactionsData.length}`;
+
+            // Calculate total amounts
+            const totalReceived = transactionsData.reduce((sum, t) => sum + parseFloat(t.amountReceived.replace(/,/g, '')), 0);
+            const totalPhluowise = transactionsData.reduce((sum, t) => sum + parseFloat(t.amountPhluowise.replace(/,/g, '')), 0);
+
+            document.getElementById('total-amount-received').textContent = `GH₵ ${totalReceived.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+            document.getElementById('total-amount-phluowise').textContent = `GH₵ ${totalPhluowise.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+
+            // Calculate success rate
+            const successfulTransactions = transactionsData.filter(t => t.status === 'Payment Successful').length;
+            const successRate = (successfulTransactions / transactionsData.length) * 100;
+            document.getElementById('success-rate-value').textContent = `${successRate.toFixed(1)}%`;
+
+            // Calculate growth rates (mock values for demonstration)
+            document.getElementById('amount-growth').textContent = '+15%';
+            document.getElementById('phluowise-growth').textContent = '+12%';
+        }
+
+        // Initialize charts
+        function initializeCharts(yearlyData) {
+            try {
+                // Transaction Analysis Chart
+                const chartCtx = document.getElementById('transactionChart');
+                if (!chartCtx) {
+                    throw new Error('Transaction chart canvas not found');
+                }
+
+                const years = Object.keys(yearlyData).sort((a, b) => b - a);
+                if (years.length === 0) {
+                    throw new Error('No yearly data available');
+                }
+
+                // Validate the data format for the first year
+                const firstYearData = yearlyData[years[0]];
+                if (!Array.isArray(firstYearData) || firstYearData.length === 0) {
+                    throw new Error('Invalid data format for yearly transactions');
+                }
+
+                // Properly destroy existing chart instances if they exist
+                if (transactionChart instanceof Chart) {
+                    transactionChart.destroy();
+                    transactionChart = null;
+                }
+                if (paymentMethodChart instanceof Chart) {
+                    paymentMethodChart.destroy();
+                    paymentMethodChart = null;
+                }
+
+                updateChart(firstYearData, years[0]);
+
+                // Set up year selector change event
+                const yearSelector = document.getElementById('year-selector');
+                if (yearSelector) {
+                    yearSelector.addEventListener('change', function () {
+                        const selectedYear = this.value;
+                        const selectedYearData = yearlyData[selectedYear];
+                        if (Array.isArray(selectedYearData) && selectedYearData.length > 0) {
+                            updateChart(selectedYearData, selectedYear);
+                        } else {
+                            console.error('Invalid data for selected year:', selectedYear);
+                        }
+                    });
+                }
+
+                // Payment Method Distribution Chart
+                const methodCtx = document.getElementById('paymentMethodChart');
+                if (!methodCtx) {
+                    throw new Error('Payment method chart canvas not found');
+                }
+
+                const methodData = calculatePaymentMethodDistribution();
+                if (!methodData.labels.length) {
+                    throw new Error('No payment method data available');
+                }
+
+                paymentMethodChart = new Chart(methodCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: methodData.labels,
+                        datasets: [{
+                            data: methodData.values,
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(147, 51, 234, 0.8)',
+                                'rgba(234, 179, 8, 0.8)',
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(34, 197, 94, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                }
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+                // Clear the chart containers and show error message
+                const chartContainers = document.querySelectorAll('.glassmorphism canvas');
+                chartContainers.forEach(container => {
+                    const parent = container.parentElement;
+                    if (parent) {
+                        parent.innerHTML = `
+                            <div class="text-center text-red-500 p-4">
+                                Failed to load chart: ${error.message}
+                            </div>
+                        `;
+                    }
+                });
+            }
+        }
+
+        // Populate year selector dropdown
+        function populateYearSelector(yearlyData) {
+            const yearSelector = document.getElementById('year-selector');
+            yearSelector.innerHTML = '';
+
+            const years = Object.keys(yearlyData).sort((a, b) => b - a);
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelector.appendChild(option);
+            });
+        }
+
+        // Update chart with selected year's data
+        function updateChart(yearData, selectedYear) {
+            try {
+                const ctx = document.getElementById('transactionChart');
+                if (!ctx) {
+                    throw new Error('Chart canvas not found');
+                }
+
+                // Validate input data
+                if (!Array.isArray(yearData) || yearData.length === 0) {
+                    throw new Error('Invalid year data format');
+                }
+
+                // Properly destroy existing chart instance if it exists
+                if (transactionChart instanceof Chart) {
+                    transactionChart.destroy();
+                }
+
+                // Calculate total amount for the year
+                const totalAmount = yearData.reduce((sum, month) => {
+                    const amount = parseFloat(month.amount) || 0;
+                    return sum + amount;
+                }, 0);
+
+                const highlightValue = document.getElementById('highlight-value');
+                if (highlightValue) {
+                    highlightValue.textContent = totalAmount.toLocaleString('en-US');
+                }
+
+                // Create new chart instance
+                transactionChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: yearData.map(item => item.month || ''),
+                        datasets: [{
+                            label: 'Transaction Amount',
+                            data: yearData.map(item => parseFloat(item.amount) || 0),
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    callback: function (value) {
+                                        return 'GH₵ ' + value;
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error updating chart:', error);
+                const chartContainer = document.getElementById('transactionChart');
+                if (chartContainer) {
+                    const parent = chartContainer.parentElement;
+                    if (parent) {
+                        parent.innerHTML = `
+                            <div class="text-center text-red-500 p-4">
+                                Failed to update chart: ${error.message}
+                            </div>
+                        `;
+                    }
+                }
+            }
+        }
+
+        // Calculate payment method distribution
+        function calculatePaymentMethodDistribution() {
+            const methodCounts = {};
+            transactionsData.forEach(transaction => {
+                methodCounts[transaction.paymentMethod] = (methodCounts[transaction.paymentMethod] || 0) + 1;
+            });
+
+            return {
+                labels: Object.keys(methodCounts),
+                values: Object.values(methodCounts)
+            };
+        }
+
+        // Render cards view
+        function renderCardsView() {
+            const cardsContainer = document.getElementById('cardsContainer');
+            cardsContainer.innerHTML = '';
+
+            if (transactionsData.length === 0) {
+                cardsContainer.innerHTML = `
+                    <div class="col-span-full text-center text-gray-400 p-4">
+                        No transactions found
+                    </div>
+                `;
+                return;
+            }
+
+            transactionsData.forEach(transaction => {
+                const card = document.createElement('div');
+                card.className = 'bg-[#F5F5F51A] p-4 rounded-lg border border-gray-800 flex items-center justify-between';
+                card.innerHTML = `
+                    <div class="flex items-center">
+                        <img alt="Profile" class="rounded mr-4 h-12 w-12 object-cover" 
+                             src="${transaction.image || '../images/user.png'}" />
+                        <div>
+                            <div class="font-medium">${transaction.name || 'N/A'}</div>
+                            <div class="text-green-500 text-sm">${transaction.status || 'N/A'}</div>
+                            <div class="text-gray-400 text-sm">${transaction.time || 'N/A'} • ${transaction.date || 'N/A'}</div>
+                            <div class="text-gray-500 text-sm">${transaction.paymentMethod || 'N/A'}</div>
+                            <div class="text-gray-500 text-sm">Amount to Phluowise: GH₵${transaction.amountPhluowise || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div class="text-white font-medium">GH₵${transaction.amountReceived || '0.00'}</div>
+                `;
+                cardsContainer.appendChild(card);
+            });
+        }
+
+        // Render table view
+        function renderTableView() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            if (transactionsData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="px-6 py-4 text-center text-gray-400">
+                            No transactions found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            transactionsData.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-black transition duration-150 ease-in-out';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${transaction.id || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <img alt="Profile" class="h-10 w-10 rounded object-cover" 
+                             src="${transaction.image || '../images/user.png'}" />
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">${transaction.name || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${transaction.location || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                              ${transaction.status === 'Payment Successful' ? 'text-green-500' : 'bg-yellow-100 text-yellow-800'}">
+                            ${transaction.status || 'Pending'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${transaction.time || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${transaction.date || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">GH₵${transaction.amountReceived || '0.00'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">GH₵${transaction.amountPhluowise || '0.00'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${transaction.paymentMethod || 'N/A'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function () {
+                const searchTerm = this.value.toLowerCase();
+                const filteredData = transactionsData.filter(transaction =>
+                    Object.values(transaction).some(value =>
+                        value.toString().toLowerCase().includes(searchTerm)
+                    )
+                );
+                renderCardsView(filteredData);
+                renderTableView(filteredData);
+            });
+        }
+
+        // Show/hide views
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+
+            // Update button styles
+            document.querySelectorAll('button[onclick^="showTab"]').forEach(button => {
+                button.classList.remove('bg-blue-600');
+                button.classList.add('bg-gray-800');
+            });
+            document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('bg-blue-600');
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            const header = [
+                'ID', 'Name', 'Location', 'Status', 'Time', 'Date',
+                'Amount Received', 'Amount to Phluowise', 'Payment Method'
+            ];
+
+            const rows = transactionsData.map(transaction => [
+                transaction.id || '',
+                transaction.name || '',
+                transaction.location || '',
+                transaction.status || '',
+                transaction.time || '',
+                transaction.date || '',
+                transaction.amountReceived || '0.00',
+                transaction.amountPhluowise || '0.00',
+                transaction.paymentMethod || ''
+            ]);
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+            XLSX.utils.book_append_sheet(wb, ws, "Transactions");
+            XLSX.writeFile(wb, "transactions.xlsx");
+        }
+
+        // Show error message
+        function showError(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: message,
+                background: '#1F2937',
+                color: '#fff'
+            });
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTransactions();
+            showTab('cards_view'); // Default to cards view
+        });
+    </script>
+</body>
+
+</html>
