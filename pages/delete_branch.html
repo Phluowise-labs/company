@@ -89,7 +89,7 @@
                 class="w-full bg-transparent text-red-500 py-2 rounded-lg border border-red-500 mb-4 hover:bg-red-500 hover:text-white transition-colors">
             Delete Branch
         </button>
-        <a href="branches.php" class="w-full block bg-transparent text-white py-2 rounded-lg border border-gray-600 hover:bg-gray-700 transition-colors text-center">
+        <a href="branches.html" class="w-full block bg-transparent text-white py-2 rounded-lg border border-gray-600 hover:bg-gray-700 transition-colors text-center">
             Back
         </a>
     </div>
@@ -97,45 +97,53 @@
     <script>
         function branchManager() {
             return {
-                branches: [
-                    {
-                        name: "Branch A",
-                        location: "Accra",
-                        active: false,
-                        selected: false
-                    },
-                    {
-                        name: "Branch B",
-                        location: "Kumasi",
-                        active: false,
-                        selected: false
-                    },
-                    {
-                        name: "Branch C",
-                        location: "Takoradi",
-                        active: false,
-                        selected: false
-                    },
-                    {
-                        name: "Branch D",
-                        location: "Tamale",
-                        active: false,
-                        selected: false
-                    },
-
-                    {   
-                        name: "Branch E",
-                        location: "Kasoa",
-                        active: false,
-                        selected: false
-                    }, 
-                ],
-
+                branches: [],
+                
+                async init() {
+                    await this.fetchBranches();
+                },
+                
+                async fetchBranches() {
+                    try {
+                        const token = localStorage.getItem("authToken");
+                        const companyId = JSON.parse(localStorage.getItem("loggedInCompany"))?.id;
+                        
+                        if (!token || !companyId) {
+                            Swal.fire("Unauthorized", "Please log in as a company admin first.", "warning");
+                            return;
+                        }
+                        
+                        const baseUrl = "https://phluowise.azurewebsites.net/";
+                        const response = await fetch(`${baseUrl}/company-admin/GetBranches?companyId=${companyId}`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.branches = data.map(branch => ({
+                                id: branch.branchId,
+                                name: branch.branchName,
+                                location: branch.branchLocation,
+                                code: branch.branchCode,
+                                active: true,
+                                selected: false
+                            }));
+                        } else {
+                            Swal.fire("Error", "Failed to load branches.", "error");
+                        }
+                    } catch (error) {
+                        Swal.fire("Error", error.message, "error");
+                    }
+                },
+                
                 selectBranch(branch) {
                     branch.selected = !branch.selected;
                 },
-
-                confirmDelete() {
+                
+                async confirmDelete() {
                     const selectedBranches = this.branches.filter(branch => branch.selected);
                     
                     if (selectedBranches.length === 0) {
@@ -150,11 +158,10 @@
                                 title: 'text-white',
                                 confirmButton: 'bg-blue-700 text-white py-2 px-6 rounded-full mx-2',
                             },
-                        
                         });
                         return;
                     }
-
+                    
                     Swal.fire({
                         title: 'Delete Selected Branches?',
                         html: `<div style="font: Inter; font-weight: 200;  font-size: 20px; line-height: 100%; letter-spacing: 0%; text-align: center; ">
@@ -171,21 +178,46 @@
                             confirmButton: 'bg-red-600 text-white py-2 px-6 rounded-full mx-2',
                             cancelButton: 'bg-gray-600 text-white py-2 px-6 rounded-full mx-2'
                         },
-                     
-                    }).then((result) => {
+                    }).then(async (result) => {
                         if (result.isConfirmed) {
-                            this.branches = this.branches.filter(branch => !branch.selected);
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Branches Deleted!',
-                                showConfirmButton: false,
-                                timer: 1500,
-                                customClass: {
-                                    popup: 'bg-[#121212] rounded-lg shadow-lg',
-                                    title: 'text-white'
-                                },
-                       
-                            });
+                            try {
+                                const token = localStorage.getItem("authToken");
+                                const baseUrl = "https://phluowise.azurewebsites.net/";
+                                
+                                // Delete each selected branch
+                                for (const branch of selectedBranches) {
+                                    await fetch(`${baseUrl}/company-admin/DeleteBranch?branchId=${branch.id}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`
+                                        }
+                                    });
+                                }
+                                
+                                // Update the local list
+                                this.branches = this.branches.filter(branch => !branch.selected);
+                                
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Branches Deleted!',
+                                    showConfirmButton: false,
+                                    timer: 1500,
+                                    customClass: {
+                                        popup: 'bg-[#121212] rounded-lg shadow-lg',
+                                        title: 'text-white'
+                                    },
+                                });
+                            } catch (error) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Failed to delete branches: ' + error.message,
+                                    customClass: {
+                                        popup: 'bg-[#121212] rounded-lg shadow-lg',
+                                        title: 'text-white'
+                                    },
+                                });
+                            }
                         }
                     });
                 }

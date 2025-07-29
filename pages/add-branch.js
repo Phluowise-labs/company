@@ -1,10 +1,10 @@
-const baseUrl = "https://phlowise-amggdaagb5ancjfu.eastus-01.azurewebsites.net";
+const baseUrl = "https://phluowise.azurewebsites.net/";
 
 document.getElementById("addBranchForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const token = localStorage.getItem("authToken");
-  const companyId = JSON.parse(localStorage.getItem("loggedInCompany"))?.companyId;
+  const companyId = JSON.parse(localStorage.getItem("loggedInCompany"))?.id;
 
   if (!token || !companyId) {
     return Swal.fire("Unauthorized", "Please log in as a company admin first.", "warning");

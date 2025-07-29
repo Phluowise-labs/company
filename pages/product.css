@@ -25,6 +25,11 @@
                 transform: translateY(0);
             }
         }
+        
+        [x-cloak] {
+            display: none !important;
+          }
+          
 
         .fade-in {
             animation: fadeIn 0.5s ease-out forwards;

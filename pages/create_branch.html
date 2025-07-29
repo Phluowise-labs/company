@@ -30,9 +30,9 @@
             </h2>
             <script>
                 // Update heading with company name
-                window.addEventListener('DOMContentLoaded', () => {
-                    const signupData = JSON.parse(localStorage.getItem("")) || {};
-                    const companyName = signupData.companyName || "Company";
+                document.addEventListener('DOMContentLoaded', function () {
+                    const loggedInCompany = JSON.parse(localStorage.getItem('loggedInCompany')) || {};
+                    const companyName = loggedInCompany.companyName || "Company";
                     const heading = document.getElementById("companyHeading");
                     heading.textContent = `${companyName} Branches Settings`;
                 });
@@ -64,22 +64,29 @@
                 <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
                     <i class="fas fa-key text-xl mr-3"></i>
                     <input id="branchCode" type="text" placeholder="Branch Code" class="bg-transparent w-full focus:outline-none" readonly />
-
+                    <span class="cursor-pointer ml-2 text-gray-400 hover:text-white" onclick="copyToClipboard('branchCode')" title="Copy branch code">
+                        <i class="fas fa-copy"></i>
+                    </span>
                 </div>
             </div>
 
             <!-- Password -->
             <div class="mb-4">
                 <label class="block mb-2">Create a Password</label>
-                <div class="flex items-center bg-[#060606B2] relative p-3 rounded-lg">
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
                     <i class="fas fa-lock text-xl mr-3"></i>
                     <input id="branchPassword" type="password" placeholder="Enter password for branch"
-                        class="bg-transparent w-full focus:outline-none" required />
-                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
-                        onclick="togglePassword()">
-                        <i id="toggleIcon" class="fas fa-eye text-gray-500"></i>
+                        class="bg-transparent flex-1 focus:outline-none" required />
+                    <span class="cursor-pointer ml-2 text-gray-400 hover:text-white" onclick="copyToClipboard('branchPassword')" title="Copy password">
+                        <i class="fas fa-copy"></i>
+                    </span>
+                    <span class="cursor-pointer ml-2 text-gray-400 hover:text-white" onclick="togglePassword()" title="Toggle password visibility">
+                        <i id="toggleIcon" class="fas fa-eye"></i>
                     </span>
                 </div>
+                <button type="button" class="mt-2 bg-gray-600 hover:bg-gray-700 text-white py-1 px-3 rounded-lg text-sm" onclick="generatePassword()">
+                    Generate Password
+                </button>
             </div>
 
             <!-- Submit Button -->
@@ -109,11 +116,106 @@
                 toggleIcon.classList.add('fa-eye');
             }
         }
+
+        function generatePassword() {
+            // Generate a strong password with at least 1 uppercase, 1 lowercase, 1 number, and 1 special character
+            const length = 12;
+            const charset = {
+                uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                lowercase: 'abcdefghijklmnopqrstuvwxyz',
+                numbers: '0123456789',
+                special: '!@#$%^&*()_+~`|}{[]\\:;?><,./-='
+            };
+            
+            // Ensure at least one character from each set
+            let password = '';
+            password += charset.uppercase.charAt(Math.floor(Math.random() * charset.uppercase.length));
+            password += charset.lowercase.charAt(Math.floor(Math.random() * charset.lowercase.length));
+            password += charset.numbers.charAt(Math.floor(Math.random() * charset.numbers.length));
+            password += charset.special.charAt(Math.floor(Math.random() * charset.special.length));
+            
+            // Fill the rest with random characters from all sets
+            const allChars = charset.uppercase + charset.lowercase + charset.numbers + charset.special;
+            for (let i = 4; i < length; i++) {
+                password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+            }
+            
+            // Shuffle the password characters
+            password = password.split('').sort(() => 0.5 - Math.random()).join('');
+            
+            // Set the generated password to the input field
+            document.getElementById('branchPassword').value = password;
+            
+            // Show the password
+            document.getElementById('branchPassword').type = 'text';
+            document.getElementById('toggleIcon').classList.remove('fa-eye');
+            document.getElementById('toggleIcon').classList.add('fa-eye-slash');
+            
+            // Show a notification
+            Swal.fire({
+                icon: 'success',
+                title: 'Password Generated',
+                text: 'A strong password has been generated.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+        
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const originalType = element.type;
+            
+            // If it's a password field, temporarily change to text to copy the value
+            if (originalType === 'password') {
+                element.type = 'text';
+            }
+            
+            element.select();
+            element.setSelectionRange(0, 99999); // For mobile devices
+            
+            navigator.clipboard.writeText(element.value)
+                .then(() => {
+                    // Show success notification
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Copied!',
+                        text: `${elementId === 'branchCode' ? 'Branch code' : 'Password'} copied to clipboard.`,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    
+                    // Restore original type if it was a password
+                    if (originalType === 'password') {
+                        element.type = originalType;
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Copy Failed',
+                        text: 'Failed to copy to clipboard. Please try again.',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    
+                    // Restore original type if it was a password
+                    if (originalType === 'password') {
+                        element.type = originalType;
+                    }
+                });
+        }
     
         function generateBranchCode() {
-            // Retrieve company name from signupData stored in localStorage
-            const signupData = JSON.parse(localStorage.getItem("signupData")) || {};
-            const companyName = signupData.companyName ? signupData.companyName.trim().toUpperCase() : "";
+            // Retrieve company name from loggedInCompany stored in localStorage
+            const loggedInCompany = JSON.parse(localStorage.getItem('loggedInCompany')) || {};
+            const companyName = loggedInCompany.companyName ? loggedInCompany.companyName.trim().toUpperCase() : "";
             console.log("Company Name:", companyName);
     
             // Retrieve branch name that the user types
@@ -166,12 +268,15 @@
         async function validateForm(event) {
             event.preventDefault();
     
-            // Use the company name from the signupData (already stored from localStorage)
-            const signupData = JSON.parse(localStorage.getItem("signupData")) || {};
-            const company = signupData.companyName ? signupData.companyName.trim() : "";
+            // Use the company name from the loggedInCompany (already stored from localStorage)
+            const loggedInCompany = JSON.parse(localStorage.getItem("loggedInCompany")) || {};
+            const company = loggedInCompany.companyName ? loggedInCompany.companyName.trim() : "";
             const location = document.getElementById("location").value.trim();
-            const branchName = document.getElementById("branchName").value.trim(); // New: branch name input
+            const branchName = document.getElementById("branchName").value.trim();
             const password = document.getElementById("branchPassword").value.trim();
+            const branchCode = document.getElementById("branchCode").value.trim();
+            const token = localStorage.getItem("authToken");
+            const companyId = JSON.parse(localStorage.getItem("loggedInCompany"))?.id || "";
     
             const passwordInput = document.getElementById("branchPassword");
             const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
@@ -188,40 +293,27 @@
                 passwordInput.classList.remove("border", "border-red-500");
             }
     
-            // Get existing branches from localStorage (an array)
-            const existingBranches = JSON.parse(localStorage.getItem("branchInfo")) || [];
-    
-            // Generate a unique 4-digit number
-            function generateUniqueCode() {
-                let code;
-                let existingCodes = existingBranches.map(branch => branch.branchCode.split("-").pop());
-            do {
-                    code = Math.floor(1000 + Math.random() * 9000).toString();
-                } while (existingCodes.includes(code));
-                return code;
-            }
-    
-            const branchCode = `${company.slice(0, 3).toUpperCase()}-${branchName.slice(0, 3).toUpperCase()}-${location.slice(0, 3).toUpperCase()}-${generateUniqueCode()}`;
-    
-            // Prepare new branch data using the company name from signupData
+            // Prepare branch data
             const branchData = {
-                companyName: company,
                 branchName: branchName,
-                location: location,
+                branchEmail: null,
+                branchPhoneNumber: null,
+                branchLocation: location,
+                branchPassword: password,
                 branchCode: branchCode,
-                password: password,
+                companyId: companyId,
+                companyName: company,
                 createdAt: new Date().toISOString()
             };
     
-            // Add the new branch to the array and save back
-            existingBranches.push(branchData);
-            localStorage.setItem("branchInfo", JSON.stringify(existingBranches));
-    
             try {
-                const response = await fetch('http://localhost:5161/api/auth/create-branch', {
+                // Use the same API endpoint as in add-branch.js
+                const baseUrl = "https://phluowise.azurewebsites.net/";
+                const response = await fetch(`${baseUrl}/company-admin/AddBranch`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(branchData)
                 });

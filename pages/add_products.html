@@ -69,7 +69,7 @@
             </script>
         </div>
         <!-- Main Content -->
-        <div class="ml-64 p-5 w-full text-white " x-data="productManager()">
+        <div class="ml-64 p-5 w-full text-white " x-data="productManager()" x-init="init()">
             <!-- Top Bar -->
            <!-- TOPBAR PLACEHOLDER -->
 <div id="topbar">
@@ -148,32 +148,22 @@
                                 class="glassmorphism rounded-xl overflow-hidden card-hover transition-all duration-300 fade-in">
                                 <!-- Product Media -->
                                 <div class="relative h-48 bg-gray-800 overflow-hidden">
-                                    <template x-if="product.mediaType === 'image' && product.mediaData">
-                                        <img :src="product.mediaData" :alt="product.name"
+                                    <template x-if="product.imageUrl">
+                                        <img :src="product.imageUrl" :alt="product.description"
                                             class="w-full h-full object-cover">
                                     </template>
-
-                                    <template x-if="product.mediaType === 'video' && product.mediaData">
-                                        <video controls class="w-full h-full object-cover">
-                                            <source :src="product.mediaData" type="video/mp4">
-                                            Your browser does not support the video tag.
-                                        </video>
-                                    </template>
-
-                                    <template x-if="!product.mediaData || product.mediaType === 'none'">
+                                    <template x-if="!product.imageUrl">
                                         <div
                                             class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
                                             <i class="fas fa-box text-5xl text-gray-600"></i>
                                         </div>
                                     </template>
-
                                     <!-- Price Tag -->
                                     <div
                                         class="absolute top-4 left-4 glassmorphism px-3 py-1 rounded-full text-sm font-medium">
                                         <span
                                             x-text="(product.currency || '$') + parseFloat(product.price).toFixed(2)"></span>
                                     </div>
-
                                     <!-- Discount Tag (if applicable) -->
                                     <template x-if="product.discount">
                                         <div
@@ -182,24 +172,19 @@
                                         </div>
                                     </template>
                                 </div>
-
                                 <!-- Product Info -->
                                 <div class="p-5">
-                                    <h3 class="font-bold text-lg mb-2" x-text="product.name"></h3>
-
-                                    <!-- Product Description -->
-                                    <template x-if="product.description">
-                                        <p class="text-gray-300 text-sm mb-4 line-clamp-2" x-text="product.description">
-                                        </p>
-                                    </template>
-
+                                    <h3 class="font-bold text-lg mb-2" x-text="product.description"></h3>
+                                    <!-- Product Description (optional, if you have another field) -->
+                                    <!-- <template x-if="product.longDescription">
+                                        <p class="text-gray-300 text-sm mb-4 line-clamp-2" x-text="product.longDescription"></p>
+                                    </template> -->
                                     <!-- Action Buttons -->
                                     <div class="flex space-x-2 mt-4">
                                         <button @click="editProduct(product)"
                                             class="flex-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg py-2 transition duration-300 flex items-center justify-center">
                                             <i class="fas fa-edit mr-2"></i> Edit
                                         </button>
-
                                         <button @click="deleteProduct(product.id)"
                                             class="flex-1 bg-red-900 hover:bg-red-800 text-white rounded-lg py-2 transition duration-300 flex items-center justify-center">
                                             <i class="fas fa-trash-alt mr-2"></i> Delete
@@ -210,18 +195,28 @@
                         </template>
 
                         <!-- Empty State -->
-                        <template x-if="filteredProducts.length === 0">
-                            <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
-                                <i class="fas fa-box-open text-6xl text-gray-700 mb-4"></i>
-                                <h3 class="text-xl font-medium text-gray-400 mb-2">No products found</h3>
-                                <p class="text-gray-500">Try changing your search or add new products.</p>
-                                <button @click="openModal()"
-                                    class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full px-5 py-2 flex items-center space-x-2 transition duration-300">
-                                    <i class="fas fa-plus mr-2"></i>
-                                    <span>Add Your First Product</span>
-                                </button>
-                            </div>
-                        </template>
+                      <!-- Show loader while loading -->
+<template x-if="!loaded">
+    <div class="col-span-full text-center py-16">
+        <i class="fas fa-spinner fa-spin text-4xl text-gray-500"></i>
+        <p class="mt-4 text-gray-400">Loading products...</p>
+    </div>
+</template>
+
+<!-- Show empty state if no products AFTER loaded -->
+<template x-if="loaded && filteredProducts.length === 0">
+    <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+        <i class="fas fa-box-open text-6xl text-gray-700 mb-4"></i>
+        <h3 class="text-xl font-medium text-gray-400 mb-2">No products found</h3>
+        <p class="text-gray-500">Try changing your search or add new products.</p>
+        <button @click="openModal()"
+            class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full px-5 py-2 flex items-center space-x-2 transition duration-300">
+            <i class="fas fa-plus mr-2"></i>
+            <span>Add Your First Product</span>
+        </button>
+    </div>
+</template>
+
 
                         <!-- Add Product Card -->
                         <div @click="openModal()"
@@ -255,8 +250,8 @@
                     </div>
 
                     <!-- Delete Confirmation Modal -->
-                    <div x-show="showDeleteConfirmationModal"
-                        class="fixed inset-0 modal-bg flex items-center justify-center z-50 px-4"
+                    <div x-show="showDeleteConfirmationModal" x-cloak  x-transition
+                    class="fixed inset-0 modal-bg flex items-center justify-center z-50 px-4"
                         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
                         x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
                         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
@@ -276,173 +271,120 @@
 
                     <!-- Form -->
                     <form @submit.prevent="saveProduct" class="p-6 space-y-6">
-                        <input type="hidden" x-model="productId">
-
-                        <!-- Product Name -->
+                        <!-- Description -->
                         <div>
-                            <label for="productName" class="block text-sm font-medium text-gray-300 mb-2">Product
-                                Name</label>
+                            <label for="description" class="block text-sm font-medium text-gray-300 mb-2">
+                                Product Name / Description
+                            </label>
+                            <textarea id="description" x-model="description"
+                                class="w-full p-4 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Product name or description" rows="3"></textarea>
+                        </div>
+                        <!-- Price -->
+                        <div>
+                            <label for="price" class="block text-sm font-medium text-gray-300 mb-2">
+                                Price
+                            </label>
                             <div class="relative">
-                                <i
-                                    class="fas fa-tag absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                                <input type="text" id="productName" x-model="productName"
+                                <i class="fas fa-dollar-sign absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                                <input type="number" id="price" x-model="price"
                                     class="pl-10 pr-4 py-3 w-full bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter product name" required>
+                                    placeholder="0.00" min="0" step="0.01">
                             </div>
                         </div>
 
-                        <!-- Price & Currency -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="productPrice"
-                                    class="block text-sm font-medium text-gray-300 mb-2">Price</label>
-                                <div class="relative">
-                                    <i
-                                        class="fas fa-dollar-sign absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                                    <input type="number" id="productPrice" x-model="productPrice"
-                                        class="pl-10 pr-4 py-3 w-full bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="0.00" min="0" step="0.01" required>
-                                </div>
-                            </div>
+                        <!-- Quantity Type -->
+<div>
+    <label for="quantityType" class="block text-sm font-medium text-gray-300 mb-2">
+        Quantity Type
+    </label>
+    <select id="quantityType" x-model="quantityType"
+        class="w-full p-3 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="" disabled selected>Select type</option>
+        <option value="Sachet">Sachet</option>
+        <option value="Bottle">Bottle</option>
+        <option value="Dispenser">Dispenser</option>
+    </select>
+</div>
 
-                            <div>
-                                <label for="productCurrency"
-                                    class="block text-sm font-medium text-gray-300 mb-2">Currency</label>
-                                <div class="relative">
-                                    <i
-                                        class="fas fa-coins absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                                    <select id="productCurrency" x-model="productCurrency"
-                                        class="pl-10 pr-4 py-3 w-full bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <option value="GHS">Ghana Cedi (GHS)</option>
-                                        <option value="USD">USD ($)</option>
-                                        <option value="EUR">Euro (€)</option>
-                                        <option value="GBP">Pound (£)</option>
-                                        <!-- Add more currencies as needed -->
-                                    </select>
-                                </div>
-                            </div>
+<!-- Product Size -->
+<div>
+    <label for="productSize" class="block text-sm font-medium text-gray-300 mb-2">
+        Product Size
+    </label>
+    <select id="productSize" x-model="productSize"
+        class="w-full p-3 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="" disabled selected>Select size</option>
+        <option value="250ml">250 ml</option>
+        <option value="500ml">500 ml</option>
+        <option value="750ml">750 ml</option>
+        <option value="1L">1 Litre</option>
+        <option value="1.5L">1.5 Litres</option>
+        <option value="5L">5 Litres</option>
+        <option value="10L">10 Litres</option>
+        <option value="20L">20 Litres</option>
+        <option value="custom">Other (enter custom)</option>
+    </select>
+</div>
 
-                        </div>
+<!-- Custom Size Input -->
+<div x-show="productSize === 'custom'" x-transition>
+    <label for="customSize" class="block text-sm font-medium text-gray-300 mb-2 mt-4">
+        Enter Custom Size (e.g. 3.2L)
+    </label>
+    <input type="text" id="customSize" x-model="customSize"
+        class="w-full p-3 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder="Enter size (e.g., 3.2L)">
+</div>
 
-                        <!-- Discount (Optional) -->
+                        <!-- Discount -->
                         <div>
-                            <label for="productDiscount" class="block text-sm font-medium text-gray-300 mb-2">Discount %
-                                (Optional)</label>
+                            <label for="discount" class="block text-sm font-medium text-gray-300 mb-2">
+                                Discount % (Optional)
+                            </label>
                             <div class="relative">
-                                <i
-                                    class="fas fa-percent absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                                <input type="number" id="productDiscount" x-model="productDiscount"
+                                <i class="fas fa-percent absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                                <input type="number" id="discount" x-model="discount"
                                     class="pl-10 pr-4 py-3 w-full bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="0" min="0" max="100">
                             </div>
                         </div>
-
-                        <!-- Description -->
+                        <!-- Image Upload -->
                         <div>
-                            <label for="productDescription"
-                                class="block text-sm font-medium text-gray-300 mb-2">Description
-                                (Optional)</label>
-                            <textarea id="productDescription" x-model="productDescription"
-                                class="w-full p-4 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Write a description of your product" rows="3"></textarea>
-                        </div>
-
-                        <!-- Media Type Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Media Type</label>
-                            <div class="grid grid-cols-3 gap-4">
-                                <div @click="mediaType = 'none'"
-                                    :class="{'border-blue-500 bg-blue-900 bg-opacity-20': mediaType === 'none'}"
-                                    class="cursor-pointer border border-gray-700 rounded-lg p-4 flex flex-col items-center text-center transition-all">
-                                    <i class="fas fa-ban mb-2 text-xl"></i>
-                                    <span class="text-sm">None</span>
-                                </div>
-
-                                <div @click="mediaType = 'image'"
-                                    :class="{'border-blue-500 bg-blue-900 bg-opacity-20': mediaType === 'image'}"
-                                    class="cursor-pointer border border-gray-700 rounded-lg p-4 flex flex-col items-center text-center transition-all">
-                                    <i class="fas fa-image mb-2 text-xl"></i>
-                                    <span class="text-sm">Image</span>
-                                </div>
-
-                                <div @click="mediaType = 'video'"
-                                    :class="{'border-blue-500 bg-blue-900 bg-opacity-20': mediaType === 'video'}"
-                                    class="cursor-pointer border border-gray-700 rounded-lg p-4 flex flex-col items-center text-center transition-all">
-                                    <i class="fas fa-video mb-2 text-xl"></i>
-                                    <span class="text-sm">Video</span>
-                                </div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">
+                                Image (Optional)
+                            </label>
+                            <div class="mt-1 flex items-center">
+                                <label class="cursor-pointer bg-gray-800 rounded-md border border-gray-700 px-4 py-2 hover:bg-gray-700">
+                                    <span>Choose File</span>
+                                    <input type="file" class="hidden" 
+                                           accept="image/jpeg,image/png,image/gif" 
+                                           @change="handleFileSelect">
+                                </label>
+                                <span class="ml-2 text-sm text-gray-400" x-text="productImage ? productImage.name : 'No file chosen'"></span>
                             </div>
                         </div>
-
-                        <!-- Media Upload -->
-                        <div x-show="mediaType !== 'none'" x-transition class="mt-4">
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Upload Media</label>
-
-                            <!-- Drag & Drop Upload Zone -->
-                            <div @dragover.prevent="dragOver = true" @dragleave.prevent="dragOver = false"
-                                @drop.prevent="handleFileDrop($event)"
-                                :class="{'border-blue-500 bg-blue-900 bg-opacity-10': dragOver}"
-                                class="upload-zone rounded-lg h-48 flex flex-col items-center justify-center cursor-pointer overflow-hidden relative">
-
-                                <!-- Media Preview -->
-                                <template x-if="mediaPreview">
-                                    <div class="absolute inset-0 w-full h-full bg-black">
-                                        <template x-if="mediaType === 'image'">
-                                            <img :src="mediaPreview" class="w-full h-full object-contain" />
-                                        </template>
-
-                                        <template x-if="mediaType === 'video'">
-                                            <video controls class="w-full h-full">
-                                                <source :src="mediaPreview" type="video/mp4">
-                                                Your browser does not support the video tag.
-                                            </video>
-                                        </template>
-
-                                        <button @click.stop="resetMedia()"
-                                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 w-8 h-8 rounded-full flex items-center justify-center">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                </template>
-
-                                <!-- Upload Prompt -->
-                                <template x-if="!mediaPreview">
-                                    <div class="text-center p-4">
-                                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-4"></i>
-                                        <p class="text-gray-400 mb-2">Drag & drop your file here</p>
-                                        <p class="text-gray-500 text-sm">or</p>
-                                        <label
-                                            class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white cursor-pointer inline-block transition">
-                                            <span>Browse Files</span>
-                                            <input type="file" class="hidden"
-                                                :accept="mediaType === 'image' ? 'image/*' : 'video/*'"
-                                                @change="handleFileSelect">
-                                        </label>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
                         <!-- Form Buttons -->
                         <div class="flex justify-end space-x-4 pt-4">
                             <button type="button" @click="closeModal()"
                                 class="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition">
                                 Cancel
                             </button>
-
                             <button type="submit"
-                                class="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition flex items-center">
+                                class="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition flex items-center"
+                                :disabled="loading"
+                                :class="loading ? 'opacity-50 cursor-not-allowed' : ''">
                                 <i class="fas fa-save mr-2"></i>
-                                <span x-text="editProduct ? 'Update Product' : 'Save Product'"></span>
+                                <span>Save Product</span>
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Delete Confirmation Modal -->
-            <div x-show="showDeleteConfirmationModal"
-                class="fixed inset-0 modal-bg flex items-center justify-center z-50 px-4"
+            <!-- Delete Confirmation Modal --> 
+            <div x-show="showDeleteConfirmationModal"  x-cloak  x-transition
+            class="fixed inset-0 modal-bg flex items-center justify-center z-50 px-4"
                 x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
