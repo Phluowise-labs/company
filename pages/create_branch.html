@@ -54,7 +54,15 @@
                 <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
                     <i class="fas fa-map-marker-alt text-xl mr-3"></i>
                     <input id="location" type="text" placeholder="Enter Location" class="bg-transparent w-full focus:outline-none"  oninput="generateBranchCode()" required />
-
+                </div>
+            </div>
+            <!-- Branch Manager Email -->
+            <div class="mb-4">
+                <label class="block mb-2">Branch Manager Email</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-envelope text-xl mr-3"></i>
+                    <input id="branchManagerEmail" type="email" placeholder="Enter branch manager's email"
+                        class="bg-transparent flex-1 focus:outline-none" required />
                 </div>
             </div>
 
@@ -294,10 +302,10 @@
             }
     
             // Prepare branch data
+            const branchManagerEmail = document.getElementById("branchManagerEmail").value.trim();
             const branchData = {
                 branchName: branchName,
-                branchEmail: null,
-                branchPhoneNumber: null,
+                branchManagerEmail: branchManagerEmail,
                 branchLocation: location,
                 branchPassword: password,
                 branchCode: branchCode,
@@ -307,8 +315,8 @@
             };
     
             try {
-                // Use the same API endpoint as in add-branch.js
-                const baseUrl = "https://phluowise.azurewebsites.net/";
+                // Use a dummy API endpoint for now
+                const baseUrl = "https://phluowise.azurewebsites.net";
                 const response = await fetch(`${baseUrl}/company-admin/AddBranch`, {
                     method: 'POST',
                     headers: {

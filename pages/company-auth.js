@@ -1,4 +1,4 @@
-const baseUrl = "https://phlowise-amggdaagb5ancjfu.eastus-01.azurewebsites.net";
+const baseUrl = "https://phluowise.azurewebsites.net";
 
 // LocalStorage keys
 const STORAGE_KEYS = {
@@ -10,11 +10,18 @@ const STORAGE_KEYS = {
   AUTH_TOKEN: "authToken",
   OTP_EMAIL: "otpEmail",
   RESEND_TIMEOUT: "resendTimeout",
-  OTP_PASSWORD: "otpPassword",
 };
 
 // Initialize all event listeners
 document.addEventListener("DOMContentLoaded", () => {
+  // Branch Login Page
+  if (document.getElementById("branchBtn") && document.getElementById("email") && document.getElementById("branch") && document.getElementById("password")) {
+    const loginBtn = document.getElementById("loginBtn");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", handleBranchLogin);
+    }
+  }
+
   // OTP Page
   if (document.getElementById("otpForm")) {
     setupOtpInputs();
@@ -62,6 +69,97 @@ document.addEventListener("DOMContentLoaded", () => {
       .addEventListener("submit", handleResetPassword);
   }
 });
+
+// ========================
+// BRANCH MANAGER LOGIN & OTP
+// ========================
+async function handleBranchLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim();
+  const branchCode = document.getElementById("branch").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!email || !isValidEmail(email)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Invalid Email",
+      text: "Please enter a valid branch manager email address.",
+      confirmButtonColor: "#4f46e5",
+    });
+    return;
+  }
+
+  if (!branchCode) {
+    await Swal.fire({
+      icon: "error",
+      title: "Missing Branch Code",
+      text: "Please enter your branch code.",
+      confirmButtonColor: "#4f46e5",
+    });
+    return;
+  }
+
+  if (!password) {
+    await Swal.fire({
+      icon: "error",
+      title: "Missing Password",
+      text: "Please enter your password.",
+      confirmButtonColor: "#4f46e5",
+    });
+    return;
+  }
+
+  try {
+    const loginBtn = document.getElementById("loginBtn");
+    if (loginBtn) {
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<span class="spinner"></span> Processing...';
+    }
+
+    // Call backend endpoint for branch login
+    const response = await fetch(`${baseUrl}/branch/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, branchCode, password }),
+    });
+    const result = await response.json();
+
+    if (response.ok) {
+      // Store OTP token, login token, and info in localStorage
+      if (result.otpToken) {
+        localStorage.setItem(STORAGE_KEYS.OTP_TOKEN, result.otpToken);
+        localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token || "");
+        localStorage.setItem(STORAGE_KEYS.OTP_EMAIL, email);
+        localStorage.setItem("branchManagerInfo", JSON.stringify(result.branchManagerInfo || {}));
+        localStorage.setItem("branchCode", branchCode);
+        localStorage.setItem(STORAGE_KEYS.OTP_PURPOSE, "branch-login");
+        window.location.href = "otp-verification.html";
+      } else {
+        throw new Error(result.message || "OTP token not received. Please try again.");
+      }
+    } else {
+      await Swal.fire({
+        icon: "error",
+        title: result.title || "Login Failed",
+        text: result.message || "Branch login failed. Please check your credentials.",
+        confirmButtonColor: "#4f46e5",
+      });
+    }
+  } catch (error) {
+    await Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: `Something went wrong: ${error.message}`,
+      confirmButtonColor: "#4f46e5",
+    });
+  } finally {
+    const loginBtn = document.getElementById("loginBtn");
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = "Log In";
+    }
+  }
+}
 
 // ========================
 // 1. REGISTER COMPANY

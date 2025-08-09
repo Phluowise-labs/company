@@ -333,30 +333,36 @@
             const fullName = `${firstName}_${lastName}`;
             const dateStr = new Date().toISOString().split('T')[0];
 
-            const data = {};
-            formData.forEach((value, key) => {
-                // Add form data excluding base64 images
-                if (key !== 'frontCardImage' && key !== 'backCardImage' && key !== 'selfieImage') {
-                    data[key] = value;
-                }
-            });
+            // Build only the required data fields
+            const data = {
+                fullName: formData.get('fullName').trim(),
+                email: formData.get('email').trim(),
+                dob: formData.get('dob'),
+                ghanaCardId: formData.get('ghanaCardId').trim(),
+                frontCardPath: '',
+                backCardPath: '',
+                selfiePath: '',
+                verificationStatus: 'pending'
+            };
 
-            // Ensure the image paths are set correctly
-            if (!frontCardDataURL || !backCardDataURL || !selfieDataURL) {
-                alert('Please make sure all images are uploaded.');
-                return;
+            // Get file extensions from the uploaded files
+            const frontFile = form.elements['ghanaCardFront'].files[0];
+            const backFile = form.elements['ghanaCardBack'].files[0];
+            const selfieFile = form.elements['selfieUpload'].files[0];
+
+            if (frontFile) {
+                const frontExt = frontFile.name.split('.').pop();
+                data.frontCardPath = `card_uploads/${fullName}_${lastName}_front.${frontExt}`;
+            }
+            if (backFile) {
+                const backExt = backFile.name.split('.').pop();
+                data.backCardPath = `card_uploads/${fullName}_${lastName}_back.${backExt}`;
+            }
+            if (selfieFile) {
+                const selfieExt = selfieFile.name.split('.').pop();
+                data.selfiePath = `selfie_uploads/${dateStr}_${fullName}_${lastName}.${selfieExt}`;
             }
 
-            // Set the image paths instead of storing the base64 data
-            const frontCardExtension = getFileExtension(frontCardDataURL);
-            const backCardExtension = getFileExtension(backCardDataURL);
-            const selfieExtension = getFileExtension(selfieDataURL);
-
-            data.frontCardPath = `card_uploads/${fullName}_front.${frontCardExtension}`;
-            data.backCardPath = `card_uploads/${fullName}_back.${backCardExtension}`;
-            data.selfiePath = `selfie_uploads/${dateStr}_${fullName}.${selfieExtension}`;
-
-            // Store only necessary metadata in localStorage (no base64 images)
             localStorage.setItem('identityVerification', JSON.stringify(data));
 
             Swal.fire({

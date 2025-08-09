@@ -57,37 +57,16 @@
                 <input type="hidden" id="role" name="role" value="branch">
             </div>
             <div class="mb-6" id="loginContainer">
-                <button id="loginBtn" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" onclick="event.preventDefault(); showNotification() ">
+                <button id="loginBtn" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" type="button">
                     Log In
                 </button>
             </div>
 
-            <!-- Waiting Notification (Hidden Initially) -->
-            <div id="notification" class="hidden flex mb-6 items-center justify-center gap-2 w-full p-3 bg-blue-900 text-white text-center rounded-md border border-blue-500 mt-2 transition-opacity opacity-0">
-                <div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-                Waiting for Approval...
-            </div>
             <div class="text-center text-gray-400">
                 or don't have an account? <a href="user-signup.html" class="text-blue-500 hover:underline">Sign up</a>
             </div>
         </form>
     </div>
-    <script>
-        function showNotification() {
-            let loginContainer = document.getElementById('loginContainer');
-            let loginBtn = document.getElementById('loginBtn');
-            let notification = document.getElementById('notification');
-
-            loginBtn.style.display = 'none'; // Ensure button is completely removed
-            loginContainer.classList.add('hidden'); // Hide container
-
-            notification.classList.remove('hidden'); // Show notification
-            setTimeout(() => {
-                notification.classList.add('opacity-100'); // Smooth fade-in effect
-            }, 50);
-        }
-    </script>
-
     <script>
         function togglePassword() {
             const passwordField = document.getElementById('password');
@@ -118,6 +97,8 @@
             }
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="company-auth.js"></script>
 </body>
 
 </html>

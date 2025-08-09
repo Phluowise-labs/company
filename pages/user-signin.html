@@ -124,21 +124,14 @@
 
 <script defer src="company-auth.js"></script>
 
-    <!-- <script>
+    <script>
     function selectRole(role) {
-      const adminBtn = document.getElementById('adminBtn');
-      const branchBtn = document.getElementById('branchBtn');
-      const roleInput = document.getElementById('role');
-
-      roleInput.value = role;
-
-      adminBtn.classList.toggle('bg-blue-900', role === 'admin');
-      adminBtn.classList.toggle('bg-gray-600', role !== 'admin');
-      branchBtn.classList.toggle('bg-blue-900', role === 'branch');
-      branchBtn.classList.toggle('bg-gray-600', role !== 'branch');
-
-      document.getElementById('emailContainer').classList.toggle('hidden', role !== 'admin');
-      document.getElementById('branchContainer').classList.toggle('hidden', role !== 'branch');
+      // Redirect based on selected role
+      if (role === 'admin') {
+        window.location.href = 'user-signin.html';
+      } else if (role === 'branch') {
+        window.location.href = 'branch-signin.html';
+      }
     }
 
     function showError(fieldId, message) {
@@ -160,103 +153,8 @@
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      selectRole("admin"); // Default
-    });
 
-    document.getElementById("loginForm").addEventListener("submit", async function (event) {
-      event.preventDefault();
-
-      const email = document.getElementById("email").value.trim();
-      const branch = document.getElementById("branch").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const role = document.getElementById("role").value;
-
-      let isValid = true;
-      resetErrors();
-
-      if (role === "admin") {
-        if (!email) {
-          showError("email", "Email is required");
-          isValid = false;
-        } else if (!isValidEmail(email)) {
-          showError("email", "Please enter a valid email address");
-          isValid = false;
-        }
-      } else if (role === "branch") {
-        if (!branch) {
-          showError("branch", "Branch code is required");
-          isValid = false;
-        }
-      }
-
-      if (!password) {
-        showError("password", "Password is required");
-        isValid = false;
-      }
-
-      if (!isValid) return;
-
-      const payload = {
-        password,
-        role,
-        ...(role === "admin" ? { email } : { branch })
-      };
-
-      try {
-        // Send login request to the backend API
-        const response = await fetch("http://localhost:5161/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-
-        // If backend response is successful
-        if (response.ok && data.success) {
-          // Check if the email is verified (or any other condition)
-          if (data.emailVerified === false) {
-            return await Swal.fire("Email not verified", "Please verify your email before logging in.", "warning");
-          }
-
-            localStorage.setItem("isLoggedIn", "true");
-          localStorage.setItem("userId", data.userId || "");
-          localStorage.setItem("userEmail", data.email || "");
-          localStorage.setItem("userRole", data.role || "");
-          localStorage.setItem("branchCode", data.branchCode || "");
-          localStorage.setItem("accessToken", data.token || "");
-
-          await Swal.fire("Log in successful", "You will be redirected shortly.", "success");
-            window.location.href = "account.html";
-          } else {
-          const msg = data.message || "Please try again.";
-          if (role === "admin" && msg.includes("Email")) {
-            await Swal.fire("Email not found", msg, "warning");
-          } else if (role === "branch" && msg.includes("Branch")) {
-            await Swal.fire("Branch not found", msg, "warning");
-          } else {
-            await Swal.fire("Invalid credentials", msg, "error");
-          }
-        }
-      } catch (error) {
-        console.error("Error during login:", error);
-        await Swal.fire("An error occurred", "Please try again later.", "error");
-      }
-    });
   </script>
-  <script>
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn) {
-      window.location.href = "account.html"; // Redirect to account page if already logged in
-    }
-    document.getElementById("loginForm").addEventListener("submit", function (event) {
-      event.preventDefault(); // Prevent default form submission
-      showNotification(); // Show notification
-    });
-  </script> -->
 
 
 </body>
