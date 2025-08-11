@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Branches Settings</title>
+    <title>Branches </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
     <div class="bg-[#F5F5F51A] border-gray-700 text-white rounded-lg p-8 w-full max-w-md">
         <form onsubmit="return validateForm(event)">
             <h2 id="companyHeading" class="text-center text-2xl font-semibold mb-6">
-                Company Branches Settings
+                Company Branches 
             </h2>
             <script>
                 // Update heading with company name
@@ -34,7 +34,7 @@
                     const loggedInCompany = JSON.parse(localStorage.getItem('loggedInCompany')) || {};
                     const companyName = loggedInCompany.companyName || "Company";
                     const heading = document.getElementById("companyHeading");
-                    heading.textContent = `${companyName} Branches Settings`;
+                    heading.textContent = `${companyName} Branches`;
                 });
             </script>
 
@@ -64,6 +64,19 @@
                     <input id="branchManagerEmail" type="email" placeholder="Enter branch manager's email"
                         class="bg-transparent flex-1 focus:outline-none" required />
                 </div>
+            </div>
+
+            <!-- Branch Phone Number -->
+            <div class="mb-4">
+                <label class="block mb-2">Branch Phone Number</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-phone text-xl mr-3"></i>
+                    <input id="branchPhoneNumber" type="tel" placeholder="Enter branch phone number"
+                        pattern="[0-9]{10,15}" 
+                        title="Please enter a valid phone number (10-15 digits)"
+                        class="bg-transparent flex-1 focus:outline-none" required />
+                </div>
+                <p class="text-xs text-gray-400 mt-1">Enter 10-15 digit phone number</p>
             </div>
 
             <!-- Branch Code -->
@@ -98,9 +111,41 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg mb-4">
-                Create Branch Space
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg mb-4 relative">
+                <span class="submit-text">Create Branch Space</span>
+                <span class="submit-loader hidden">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating...
+                </span>
             </button>
+            
+            <style>
+                #submitBtn {
+                    transition: all 0.3s ease;
+                }
+                #submitBtn:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                }
+                .submit-text, .submit-loader {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                }
+                .submit-loader {
+                    display: none;
+                }
+                #submitBtn.loading .submit-text {
+                    display: none;
+                }
+                #submitBtn.loading .submit-loader {
+                    display: inline-flex;
+                }
+            </style>
         </form>
     </div>
 
@@ -273,8 +318,21 @@
             }
         }
     
+        // Function to set loading state
+        function setLoading(loading) {
+            const submitBtn = document.getElementById('submitBtn');
+            if (loading) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('loading');
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
+        }
+
         async function validateForm(event) {
             event.preventDefault();
+            setLoading(true);
     
             // Use the company name from the loggedInCompany (already stored from localStorage)
             const loggedInCompany = JSON.parse(localStorage.getItem("loggedInCompany")) || {};
@@ -285,8 +343,12 @@
             const branchCode = document.getElementById("branchCode").value.trim();
             const token = localStorage.getItem("authToken");
             const companyId = JSON.parse(localStorage.getItem("loggedInCompany"))?.id || "";
+            const branchManagerEmail = document.getElementById("branchManagerEmail").value.trim();
+            const branchPhoneNumber = document.getElementById("branchPhoneNumber").value.trim();
+            const phonePattern = /^[0-9]{10,15}$/;
     
             const passwordInput = document.getElementById("branchPassword");
+            const phoneInput = document.getElementById("branchPhoneNumber");
             const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
     
             if (!pattern.test(password)) {
@@ -300,24 +362,58 @@
             } else {
                 passwordInput.classList.remove("border", "border-red-500");
             }
+            
+            // Validate phone number format
+            if (!phonePattern.test(branchPhoneNumber)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Phone Number',
+                    text: 'Please enter a valid phone number (10-15 digits)'
+                });
+                phoneInput.classList.add("border", "border-red-500", "rounded");
+                return false;
+            } else {
+                phoneInput.classList.remove("border", "border-red-500");
+            }
     
-            // Prepare branch data
-            const branchManagerEmail = document.getElementById("branchManagerEmail").value.trim();
+            // Validate required fields
+            if (!branchName || !branchManagerEmail || !location || !password || !branchCode || !branchPhoneNumber) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Information',
+                    text: 'Please fill in all required fields.'
+                });
+                return false;
+            }
+            
+            // Prepare branch data with consistent property names
             const branchData = {
                 branchName: branchName,
-                branchManagerEmail: branchManagerEmail,
+                branchEmail: branchManagerEmail,
                 branchLocation: location,
                 branchPassword: password,
                 branchCode: branchCode,
+                branchPhoneNumber: branchPhoneNumber,
                 companyId: companyId,
                 companyName: company,
                 createdAt: new Date().toISOString()
             };
+            
+            console.log('Branch Data Prepared:', branchData);
     
             try {
-                // Use a dummy API endpoint for now
+                // Log the branch data before sending
+                console.log('=== Branch Data to be Sent ===');
+                console.log('Endpoint:', 'https://phluowise.azurewebsites.net/company/create-branch');
+                console.log('Request Headers:', {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token.substring(0, 10)}...` // Only show first 10 chars of token for security
+                });
+                console.log('Request Payload:', JSON.stringify(branchData, null, 2));
+                console.log('=============================');
+                
                 const baseUrl = "https://phluowise.azurewebsites.net";
-                const response = await fetch(`${baseUrl}/company-admin/AddBranch`, {
+                const response = await fetch(`${baseUrl}/company/create-branch`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -325,9 +421,17 @@
                     },
                     body: JSON.stringify(branchData)
                 });
+                
+                // Log the response for debugging
+                const responseData = await response.clone().json().catch(() => response.clone().text());
+                console.log('=== API Response ===');
+                console.log('Status:', response.status, response.statusText);
+                console.log('Response:', responseData);
+                console.log('===================');
     
                 if (response.ok) {
-                    Swal.fire({
+                    setLoading(false);
+                    await Swal.fire({
                         icon: 'success',
                         title: 'Branch Created',
                         text: 'Branch data saved successfully!',
@@ -336,6 +440,7 @@
                         window.location.href = "branches.html"; // Redirect after success
                     });
                 } else {
+                    setLoading(false);
                     const errorData = await response.json();
                     Swal.fire({
                         icon: 'error',
@@ -344,6 +449,7 @@
                     });
                 }
             } catch (error) {
+                setLoading(false);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
