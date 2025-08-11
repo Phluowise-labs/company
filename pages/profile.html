@@ -242,6 +242,20 @@
               />
             </div>
             <div class="mb-6">
+              <label class="block text-md font-bold mb-2" for="phone">
+                Company Phone Number
+              </label>
+              <input
+                class="w-full p-3 bg-[#F5F5F51A] border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="tel"
+                id="phone"
+                name="phone"
+                inputmode="numeric"
+                pattern="[0-9]+"
+                title="Please enter numbers only"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '')"0              />
+            </div>
+            <div class="mb-6">
               <label class="block text-md font-medium mb-2" for="website"
                 >Website</label
               >
@@ -345,15 +359,9 @@
                         d.open = this.globalOpen;
                         d.close = this.globalClose;
                     });
-                },
-                loadFromStorage() {
-                  const data = JSON.parse(localStorage.getItem('companyProfile')) || {};
-                  if (Array.isArray(data.workingDays)) {
-                    this.workingDays = data.workingDays;
-                  }
                 }
               }"
-              x-init="loadFromStorage()"
+              x-init="workingDays = []"
             >
               <!-- Select Day + Add Button -->
               <div class="flex items-center mb-4 text-gray-300 space-x-2">

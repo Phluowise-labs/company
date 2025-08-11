@@ -1,8 +1,65 @@
 const baseUrl = "https://phluowise.azurewebsites.net";
 
-document.addEventListener("DOMContentLoaded", () => {
+// Function to fetch company profile from API
+async function fetchCompanyProfile() {
+  try {
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+      console.warn("No auth token found");
+      return null;
+    }
+
+    const response = await fetch(`${baseUrl}/company-admin/GetProfile`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${authToken}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch profile: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Fetched company profile:", data);
+    return data.data || data; // Handle both {data: {...}} and direct object responses
+  } catch (error) {
+    console.error("Error fetching company profile:", error);
+    return null;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
   const form = document.querySelector("form");
   if (!form) return;
+
+  // Load company data from API
+  const companyData = await fetchCompanyProfile();
+  if (companyData) {
+    // Populate form fields
+    document.getElementById("company-name").value = companyData.companyName || "";
+    document.getElementById("description").value = companyData.description || "";
+    document.getElementById("location").value = companyData.companyLocation || "";
+    document.getElementById("phone").value = companyData.CompanyPhoneNumber || "";
+    document.getElementById("website").value = companyData.website || "";
+
+    // Populate social handles if they exist
+    if (companyData.socialHandles) {
+      Object.entries(companyData.socialHandles).forEach(([platform, handle]) => {
+        const input = document.querySelector(`input[name="${platform}"]`);
+        if (input) input.value = handle;
+      });
+    }
+
+    // Initialize working days in Alpine component
+    if (window.Alpine && Array.isArray(companyData.workingDays)) {
+      const alpineComponent = document.querySelector('[x-data*="workingDays"]');
+      if (alpineComponent && alpineComponent._x_dataStack && alpineComponent._x_dataStack[0]) {
+        alpineComponent._x_dataStack[0].workingDays = companyData.workingDays;
+      }
+    }
+  }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -13,10 +70,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const companyData = {
       companyName: getValue("company-name"),
       description: getValue("description"),
-      location: getValue("location"),
+      companyLocation: getValue("location"),
+      CompanyPhoneNumber: getValue("phone"),
       website: getValue("website"),
       socialHandles: getSocialHandles(),
-      workingDays: getWorkingDays(),
+      workingDays: getworkingDays(),
       profileImage,
       headerImage,
     };
@@ -50,10 +108,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Prepare form data for API
       const formData = new FormData();
-      formData.append("CompanyId", loggedInCompany.id);
       formData.append("CompanyName", companyData.companyName);
       formData.append("Description", companyData.description);
-      formData.append("Location", companyData.location);
+      formData.append("CompanyLocation", companyData.companyLocation);
+      formData.append("CompanyPhoneNumber", companyData.CompanyPhoneNumber || "");
       formData.append("Website", companyData.website || "");
       
       // Add social handles
@@ -61,9 +119,78 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("SocialHandles", JSON.stringify(companyData.socialHandles));
       }
       
-      // Add working days
-      if (companyData.workingDays.length > 0) {
-        formData.append("WorkingDays", JSON.stringify(companyData.workingDays));
+      // Add working days - ensure it's a proper array and filter out invalid entries
+      console.log('Original workingDays:', companyData.workingDays);
+      
+      if (companyData.workingDays && !Array.isArray(companyData.workingDays)) {
+        console.warn('workingDays is not an array:', companyData.workingDays);
+        // Try to parse if it's a string
+        try {
+          if (typeof companyData.workingDays === 'string') {
+            companyData.workingDays = JSON.parse(companyData.workingDays);
+            console.log('Parsed workingDays:', companyData.workingDays);
+          }
+        } catch (e) {
+          console.error('Error parsing workingDays:', e);
+          companyData.workingDays = [];
+        }
+      }
+      
+      if (Array.isArray(companyData.workingDays) && companyData.workingDays.length > 0) {
+        // Filter out any invalid entries and ensure proper formatting
+        const validWorkingDays = companyData.workingDays
+          .map(day => {
+            // Ensure day is an object
+            if (typeof day === 'string') {
+              try {
+                day = JSON.parse(day);
+              } catch (e) {
+                console.warn('Invalid day format:', day);
+                return null;
+              }
+            }
+            
+            // Validate day object and format for API
+            if (day && typeof day === 'object' && day.day) {
+              // Convert to API-expected format with capitalized property names
+              // Using lowercase properties that match the form data structure
+              return {
+                Day: String(day.day),
+                OpenTime: String(day.open || ''),  // Changed from openTime to open
+                CloseTime: String(day.close || '') // Changed from closeTime to close
+              };
+            }
+            return null;
+          })
+          .filter(Boolean); // Remove null entries
+        
+        console.log('Valid working days to send:', validWorkingDays);
+        
+        if (validWorkingDays.length > 0) {
+          // Log the exact data structure before stringifying
+          console.log('Working days data before stringify:', JSON.parse(JSON.stringify(validWorkingDays)));
+          
+          // Ensure all required fields are present and properly cased
+          const validatedWorkingDays = validWorkingDays.map(day => ({
+            Day: String(day.Day || day.day || ''),
+            OpenTime: String(day.OpenTime || day.open || ''),
+            CloseTime: String(day.CloseTime || day.close || '')
+          }));
+          
+          console.log('Validated working days:', validatedWorkingDays);
+          
+          const workingDaysJson = JSON.stringify(validatedWorkingDays);
+          console.log('JSON string to send:', workingDaysJson);
+          
+          // Also log the raw form data for debugging
+          for (let pair of formData.entries()) {
+            console.log('FormData:', pair[0], '=', pair[1]);
+          }
+          
+          formData.append("workingDays", workingDaysJson);
+        } else {
+          console.warn('No valid working days to send to API');
+        }
       }
       
       // Convert base64 images to files if available
@@ -77,8 +204,19 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("HeaderImage", headerImageFile);
       }
 
+      // Log all data being sent to API
+      console.log('API Request Data:', {
+        url: `${baseUrl}/company-admin/EditProfile`,
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'multipart/form-data' // Note: The browser will set this automatically with the correct boundary
+        },
+        body: Object.fromEntries(formData.entries())
+      });
+
       // Send to API
-      const response = await fetch(`${baseUrl}/company/update-profile`, {
+      const response = await fetch(`${baseUrl}/company-admin/EditProfile`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${authToken}`
@@ -86,16 +224,49 @@ document.addEventListener("DOMContentLoaded", () => {
         body: formData
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Status ${response.status}`);
+      // Clone the response so we can read it twice if needed
+      const responseClone = response.clone();
+      let result;
+      
+      try {
+        // First try to parse as JSON
+        result = await response.json();
+      } catch (e) {
+        // If JSON parsing fails, try to get the response as text
+        const responseText = await responseClone.text();
+        console.error('Error parsing response as JSON:', e);
+        
+        if (!response.ok) {
+          console.error('API Error Response (raw text):', responseText);
+          throw new Error(`Status ${response.status}: ${response.statusText}\n${responseText.substring(0, 200)}`);
+        }
+        
+        throw new Error('Invalid JSON response from server');
       }
-
-      const result = await response.json();
+      
+      if (!response.ok) {
+        console.error('API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData: result
+        });
+        throw new Error(result.message || `Status ${response.status}: ${response.statusText}`);
+      }
       console.log("✅ Profile saved to API:", result);
 
-      // Also save to localStorage for local access
-      localStorage.setItem("companyProfile", JSON.stringify(companyData));
+      // Save complete form data to localStorage including API response
+      const savedProfile = {
+        ...companyData,
+        // Include any additional data from the API response if needed
+        ...(result?.data || {}),
+        // Ensure working days are properly included
+        workingDays: companyData.workingDays,
+        // Add timestamp
+        lastUpdated: new Date().toISOString()
+      };
+      
+      localStorage.setItem("companyProfile", JSON.stringify(savedProfile));
+      console.log('✅ Profile saved to localStorage:', savedProfile);
       
       Swal.fire({
         icon: "success",
@@ -150,12 +321,19 @@ document.addEventListener("DOMContentLoaded", () => {
     return handles;
   }
 
-  function getWorkingDays() {
+  function getworkingDays() {
     try {
-      const alpineComponent = document.querySelector('[x-data*="workingDays"]')
-        ?._x_dataStack?.[0];
-      return alpineComponent?.workingDays || [];
-    } catch {
+      // Try to get the Alpine component using the proper way
+      const alpineComponent = Alpine.$data(document.querySelector('[x-data]'));
+      
+      // Fallback to the internal _x_dataStack if the proper way fails
+      const workingDays = alpineComponent?.workingDays || 
+                         document.querySelector('[x-data*="workingDays"]')?._x_dataStack?.[0]?.workingDays || [];
+      
+      console.log('Collected working days:', workingDays);
+      return Array.isArray(workingDays) ? workingDays : [];
+    } catch (error) {
+      console.error('Error getting working days:', error);
       return [];
     }
   }
@@ -163,23 +341,23 @@ document.addEventListener("DOMContentLoaded", () => {
   function validateCompanyData(data) {
     const errors = [];
 
-    if (!data.companyName) errors.push("Company name is required.");
-    if (!data.description) errors.push("Description is required.");
-    if (!data.location) errors.push("Location is required.");
-
-    // Validate website if entered
-    if (data.website && !isValidURL(data.website)) {
-      errors.push(
-        "Website must be a valid URL (start with http:// or https://)."
-      );
+    // if (!data.companyName) errors.push("Company name is required.");
+    // if (!data.description) errors.push("Description is required.");
+    // if (!data.companyLocation) errors.push("Location is required.");
+    if (data.CompanyPhoneNumber && !/^[0-9]{10,15}$/.test(data.CompanyPhoneNumber)) {
+      errors.push("Please enter a valid phone number (10-15 digits)");
     }
 
     // Social handles – no validation needed for usernames (just strip full URLs if needed)
     // WhatsApp format could be checked for number format if required (optional)
 
     data.workingDays.forEach((day) => {
-      if (!day.open || !day.close) {
-        errors.push(`Set both opening and closing times for ${day.day}.`);
+      // Check both possible property name formats for backward compatibility
+      const openTime = day.OpenTime || day.open;
+      const closeTime = day.CloseTime || day.close;
+      
+      if (!openTime || !closeTime) {
+        errors.push(`Set both opening and closing times for ${day.day || 'selected day'}.`);
       }
     });
 
