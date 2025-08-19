@@ -117,39 +117,54 @@ async function handleBranchLogin(e) {
     }
 
     // Call backend endpoint for branch login
-    const response = await fetch(`${baseUrl}/branch/login`, {
+    const response = await fetch(`${baseUrl}/Company/branch-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, branchCode, password }),
     });
     const result = await response.json();
+    console.log("Login response:", result); // Debug log
 
-    if (response.ok) {
-      // Store OTP token, login token, and info in localStorage
-      if (result.otpToken) {
-        localStorage.setItem(STORAGE_KEYS.OTP_TOKEN, result.otpToken);
-        localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token || "");
+    // Handle successful OTP sent response
+    if (response.ok && result.message && result.message.includes("OTP sent to email")) {
+      // Store the token from the response
+      if (result.token) {
+        localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token);
         localStorage.setItem(STORAGE_KEYS.OTP_EMAIL, email);
-        localStorage.setItem("branchManagerInfo", JSON.stringify(result.branchManagerInfo || {}));
         localStorage.setItem("branchCode", branchCode);
         localStorage.setItem(STORAGE_KEYS.OTP_PURPOSE, "branch-login");
+        
+        // Show success message before redirecting
+        await Swal.fire({
+          icon: "success",
+          title: "OTP Sent",
+          text: `An OTP has been sent to ${email}. Please check your inbox.`,
+          confirmButtonColor: "#4f46e5",
+        });
+        
+        // Redirect to OTP verification page
         window.location.href = "otp-verification.html";
+        return; // Prevent further execution
       } else {
-        throw new Error(result.message || "OTP token not received. Please try again.");
+        throw new Error("Token not found in response");
       }
+    }
+
+    // Handle other successful responses
+    if (response.ok) {
+      throw new Error(result.message || "Unexpected response from server");
     } else {
-      await Swal.fire({
-        icon: "error",
-        title: result.title || "Login Failed",
-        text: result.message || "Branch login failed. Please check your credentials.",
-        confirmButtonColor: "#4f46e5",
-      });
+      const errorMessage = result.message || "Branch login failed. Please check your credentials.";
+      throw new Error(errorMessage);
     }
   } catch (error) {
+    console.error("Branch Login Error:", error);
     await Swal.fire({
       icon: "error",
       title: "Error",
-      text: `Something went wrong: ${error.message}`,
+      text: error.message.startsWith("OTP sent to email") 
+        ? "An OTP has been sent to your email. Please check your inbox and enter the code to continue." 
+        : `Something went wrong: ${error.message}`,
       confirmButtonColor: "#4f46e5",
     });
   } finally {
@@ -713,6 +728,7 @@ async function handleOtpValidation(e) {
   const loginToken = localStorage.getItem(STORAGE_KEYS.LOGIN_TOKEN);
   const purpose = localStorage.getItem(STORAGE_KEYS.OTP_PURPOSE);
   const email = localStorage.getItem(STORAGE_KEYS.OTP_EMAIL);
+  const branchCode = localStorage.getItem("branchCode");
 
   // 🔍 DEBUG LOGS
   console.log("Entered OTP:", otp);
@@ -720,11 +736,24 @@ async function handleOtpValidation(e) {
   console.log("Login Token:", loginToken);
   console.log("OTP Purpose:", purpose);
   console.log("Stored Email for OTP:", email);
+  console.log("Branch Code:", branchCode);
 
   try {
     let response, result;
 
-    if (registerToken) {
+    if (purpose === 'branch-login' && loginToken && branchCode) {
+      console.log("Sending request to /Company/branch-validate-otp...");
+      response = await fetch(`${baseUrl}/Company/branch-validate-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          token: loginToken, 
+          otp,
+          branchCode,
+          email
+        }),
+      });
+    } else if (registerToken) {
       console.log("Sending request to /company/register-validate-otp...");
       response = await fetch(`${baseUrl}/company/register-validate-otp`, {
         method: "POST",
@@ -769,19 +798,37 @@ async function handleOtpValidation(e) {
       );
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, result.token);
 
-      if (purpose !== "forgot") {
+      // Handle different OTP purposes
+      if (purpose === "forgot") {
+        // For password reset flow
+        localStorage.removeItem(STORAGE_KEYS.LOGIN_TOKEN);
+        const redirectUrl = "setnew_password.html";
+        showSuccessToast("OTP verified! You can now set your new password.");
+        setTimeout(() => (window.location.href = redirectUrl), 1500);
+      } else if (purpose === "branch-login") {
+        // For branch manager login flow
         localStorage.removeItem(STORAGE_KEYS.LOGIN_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.OTP_PURPOSE);
+        const branchManagerInfo = JSON.parse(localStorage.getItem("branchManagerInfo") || '{}');
+        const branchCode = localStorage.getItem("branchCode");
+        
+        // Store the branch manager info in the logged in company
+        localStorage.setItem(STORAGE_KEYS.LOGGED_IN_COMPANY, JSON.stringify({
+          ...result,
+          isBranchManager: true,
+          branchCode,
+          ...branchManagerInfo
+        }));
+        
+        showSuccessToast("Branch login successful!");
+        setTimeout(() => (window.location.href = "account.html"), 1500);
+      } else {
+        // Regular company login
+        localStorage.removeItem(STORAGE_KEYS.LOGIN_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.OTP_PURPOSE);
+        showSuccessToast("Login successful!");
+        setTimeout(() => (window.location.href = "account.html"), 1500);
       }
-
-      const redirectUrl =
-        purpose === "forgot" ? "setnew_password.html" : "account.html";
-      showSuccessToast(
-        purpose === "forgot"
-          ? "OTP verified! You can now set your new password."
-          : "Login successful!"
-      );
-      setTimeout(() => (window.location.href = redirectUrl), 1500);
     }
   } catch (error) {
     console.error("OTP Validation Error:", error);
@@ -800,6 +847,109 @@ async function handleOtpValidation(e) {
     verifyButton.disabled = false;
     verifyButton.classList.remove("btn-loading");
     verifyButton.textContent = "Verify Code";
+  }
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const form = document.getElementById("loginForm");
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  // Validate inputs
+  if (!email || !isValidEmail(email)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Invalid Email",
+      text: "Please enter a valid email address",
+      confirmButtonColor: "#4f46e5",
+    });
+    return;
+  }
+
+  if (!password || !isValidPassword(password)) {
+    await Swal.fire({
+      icon: "error",
+      title: "Invalid Password",
+      text: "Password must be at least 8 characters with uppercase, lowercase, number, and special character",
+      confirmButtonColor: "#4f46e5",
+    });
+    return;
+  }
+
+  const loginData = {
+    email: email,
+    password: password,
+  };
+
+  try {
+    // Show loading state
+    Swal.fire({
+      title: "Processing",
+      html: "Please wait...",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      background: "#ffffff",
+      backdrop: "rgba(0,0,0,0.4)",
+    });
+
+    const response = await fetch(`${baseUrl}/company/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(loginData),
+    });
+
+    const result = await response.json();
+    console.log("Login Response:", result);
+
+    // Close loading dialog first
+    Swal.close();
+
+    if (response.ok) {
+      await Swal.fire({
+        icon: "success",
+        title: "OTP Sent",
+        text: result.message || "Verification code sent to your email",
+        confirmButtonColor: "#4f46e5",
+        background: "#ffffff",
+      });
+
+      // Store tokens and email for OTP verification
+      localStorage.setItem(STORAGE_KEYS.OTP_PURPOSE, "login");
+      localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token);
+      localStorage.setItem(STORAGE_KEYS.OTP_EMAIL, email);
+      localStorage.setItem(STORAGE_KEYS.OTP_PASSWORD, password); // Store password for OTP resend
+
+      // Redirect to OTP page after success
+      window.location.href = "otp-verification.html";
+    } else {
+      // Handle specific error cases
+      let errorMessage =
+        result.detail || result.message || "Login failed. Please try again.";
+
+      if (response.status === 401) {
+        errorMessage = "Invalid email or password. Please try again.";
+      }
+
+      await Swal.fire({
+        icon: "error",
+        title: result.title || "Login Failed",
+        text: errorMessage,
+        confirmButtonColor: "#4f46e5",
+        background: "#ffffff",
+      });
+    }
+  } catch (error) {
+    Swal.close();
+    await Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: `Something went wrong: ${error.message}`,
+      confirmButtonColor: "#4f46e5",
+      background: "#ffffff",
+    });
   }
 }
 

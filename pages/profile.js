@@ -12,9 +12,9 @@ async function fetchCompanyProfile() {
     const response = await fetch(`${baseUrl}/company-admin/GetProfile`, {
       method: "GET",
       headers: {
-        "Authorization": `Bearer ${authToken}`,
-        "Content-Type": "application/json"
-      }
+        Authorization: `Bearer ${authToken}`,
+        "Content-Type": "application/json",
+      },
     });
 
     if (!response.ok) {
@@ -23,7 +23,7 @@ async function fetchCompanyProfile() {
 
     const data = await response.json();
     console.log("Fetched company profile:", data);
-    return data.data || data; // Handle both {data: {...}} and direct object responses
+    return data.data || data;
   } catch (error) {
     console.error("Error fetching company profile:", error);
     return null;
@@ -37,25 +37,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Load company data from API
   const companyData = await fetchCompanyProfile();
   if (companyData) {
-    // Populate form fields
-    document.getElementById("company-name").value = companyData.companyName || "";
-    document.getElementById("description").value = companyData.description || "";
-    document.getElementById("location").value = companyData.companyLocation || "";
-    document.getElementById("phone").value = companyData.CompanyPhoneNumber || "";
+    document.getElementById("company-name").value =
+      companyData.companyName || "";
+    document.getElementById("description").value =
+      companyData.description || "";
+    document.getElementById("location").value =
+      companyData.companyLocation || "";
+    document.getElementById("phone").value =
+      companyData.CompanyPhoneNumber || "";
     document.getElementById("website").value = companyData.website || "";
 
-    // Populate social handles if they exist
     if (companyData.socialHandles) {
-      Object.entries(companyData.socialHandles).forEach(([platform, handle]) => {
-        const input = document.querySelector(`input[name="${platform}"]`);
-        if (input) input.value = handle;
-      });
+      Object.entries(companyData.socialHandles).forEach(
+        ([platform, handle]) => {
+          const input = document.querySelector(`input[name="${platform}"]`);
+          if (input) input.value = handle;
+        }
+      );
     }
 
-    // Initialize working days in Alpine component
     if (window.Alpine && Array.isArray(companyData.workingDays)) {
       const alpineComponent = document.querySelector('[x-data*="workingDays"]');
-      if (alpineComponent && alpineComponent._x_dataStack && alpineComponent._x_dataStack[0]) {
+      if (
+        alpineComponent &&
+        alpineComponent._x_dataStack &&
+        alpineComponent._x_dataStack[0]
+      ) {
         alpineComponent._x_dataStack[0].workingDays = companyData.workingDays;
       }
     }
@@ -91,183 +98,119 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-      // Show loading state
       Swal.fire({
-        title: 'Saving profile...',
+        title: "Saving profile...",
         allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
+        didOpen: () => Swal.showLoading(),
       });
 
-      // Get company ID from localStorage
-      const loggedInCompany = JSON.parse(localStorage.getItem("loggedInCompany") || "{}");
+      const loggedInCompany = JSON.parse(
+        localStorage.getItem("loggedInCompany") || "{}"
+      );
       const authToken = localStorage.getItem("authToken");
-      
+
       if (!loggedInCompany.id || !authToken) {
         throw new Error("You must be logged in to update your profile.");
       }
 
-      // Prepare form data for API
       const formData = new FormData();
       formData.append("CompanyName", companyData.companyName);
       formData.append("Description", companyData.description);
       formData.append("CompanyLocation", companyData.companyLocation);
-      formData.append("CompanyPhoneNumber", companyData.CompanyPhoneNumber || "");
+      formData.append(
+        "CompanyPhoneNumber",
+        companyData.CompanyPhoneNumber || ""
+      );
       formData.append("Website", companyData.website || "");
-      
-      // Add social handles
+
       if (Object.keys(companyData.socialHandles).length > 0) {
-        formData.append("SocialHandles", JSON.stringify(companyData.socialHandles));
+        formData.append(
+          "SocialHandles",
+          JSON.stringify(companyData.socialHandles)
+        );
       }
-      
-      // Add working days - ensure it's a proper array and filter out invalid entries
-      console.log('Original workingDays:', companyData.workingDays);
-      
-      if (companyData.workingDays && !Array.isArray(companyData.workingDays)) {
-        console.warn('workingDays is not an array:', companyData.workingDays);
-        // Try to parse if it's a string
-        try {
-          if (typeof companyData.workingDays === 'string') {
-            companyData.workingDays = JSON.parse(companyData.workingDays);
-            console.log('Parsed workingDays:', companyData.workingDays);
-          }
-        } catch (e) {
-          console.error('Error parsing workingDays:', e);
-          companyData.workingDays = [];
-        }
-      }
-      
-      if (Array.isArray(companyData.workingDays) && companyData.workingDays.length > 0) {
-        // Filter out any invalid entries and ensure proper formatting
+
+      if (
+        Array.isArray(companyData.workingDays) &&
+        companyData.workingDays.length > 0
+      ) {
         const validWorkingDays = companyData.workingDays
-          .map(day => {
-            // Ensure day is an object
-            if (typeof day === 'string') {
+          .map((day) => {
+            if (typeof day === "string") {
               try {
                 day = JSON.parse(day);
-              } catch (e) {
-                console.warn('Invalid day format:', day);
+              } catch {
                 return null;
               }
             }
-            
-            // Validate day object and format for API
-            if (day && typeof day === 'object' && day.day) {
-              // Convert to API-expected format with capitalized property names
-              // Using lowercase properties that match the form data structure
+            if (day && typeof day === "object" && day.day) {
               return {
                 Day: String(day.day),
-                OpenTime: String(day.open || ''),  // Changed from openTime to open
-                CloseTime: String(day.close || '') // Changed from closeTime to close
+                OpenTime: String(day.open || ""),
+                CloseTime: String(day.close || ""),
               };
             }
             return null;
           })
-          .filter(Boolean); // Remove null entries
-        
-        console.log('Valid working days to send:', validWorkingDays);
-        
+          .filter(Boolean);
+
         if (validWorkingDays.length > 0) {
-          // Log the exact data structure before stringifying
-          console.log('Working days data before stringify:', JSON.parse(JSON.stringify(validWorkingDays)));
-          
-          // Ensure all required fields are present and properly cased
-          const validatedWorkingDays = validWorkingDays.map(day => ({
-            Day: String(day.Day || day.day || ''),
-            OpenTime: String(day.OpenTime || day.open || ''),
-            CloseTime: String(day.CloseTime || day.close || '')
+          const validatedWorkingDays = validWorkingDays.map((day) => ({
+            Day: String(day.Day || day.day || ""),
+            OpenTime: String(day.OpenTime || day.open || ""),
+            CloseTime: String(day.CloseTime || day.close || ""),
           }));
-          
-          console.log('Validated working days:', validatedWorkingDays);
-          
-          const workingDaysJson = JSON.stringify(validatedWorkingDays);
-          console.log('JSON string to send:', workingDaysJson);
-          
-          // Also log the raw form data for debugging
-          for (let pair of formData.entries()) {
-            console.log('FormData:', pair[0], '=', pair[1]);
-          }
-          
-          formData.append("workingDays", workingDaysJson);
-        } else {
-          console.warn('No valid working days to send to API');
+          formData.append("workingDays", JSON.stringify(validatedWorkingDays));
         }
       }
-      
-      // Convert base64 images to files if available
+
       if (companyData.profileImage) {
-        const profileImageFile = await base64ToFile(companyData.profileImage, "profile-image.jpg");
+        const profileImageFile = await base64ToFile(
+          companyData.profileImage,
+          "profile-image.jpg"
+        );
         formData.append("ProfileImage", profileImageFile);
       }
-      
+
       if (companyData.headerImage) {
-        const headerImageFile = await base64ToFile(companyData.headerImage, "header-image.jpg");
+        const headerImageFile = await base64ToFile(
+          companyData.headerImage,
+          "header-image.jpg"
+        );
         formData.append("HeaderImage", headerImageFile);
       }
 
-      // Log all data being sent to API
-      console.log('API Request Data:', {
-        url: `${baseUrl}/company-admin/EditProfile`,
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'multipart/form-data' // Note: The browser will set this automatically with the correct boundary
-        },
-        body: Object.fromEntries(formData.entries())
-      });
-
-      // Send to API
       const response = await fetch(`${baseUrl}/company-admin/EditProfile`, {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: formData
+        headers: { Authorization: `Bearer ${authToken}` },
+        body: formData,
       });
 
-      // Clone the response so we can read it twice if needed
-      const responseClone = response.clone();
       let result;
-      
       try {
-        // First try to parse as JSON
         result = await response.json();
-      } catch (e) {
-        // If JSON parsing fails, try to get the response as text
-        const responseText = await responseClone.text();
-        console.error('Error parsing response as JSON:', e);
-        
-        if (!response.ok) {
-          console.error('API Error Response (raw text):', responseText);
-          throw new Error(`Status ${response.status}: ${response.statusText}\n${responseText.substring(0, 200)}`);
-        }
-        
-        throw new Error('Invalid JSON response from server');
+      } catch {
+        const text = await response.text();
+        throw new Error(`Server response error: ${text.substring(0, 200)}`);
       }
-      
+
       if (!response.ok) {
-        console.error('API Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorData: result
-        });
-        throw new Error(result.message || `Status ${response.status}: ${response.statusText}`);
+        throw new Error(
+          result.message || `Status ${response.status}: ${response.statusText}`
+        );
       }
+
       console.log("✅ Profile saved to API:", result);
 
-      // Save complete form data to localStorage including API response
       const savedProfile = {
         ...companyData,
-        // Include any additional data from the API response if needed
         ...(result?.data || {}),
-        // Ensure working days are properly included
         workingDays: companyData.workingDays,
-        // Add timestamp
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       };
-      
+
       localStorage.setItem("companyProfile", JSON.stringify(savedProfile));
-      console.log('✅ Profile saved to localStorage:', savedProfile);
-      
+
       Swal.fire({
         icon: "success",
         title: "Profile Saved",
@@ -278,7 +221,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       Swal.fire({
         icon: "error",
         title: "Save Failed",
-        text: err.message || "Something went wrong while saving your profile. Try again.",
+        text:
+          err.message ||
+          "Something went wrong while saving your profile. Try again.",
       });
     }
   });
@@ -310,89 +255,141 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Discord",
     ];
     const handles = {};
-
     platforms.forEach((platform) => {
       const input = document.querySelector(`input[name="${platform}"]`);
       if (input && input.value.trim()) {
-        handles[platform.toLowerCase()] = input.value.trim();
+        handles[platform.toLowerCase()] = sanitizeInput(input.value.trim());
       }
     });
-
     return handles;
   }
 
   function getworkingDays() {
     try {
-      // Try to get the Alpine component using the proper way
-      const alpineComponent = Alpine.$data(document.querySelector('[x-data]'));
-      
-      // Fallback to the internal _x_dataStack if the proper way fails
-      const workingDays = alpineComponent?.workingDays || 
-                         document.querySelector('[x-data*="workingDays"]')?._x_dataStack?.[0]?.workingDays || [];
-      
-      console.log('Collected working days:', workingDays);
+      const alpineComponent = Alpine.$data(document.querySelector("[x-data]"));
+      const workingDays =
+        alpineComponent?.workingDays ||
+        document.querySelector('[x-data*="workingDays"]')?._x_dataStack?.[0]
+          ?.workingDays ||
+        [];
       return Array.isArray(workingDays) ? workingDays : [];
-    } catch (error) {
-      console.error('Error getting working days:', error);
+    } catch {
       return [];
     }
   }
 
+  // 🔒 Global sanitize function for all inputs
+  function sanitizeInput(input) {
+    if (!input) return "";
+    let sanitized = String(input).replace(/<[^>]*>?/gm, ""); // strip HTML
+    const blacklist =
+      /(\b(SELECT|UPDATE|DELETE|INSERT|DROP|ALTER|CREATE|TRUNCATE)\b|['";])/gi;
+    sanitized = sanitized.replace(blacklist, "");
+    return sanitized.trim();
+  }
+
   function validateCompanyData(data) {
     const errors = [];
+    const maxLength = 500;
+    const urlPattern =
+      /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
+    const phonePattern = /^[0-9]{10,15}$/;
+    const timePattern = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
-    // if (!data.companyName) errors.push("Company name is required.");
-    // if (!data.description) errors.push("Description is required.");
-    // if (!data.companyLocation) errors.push("Location is required.");
-    if (data.CompanyPhoneNumber && !/^[0-9]{10,15}$/.test(data.CompanyPhoneNumber)) {
-      errors.push("Please enter a valid phone number (10-15 digits)");
+    // Required checks
+    if (!data.companyName) errors.push("Company name is required.");
+    else if (data.companyName.length > 100)
+      errors.push("Company name must be less than 100 characters.");
+
+    if (!data.description) errors.push("Description is required.");
+    else if (data.description.length > maxLength)
+      errors.push(`Description must be less than ${maxLength} characters.`);
+
+    if (!data.companyLocation) errors.push("Location is required.");
+    else if (data.companyLocation.length > 200)
+      errors.push("Location must be less than 200 characters.");
+
+    if (
+      data.CompanyPhoneNumber &&
+      !phonePattern.test(data.CompanyPhoneNumber)
+    ) {
+      errors.push("Please enter a valid phone number (10-15 digits).");
     }
 
-    // Social handles – no validation needed for usernames (just strip full URLs if needed)
-    // WhatsApp format could be checked for number format if required (optional)
-
-    data.workingDays.forEach((day) => {
-      // Check both possible property name formats for backward compatibility
-      const openTime = day.OpenTime || day.open;
-      const closeTime = day.CloseTime || day.close;
-      
-      if (!openTime || !closeTime) {
-        errors.push(`Set both opening and closing times for ${day.day || 'selected day'}.`);
+    if (data.website && data.website.trim() !== "") {
+      try {
+        new URL(data.website);
+        if (!urlPattern.test(data.website))
+          errors.push("Please enter a valid website URL.");
+      } catch {
+        errors.push("Please enter a valid website URL.");
       }
-    });
+    }
+
+    if (data.workingDays && data.workingDays.length > 0) {
+      const daysOfWeek = new Set();
+      data.workingDays.forEach((day, index) => {
+        const dayName = day.day || day.Day || `Day ${index + 1}`;
+        const openTime = day.OpenTime || day.open || "";
+        const closeTime = day.CloseTime || day.close || "";
+
+        if (daysOfWeek.has(dayName)) {
+          errors.push(`Duplicate entry for ${dayName}.`);
+        } else {
+          daysOfWeek.add(dayName);
+        }
+
+        if (openTime && !timePattern.test(openTime)) {
+          errors.push(`Invalid opening time format for ${dayName}. Use HH:MM.`);
+        }
+        if (closeTime && !timePattern.test(closeTime)) {
+          errors.push(`Invalid closing time format for ${dayName}. Use HH:MM.`);
+        }
+
+        if (openTime && closeTime) {
+          const [oh, om] = openTime.split(":").map(Number);
+          const [ch, cm] = closeTime.split(":").map(Number);
+          if (oh > ch || (oh === ch && om >= cm)) {
+            errors.push(
+              `Opening time must be before closing time for ${dayName}.`
+            );
+          }
+        }
+      });
+    }
+
+    // 🔒 sanitize all inputs
+    data.companyName = sanitizeInput(data.companyName);
+    data.description = sanitizeInput(data.description);
+    data.companyLocation = sanitizeInput(data.companyLocation);
+    data.website = sanitizeInput(data.website);
+
+    if (data.socialHandles) {
+      Object.keys(data.socialHandles).forEach((key) => {
+        data.socialHandles[key] = sanitizeInput(data.socialHandles[key]);
+      });
+    }
 
     return errors;
   }
 
-  function isValidURL(url) {
-    return /^(https?:\/\/)/i.test(url);
-  }
-  
-  // Helper function to convert base64 to File object
   async function base64ToFile(base64String, filename) {
-    // Extract the MIME type and base64 data
     const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
     if (!matches || matches.length !== 3) {
-      throw new Error('Invalid base64 string format');
+      throw new Error("Invalid base64 string format");
     }
-    
     const type = matches[1];
     const base64Data = matches[2];
     const byteCharacters = atob(base64Data);
     const byteArrays = [];
-    
     for (let offset = 0; offset < byteCharacters.length; offset += 512) {
       const slice = byteCharacters.slice(offset, offset + 512);
       const byteNumbers = new Array(slice.length);
-      
       for (let i = 0; i < slice.length; i++) {
         byteNumbers[i] = slice.charCodeAt(i);
       }
-      
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
+      byteArrays.push(new Uint8Array(byteNumbers));
     }
-    
     const blob = new Blob(byteArrays, { type });
     return new File([blob], filename, { type });
   }

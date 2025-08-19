@@ -107,47 +107,31 @@
         </div>
         <!-- Main Content -->
         <div class="ml-64  p-5 w-full text-white">
-            <!-- Top Bar -->
-            <!-- TOPBAR PLACEHOLDER -->
-            <div id="topbar">
-                <script>
-                    fetch("topbar.html")
-                        .then(response => response.text())
-                        .then(data => {
-                            document.getElementById("topbar").innerHTML = data;
+         <!-- Top Bar -->
+<div id="topbar"></div>
 
-                            // Attach logout handler after topbar is loaded
-                            const logoutBtn = document.querySelector(".logout-btn");
-                            if (logoutBtn) logoutBtn.addEventListener("click", confirmLogout);
-                        });
+<script>
+  fetch("topbar.html")
+    .then((r) => r.text())
+    .then((html) => {
+      const container = document.getElementById("topbar");
+      container.innerHTML = html;
 
-                    // Global logout function
-                    function confirmLogout(e) {
-                        e.preventDefault(); // Prevent <a href="#"> default action
-                        Swal.fire({
-                            title: 'Log out?',
-                            text: "You'll be signed out!",
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonText: 'Yes, log out'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // Clear only necessary login-related storage
-                                localStorage.removeItem("authToken");           // Company login session
-                                localStorage.removeItem("loginToken");          // Temp login token for OTP
-                                localStorage.removeItem("otpPurpose");          // Used for knowing OTP flow
-                                localStorage.removeItem("otpToken");            // OTP token (login/forgot)
-                                localStorage.removeItem("otpEmail");            // Email used in OTP
-                                localStorage.removeItem("loggedInCompany");     // Company info after login
-                                localStorage.removeItem("resendTimeout");       // OTP resend timer
+      // Execute scripts found in the injected markup
+      container.querySelectorAll("script").forEach((oldScript) => {
+        const s = document.createElement("script");
+        if (oldScript.src) {
+          s.src = oldScript.src;
+          // Important: ensure predictable execution
+          s.async = false;
+        } else {
+          s.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(s);
+      });
+    });
+</script>
 
-                                // Redirect to login page
-                                window.location.href = "user-signin.html";
-                            }
-                        });
-                    }
-                </script>
-            </div>
 
             <!-- Main Content Area -->
             <div class="container mt-10 z-0 mx-auto p-4">
@@ -649,6 +633,9 @@
     </div>
 
     <script>
+        // Base URL for API calls
+        const baseUrl = 'https://phluowise.azurewebsites.net';
+
         // Sample user data
         const users = [
             { id: '1234', name: 'John Doe', location: 'New York' },
@@ -777,21 +764,207 @@
     <script>
 
 
-        // Add the withdrawal method indicator
-        function setupWithdrawalMethodIndicator() {
+        // Add the withdrawal method indicator with payment details
+        async function setupWithdrawalMethodIndicator() {
             // Get the withdrawal method element
             const withdrawalMethodEl = document.querySelector('.glassmorphism.p-6.flex.justify-between.items-center:first-of-type');
+            if (!withdrawalMethodEl) return;
 
-            // Create the indicator element
-            const indicator = document.createElement('div');
-            indicator.className = 'h-3 w-3 bg-green-500 rounded-full mr-2';
+            // Create the indicator container
+            const indicatorContainer = document.createElement('div');
+            indicatorContainer.className = 'flex items-center';
+
+            // Add loading state
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'h-3 w-3 bg-gray-500 rounded-full mr-2';
+            indicatorContainer.appendChild(loadingIndicator);
+
+            try {
+                // Get auth token
+                const authToken = localStorage.getItem('authToken');
+                if (!authToken) return;
+
+                // Fetch payment methods from backend
+                const response = await fetch(`${baseUrl}/api/payment-methods`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch payment methods');
+                
+                const data = await response.json();
+                const paymentMethods = data.data || [];
+                const activeMethod = paymentMethods[0]; // Get the default/active payment method
+
+                if (!activeMethod) return; // No active payment method
+
+                // Remove loading indicator
+                indicatorContainer.removeChild(loadingIndicator);
+
+                // Create the blinking indicator element with animation
+                const indicator = document.createElement('div');
+                indicator.className = 'h-3 w-3 bg-green-500 rounded-full mr-2 animate-pulse';
+                indicator.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite';
+                indicatorContainer.appendChild(indicator);
+
+                // Create details container that will show on hover
+                const detailsContainer = document.createElement('div');
+                detailsContainer.className = 'payment-details hidden absolute bg-gray-800 p-3 rounded-lg shadow-lg z-10 text-sm mt-2 border border-gray-700';
+                
+                // Add payment method details
+                let detailsHTML = '<div class="font-medium mb-1">Active Payment Method:</div>';
+                
+                if (activeMethod.type === 'mobileMoney') {
+                    detailsHTML += `
+                        <div class="flex items-center mb-1">
+                            <span class="text-gray-400 mr-2">Type:</span>
+                            <span>Mobile Money (${activeMethod.network || 'N/A'})</span>
+                        </div>
+                        <div class="flex items-center mb-1">
+                            <span class="text-gray-400 mr-2">Name:</span>
+                            <span>${activeMethod.name || 'N/A'}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-400 mr-2">Number:</span>
+                            <span>${activeMethod.number || 'N/A'}</span>
+                        </div>`;
+                } else if (activeMethod.type === 'creditCard') {
+                    const lastFour = activeMethod.cardNumber ? activeMethod.cardNumber.slice(-4) : '••••';
+                    detailsHTML += `
+                        <div class="flex items-center mb-1">
+                            <span class="text-gray-400 mr-2">Type:</span>
+                            <span>${activeMethod.cardType || 'Credit'} Card</span>
+                        </div>
+                        <div class="flex items-center mb-1">
+                            <span class="text-gray-400 mr-2">Name:</span>
+                            <span>${activeMethod.name || 'N/A'}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-400 mr-2">Card:</span>
+                            <span>•••• ${lastFour}</span>
+                        </div>`;
+                }
+                
+                detailsContainer.innerHTML = detailsHTML;
+                indicatorContainer.appendChild(detailsContainer);
+
+                // Update the text to show active status
+                const textSpan = withdrawalMethodEl.querySelector('span');
+                if (textSpan) {
+                    textSpan.textContent = 'Withdrawal Method (Active)';
+                    textSpan.style.cursor = 'help';
+                }
+
+                // Add hover effects
+                indicatorContainer.addEventListener('mouseenter', () => {
+                    detailsContainer.classList.remove('hidden');
+                });
+
+                indicatorContainer.addEventListener('mouseleave', () => {
+                    detailsContainer.classList.add('hidden');
+                });
+
+                // Add animation styles if not already added
+                if (!document.getElementById('payment-indicator-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'payment-indicator-styles';
+                    style.textContent = `
+                        @keyframes pulse {
+                            0%, 100% { opacity: 1; }
+                            50% { opacity: 0.5; }
+                        }
+                        .payment-details {
+                            min-width: 200px;
+                        }
+                        .payment-details div {
+                            padding: 2px 0;
+                        }`;
+                    document.head.appendChild(style);
+                }
+            } catch (error) {
+                console.error('Error fetching payment methods:', error);
+                // Remove loading indicator on error
+                if (loadingIndicator.parentNode === indicatorContainer) {
+                    indicatorContainer.removeChild(loadingIndicator);
+                }
+                return;
+            }
+
+            // Create a details container that will show on hover
+            const detailsContainer = document.createElement('div');
+            detailsContainer.className = 'payment-details hidden absolute bg-gray-800 p-3 rounded-lg shadow-lg z-10 text-sm mt-2 border border-gray-700';
+            
+            // Add payment method details
+            let detailsHTML = '<div class="font-medium mb-1">Active Payment Method:</div>';
+            
+            if (activeMethod.type === 'mobileMoney') {
+                detailsHTML += `
+                    <div class="flex items-center mb-1">
+                        <span class="text-gray-400 mr-2">Type:</span>
+                        <span>Mobile Money (${activeMethod.network})</span>
+                    </div>
+                    <div class="flex items-center mb-1">
+                        <span class="text-gray-400 mr-2">Name:</span>
+                        <span>${activeMethod.name}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-400 mr-2">Number:</span>
+                        <span>${activeMethod.number}</span>
+                    </div>`;
+            } else if (activeMethod.type === 'creditCard') {
+                detailsHTML += `
+                    <div class="flex items-center mb-1">
+                        <span class="text-gray-400 mr-2">Type:</span>
+                        <span>${activeMethod.cardType} Card</span>
+                    </div>
+                    <div class="flex items-center mb-1">
+                        <span class="text-gray-400 mr-2">Name:</span>
+                        <span>${activeMethod.name}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-400 mr-2">Card:</span>
+                        <span>•••• ${activeMethod.cardNumber.slice(-4)}</span>
+                    </div>`;
+            }
+            
+            detailsContainer.innerHTML = detailsHTML;
+            indicatorContainer.appendChild(indicator);
+            indicatorContainer.appendChild(detailsContainer);
 
             // Insert before the toggle switch
             const toggleSwitch = withdrawalMethodEl.querySelector('.toggle-switch');
-            withdrawalMethodEl.insertBefore(indicator, toggleSwitch);
+            withdrawalMethodEl.insertBefore(indicatorContainer, toggleSwitch);
 
             // Update the text to include the indicator
-            withdrawalMethodEl.querySelector('span').textContent = 'Withdrawal Method (Set)';
+            const textSpan = withdrawalMethodEl.querySelector('span');
+            textSpan.textContent = 'Withdrawal Method (Active)';
+            textSpan.style.cursor = 'help';
+
+            // Add hover effects
+            indicatorContainer.addEventListener('mouseenter', () => {
+                detailsContainer.classList.remove('hidden');
+            });
+
+            indicatorContainer.addEventListener('mouseleave', () => {
+                detailsContainer.classList.add('hidden');
+            });
+
+            // Add animation styles
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                }
+                .payment-details {
+                    min-width: 200px;
+                }
+                .payment-details div {
+                    padding: 2px 0;
+                }`;
+            document.head.appendChild(style);
         }
 
         // Create a modal component

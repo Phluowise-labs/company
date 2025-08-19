@@ -2,692 +2,935 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Payment Methods</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Account Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
 </head>
 
-<body class="bg-black flex items-center justify-center min-h-screen p-4" style="font-family: 'Inter', sans-serif;">
+<body class="bg-black text-white">
     <style>
         body {
-            background-color: #121212;
-            color: white;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         .glassmorphism {
-            background: rgba(30, 30, 30, 0.9);
-            /* Increased opacity */
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 14px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #212121;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
         }
 
-        .modal {
-            transition: all 0.3s ease-out;
+        .bg-gradient {
+            background: linear-gradient(135deg, #1a1a1a 0%, #121212 100%);
         }
 
-        .modal-open {
-            opacity: 1;
-            visibility: visible;
+        .text-increase {
+            color: #10b981;
         }
 
-        .modal-closed {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .radio-label {
-            display: block;
-            cursor: pointer;
-        }
-
-        .custom-radio {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid #555;
+        .toggle-switch {
             position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
         }
 
-        .custom-radio::after {
-            content: "";
-            display: block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: transparent;
-        }
-
-        input[type="radio"]:checked+.custom-radio::after {
-            background-color: #3b82f6;
-        }
-
-        input[type="radio"] {
-            position: absolute;
+        .toggle-switch input {
             opacity: 0;
+            width: 0;
+            height: 0;
         }
 
-        /* Custom scrollbar for accounts container */
-        #accounts-container {
-            max-height: 300px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            transition: .4s;
+            border-radius: 34px;
         }
 
-        #accounts-container::-webkit-scrollbar {
-            width: 6px;
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
         }
 
-        #accounts-container::-webkit-scrollbar-track {
-            background: transparent;
+        input:checked+.slider {
+            background-color: #10b981;
         }
 
-        #accounts-container::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
+        input:checked+.slider:before {
+            transform: translateX(26px);
         }
 
-        /* Network logo styling */
-        .network-logo {
-            width: 30px;
-            height: 30px;
-            object-fit: contain;
-            margin-right: 12px;
+        /* Custom animation for the blinking dot */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        .animate-pulse-custom {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
 
-        /* Card logo styling */
-        .card-logo {
-            width: 30px;
-            height: 20px;
-            object-fit: contain;
-            margin-right: 12px;
+        /* Styling for the payment details tooltip */
+        .payment-details-tooltip {
+            min-width: 200px;
+            white-space: nowrap; /* Prevent wrapping */
         }
-
-        /* Fixed size for create account div */
-        .fixed-size-panel {
-            width: 320px;
-            min-height: 300px;
-            max-height: 400px;
+        .payment-details-tooltip div {
+            padding: 2px 0;
         }
     </style>
-    <button onclick="history.back()"
-        class="fixed top-10 left-4 flex items-center text-white/70 hover:text-white transition duration-300 z-50">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-        <span class="text-base font-medium">Back</span>
-    </button>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                    });
 
-    <div class="container mx-auto flex justify-center">
-        <div id="main-panel" class="glassmorphism p-6 fixed-size-panel">
-            <div class="text-center mb-4 py-2 px-4 bg-gray-700 bg-opacity-50 rounded-lg">
-                <h2 class="text-gray-300">Set Account Payment Method</h2>
-            </div>
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
 
-            <div class="space-y-3">
-                <div class="flex items-center justify-between bg-black bg-opacity-60 p-3 rounded-lg text-gray-300 cursor-pointer"
-                    id="mobileMoneyButton">
-                    <span>Mobile Money</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-
-                <div class="flex items-center justify-between bg-black bg-opacity-60 p-3 rounded-lg text-gray-300 cursor-pointer"
-                    id="creditCardButton">
-                    <span>Credit Card</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-
-                <button id="chooseExistingBtn"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg mt-4">
-                    Choose existing account
-                </button>
-            </div>
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
         </div>
+        <!-- Main Content -->
+        <div class="ml-64  p-5 w-full text-white">
+     <!-- Top Bar -->
+<div id="topbar"></div>
 
-        <!-- Accounts Panel -->
-        <div id="accounts-panel" class="hidden glassmorphism ml-4 p-6  fixed-size-panel">
-            <div class="flex justify-between items-center mb-4">
-                <div class="text-center py-2 px-4 bg-gray-700 bg-opacity-50 rounded-lg w-full">
-                    <h2 class="text-gray-300">Choose from existing account</h2>
-                </div>
-                <button id="closeAccountsBtn" class="ml-2 p-2 bg-gray-700 bg-opacity-50 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+<script>
+  fetch("topbar.html")
+    .then((r) => r.text())
+    .then((html) => {
+      const container = document.getElementById("topbar");
+      container.innerHTML = html;
 
-            <div id="accounts-container" class="space-y-3  mb-4">
-                <!-- Account items will be populated here dynamically -->
-            </div>
+      // Execute scripts found in the injected markup
+      container.querySelectorAll("script").forEach((oldScript) => {
+        const s = document.createElement("script");
+        if (oldScript.src) {
+          s.src = oldScript.src;
+          // ✅ ensure predictable execution
+          s.async = false;
+        } else {
+          s.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(s);
+      });
+    });
+</script>
 
-            <div id="no-accounts-message" class="hidden text-center py-6 text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-gray-500" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p class="mb-2">No accounts found</p>
-                <p class="text-sm">Please create a new payment method</p>
-            </div>
+            <!-- Main Content Area -->
+            <div class="container mt-10 z-0 mx-auto p-4">
+                <!-- write the content of the page here -->
+                <div class="min-h-screen p-4">
+                    <div class="max-w-6xl mx-auto space-y-6">
+                        <!-- Top cards row -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Total Transaction -->
+                            <div class="glassmorphism p-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h2 class="text-gray-300 font-medium">Total Transaction</h2>
+                                    <div class="bg-green-800/40 px-3 py-1 rounded-full flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-400"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                        </svg>
+                                        <span class="text-green-400 text-sm ml-1" id="transaction-growth">10.0%</span>
+                                    </div>
+                                </div>
+                                <div class="text-3xl font-bold" id="total-amount">GH₵ 930.00</div>
+                            </div>
 
-            <button id="continueBtn"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg">
-                Continue
-            </button>
-        </div>
-    </div>
+                            <!-- Booked Orders -->
+                            <div class="glassmorphism p-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h2 class="text-gray-300 font-medium">Booked Orders</h2>
+                                    <div class="bg-green-800/40 px-3 py-1 rounded-full flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-400"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                        </svg>
+                                        <span class="text-green-400 text-sm ml-1" id="orders-growth">20%</span>
+                                    </div>
+                                </div>
+                                <div class="text-3xl font-bold" id="orders-count">50 orders</div>
+                            </div>
 
-    <!-- Mobile Money Modal -->
-    <div id="mobileMoneyModal"
-        class="modal modal-closed fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-80">
-        <!-- Increased opacity -->
-        <div class="glassmorphism p-6 fixed-size-panel">
-            <div class="text-center mb-4 py-2 px-4 bg-gray-700 bg-opacity-50 rounded-lg">
-                <h2 class="text-gray-300">Set Account Payment Method</h2>
-            </div>
+                            <!-- Total Requests -->
+                            <div class="glassmorphism p-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h2 class="text-gray-300 font-medium">Total Requests</h2>
+                                </div>
+                                <div class="text-3xl font-bold" id="requests-count">500 orders</div>
+                            </div>
+                        </div>
 
-            <div class="space-y-3">
-                <input id="mobileName" type="text" placeholder="Name"
-                    class="w-full bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- Chart section -->
 
-                <div class="relative">
-                    <select id="networkSelect"
-                        class="w-full bg-black bg-opacity-100 p-3 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="" selected disabled>Choose Network</option>
-                        <option value="MTN">MTN</option>
-                        <option value="AirtelTigo">AirtelTigo</option>
-                        <option value="Telecel">Telecel</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
+                        <!-- Chart section -->
+                        <div class="glassmorphism p-6">
+                            <div class="flex justify-between items-center mb-8">
+                                <h2 class="text-xl font-medium">Transaction analysis (GH₵)</h2>
+                                <div class="flex items-center">
+                                    <div>
+                                        <p>Total Amount : <span class="bg-blue-800/70 px-3 py-1 rounded-lg text-white"
+                                                id="highlight-value">0</span></p>
+                                    </div>
+                                    <div class="relative ml-6">
+                                        <select id="year-selector"
+                                            class="appearance-none bg-gray-700 border border-gray-600 rounded-md px-3 py-1 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <!-- Years will be populated dynamically -->
+                                        </select>
+                                        <div
+                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Canvas for Chart.js -->
+                            <div class="h-64">
+                                <canvas id="transactionChart"></canvas>
+                            </div>
+
+                            <!-- Legend -->
+                            <div class="mt-4 flex items-center">
+                                <div class="w-4 h-4 bg-blue-700 rounded mr-2"></div>
+                                <span>Transaction</span>
+                            </div>
+                        </div>
+
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                        <script>
+                            // Global chart reference
+                            let transactionChart;
+
+                            // First, let's create a function to load the transaction data from account.json
+                            async function loadTransactionData() {
+                                try {
+                                    // In a real application, you would fetch this from your API:
+                                    // const response = await fetch('/api/transactions');
+                                    // const data = await response.json();
+
+                                    // For this example, we'll use the account.json file
+                                    const response = await fetch('transactions.json'); // Changed to transactions.json
+                                    if (!response.ok) {
+                                        throw new Error('Failed to load transaction data');
+                                    }
+                                    const data = await response.json();
+
+                                    // Process the data to group by year and month
+                                    const processedData = processTransactionData(data.transactions);
+
+                                    // Populate year selector
+                                    populateYearSelector(processedData);
+
+                                    // Initialize chart with the most recent year's data
+                                    const years = Object.keys(processedData).sort((a, b) => b - a);
+                                    if (years.length > 0) {
+                                        updateChart(processedData[years[0]], years[0]);
+                                    }
+                                } catch (error) {
+                                    console.error('Error loading transaction data:', error);
+                                    // Fallback to sample data if JSON file can't be loaded
+                                    const sampleData = {
+                                        "2023": [
+                                            { month: 'Jan', amount: 360 },
+                                            { month: 'Feb', amount: 400 },
+                                            { month: 'Mar', amount: 480 },
+                                            { month: 'Apr', amount: 380 },
+                                            { month: 'May', amount: 300 },
+                                            { month: 'Jun', amount: 380 },
+                                            { month: 'Jul', amount: 400 },
+                                            { month: 'Aug', amount: 640 },
+                                            { month: 'Sep', amount: 440 },
+                                            { month: 'Oct', amount: 420 },
+                                            { month: 'Nov', amount: 340 },
+                                            { month: 'Dec', amount: 460 }
+                                        ],
+                                        "2022": [
+                                            { month: 'Jan', amount: 300 },
+                                            { month: 'Feb', amount: 350 },
+                                            { month: 'Mar', amount: 420 },
+                                            { month: 'Apr', amount: 320 },
+                                            { month: 'May', amount: 280 },
+                                            { month: 'Jun', amount: 350 },
+                                            { month: 'Jul', amount: 380 },
+                                            { month: 'Aug', amount: 500 },
+                                            { month: 'Sep', amount: 400 },
+                                            { month: 'Oct', amount: 380 },
+                                            { month: 'Nov', amount: 300 },
+                                            { month: 'Dec', amount: 420 }
+                                        ]
+                                    };
+                                    populateYearSelector(sampleData);
+                                    updateChart(sampleData[new Date().getFullYear().toString()] || sampleData["2023"], new Date().getFullYear().toString());
+                                }
+                            }
+
+
+                            // Process transaction data to group by year and month
+                            function processTransactionData(transactions) {
+                                const result = {};
+
+                                transactions.forEach(transaction => {
+                                    const date = new Date(transaction.date);
+                                    const year = date.getFullYear();
+                                    const month = date.getMonth(); // 0-11
+
+                                    if (!result[year]) {
+                                        result[year] = Array(12).fill().map((_, i) => ({
+                                            month: getMonthName(i),
+                                            amount: 0
+                                        }));
+                                    }
+
+                                    // Parse amount safely
+                                    const amount = parseFloat((transaction.amountReceived || '0').replace(/,/g, ''));
+                                    if (!isNaN(amount)) {
+                                        result[year][month].amount += amount;
+                                    }
+                                });
+
+                                return result;
+                            }
+
+                            // Helper function to get month name from index
+                            function getMonthName(monthIndex) {
+                                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                return months[monthIndex];
+                            }
+
+                            // Populate the year selector dropdown
+                            function populateYearSelector(data) {
+                                const yearSelector = document.getElementById('year-selector');
+                                yearSelector.innerHTML = '';
+
+                                const years = Object.keys(data).sort((a, b) => b - a);
+                                years.forEach(year => {
+                                    const option = document.createElement('option');
+                                    option.value = year;
+                                    option.textContent = year;
+                                    yearSelector.appendChild(option);
+                                });
+
+                                // Add event listener for year changes
+                                yearSelector.addEventListener('change', (e) => {
+                                    const selectedYear = e.target.value;
+                                    updateChart(data[selectedYear], selectedYear);
+                                });
+                            }
+
+                            // Update the chart with new data
+                            function updateChart(monthlyData, year) {
+                                const ctx = document.getElementById('transactionChart').getContext('2d');
+
+                                // Extract data for chart
+                                const labels = monthlyData.map(item => item.month);
+                                const amounts = monthlyData.map(item => item.amount);
+
+                                // Calculate total for the highlight value
+                                const total = amounts.reduce((sum, amount) => sum + amount, 0);
+                                document.getElementById('highlight-value').textContent = total.toLocaleString();
+
+                                // Destroy previous chart if it exists
+                                if (transactionChart) {
+                                    transactionChart.destroy();
+                                }
+
+                                // Create new chart
+                                transactionChart = new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            label: `Transactions (${year})`,
+                                            data: amounts,
+                                            backgroundColor: labels.map((_, i) =>
+                                                i === new Date().getMonth() && year === new Date().getFullYear().toString()
+                                                    ? '#40444B' // Highlight current month with hover color
+                                                    : '#40444B' // Default color for other bars
+                                            ),
+                                            borderColor: labels.map((_, i) =>
+                                                i === new Date().getMonth() && year === new Date().getFullYear().toString()
+                                                    ? '#3B74FF'
+                                                    : '#E0E0E0' // Light gray border
+                                            ),
+                                            borderWidth: 1,
+                                            borderRadius: 6,
+                                            hoverBackgroundColor: '#3B74FF', // Hover color
+                                            hoverBorderColor: '#3B74FF',
+                                            hoverBorderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        animation: {
+                                            duration: 1000,
+                                            easing: 'easeOutQuart'
+                                        },
+                                        plugins: {
+                                            legend: {
+                                                display: false
+                                            },
+                                            tooltip: {
+                                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                                titleColor: '#f8fafc',
+                                                bodyColor: '#e2e8f0',
+                                                borderColor: 'rgba(71, 85, 105, 0.5)',
+                                                borderWidth: 1,
+                                                padding: 12,
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        return `GH₵${context.raw.toLocaleString()}`;
+                                                    },
+                                                    title: function (context) {
+                                                        return `${context[0].label} ${year}`;
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                grid: {
+                                                    color: 'rgba(71, 85, 105, 0.2)',
+                                                    drawBorder: false
+                                                },
+                                                ticks: {
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    callback: function (value) {
+                                                        return 'GH₵' + value.toLocaleString();
+                                                    },
+                                                    font: {
+                                                        weight: '500'
+                                                    }
+                                                },
+                                                title: {
+                                                    display: true,
+                                                    text: 'Amount (GH₵)',
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    font: {
+                                                        size: 14,
+                                                        weight: '600'
+                                                    }
+                                                }
+                                            },
+                                            x: {
+                                                grid: {
+                                                    display: false,
+                                                    drawBorder: false
+                                                },
+                                                ticks: {
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    font: {
+                                                        weight: '500'
+                                                    }
+                                                },
+                                                title: {
+                                                    display: true,
+                                                    text: 'Months',
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    font: {
+                                                        size: 14,
+                                                        weight: '600'
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        // Custom hover effects
+                                        interaction: {
+                                            intersect: false,
+                                            mode: 'index'
+                                        },
+                                        // Custom bar appearance
+                                        elements: {
+                                            bar: {
+                                                backgroundColor: '#F5F5F5', // Default color
+                                                borderColor: '#E0E0E0',     // Default border
+                                                borderWidth: 1,
+                                                borderRadius: 6,
+                                                hoverBackgroundColor: '#3B74FF', // Hover color
+                                                hoverBorderColor: '#3B74FF'
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            // Initialize the chart when the page loads
+                            document.addEventListener('DOMContentLoaded', loadTransactionData);
+                        </script>
+                        <!-- End of chart section -->
+
+                        <!-- Bottom section -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Left column -->
+                            <div class="space-y-4">
+                                <!-- Payment warning -->
+                                <div class="glassmorphism p-6">
+                                    <div class="mb-4">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-300">Amount Owing</span>
+                                            <span class="text-red-400" id="amount-owing">GHS200.</span>
+                                        </div>
+                                        <div class="text-gray-400">Account will be disabled within <span
+                                                class="text-blue-400">24hrs</span></div>
+                                    </div>
+
+                                    <div class="text-center text-xl font-medium mb-6" id="countdown">
+                                        12hrs : 24min : 29s
+                                    </div>
+
+                                    <button id="pay-button"
+                                        class="w-full py-3 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-center transition">
+                                        Pay
+                                    </button>
+                                </div>
+
+                                <!-- Total Payments -->
+                                <div class="glassmorphism">
+                                    <div class="grid grid-cols-2">
+                                        <div class="p-6 flex flex-col justify-center items-center">
+                                            <span class="text-gray-300 text-center">Total Payments to Phluowise</span>
+                                        </div>
+                                        <a href="transactions.html">
+                                            <div class="p-6 flex justify-between items-center bg-black/20 cursor-pointer"
+                                                id="payment-details">
+
+                                                <span class="font-bold" id="total-payments">GH₵ 50.00</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right column -->
+                            <div class="space-y-4">
+                                <!-- Account Withdrawal -->
+                                <div class="glassmorphism  p-6 flex justify-between items-center">
+                                    <span class="text-gray-300">Set Account Withdrawal Method</span>
+                                    <!-- <label class="toggle-switch">
+                                        <input type="checkbox" id="withdrawal-toggle" checked>
+                                        <span class="slider"></span>
+                                    </label> -->
+                                </div>
+
+                                <!-- Automatically -->
+                                <div class="glassmorphism p-6 flex justify-between items-center">
+                                    <span class="text-gray-300">Set Automatically</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="auto-toggle" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <!-- Manually -->
+                                <div class="glassmorphism p-6 flex justify-between items-center">
+                                    <span class="text-gray-300">Set Manually</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="manual-toggle">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <!-- Account Payment (Modified) -->
+                                <div class="glassmorphism p-6 flex justify-between items-center cursor-pointer"
+                                    id="payment-method">
+                                    <!-- Content will be dynamically added by JavaScript -->
+                                    <div class="flex items-center relative">
+                                        <span id="activePaymentIndicator"
+                                            class="h-3 w-3 rounded-full mr-2"></span>
+                                        <span id="activePaymentText" class="text-gray-300">Set Account Payment Method</span>
+                                        <div id="paymentDetailsTooltip"
+                                            class="absolute hidden bg-gray-800 text-white p-3 rounded-md shadow-lg z-10 -top-2 left-full ml-4 text-sm border border-gray-700 payment-details-tooltip">
+                                            <!-- Details will be populated here -->
+                                        </div>
+                                    </div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <input id="mobileNumber" type="tel" placeholder="Enter Mobile Money Number"
-                    class="w-full bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
-
-                <button id="deleteMobileBtn"
-                    class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 rounded-lg">
-                    Delete
-                </button>
-
-                <button id="setMobileBtn"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg">
-                    Set
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Credit Card Modal -->
-    <div id="creditCardModal"
-        class="modal modal-closed fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-80">
-        <!-- Increased opacity -->
-        <div class="glassmorphism p-6 fixed-size-panel">
-            <div class="text-center mb-4 py-2 px-4 bg-gray-700 bg-opacity-50 rounded-lg">
-                <h2 class="text-gray-300">Set Account Payment Method</h2>
-            </div>
-
-            <div class="space-y-3">
-                <input id="cardName" type="text" placeholder="Name"
-                    class="w-full bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
-
-                <div class="relative">
-                    <select id="cardType"
-                        class="w-full bg-black bg-opacity-100 p-3 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="" selected disabled>Select Card Type</option>
-                        <option value="mastercard">Mastercard</option>
-                        <option value="visa">Visa</option>
-                    </select>
-                    <!-- <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <img id="cardTypeIcon" src="../images/mastercard.png" 
-                             class="card-logo" />
-                    </div> -->
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
+                <br>
+                <hr>
+                <br>
+                <!-- Search Bar -->
+                <div class="relative mx-auto max-w-full mb-6">
+                    <input type="text" id="searchInput" placeholder="Search"
+                        class="w-full rounded-full bg-[#212121] px-4 py-3 text-white placeholder-gray-400 focus:outline-none">
+                    <button class="absolute right-4 top-1/2 -translate-y-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="text-white">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
+                    </button>
+                </div>
+
+                <!-- User Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="userGrid">
+                    <!-- User Card Template (will be duplicated by JS) -->
+                    <div class="user-card bg-zinc-900 rounded-lg p-4 flex">
+                        <div class="w-24 h-24 bg-zinc-800 rounded-md flex-shrink-0"></div>
+                        <div class="ml-4 flex-grow">
+                            <h3 class="text-white text-lg">Name of User / ID</h3>
+                            <p class="text-white mb-1">location</p>
+                            <div class="flex items-center text-gray-400 text-sm mb-4">
+                                <span>12:30am</span>
+                                <span class="ml-2">July 20, 2023</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="bg-zinc-800 rounded-full px-4 py-1 text-white text-sm">
+                                    Accepted
+                                </div>
+                                <div class="text-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                        <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path>
+                                    </svg>
+                                    <span class="text-xs block text-center">Screeshot</span>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button class="w-full bg-zinc-800 text-white py-2 rounded-md">
+                                    Broadcasted
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <input id="cardNumber" type="text" placeholder="Card Number"
-                    class="w-full bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
-
-                <div class="flex space-x-3">
-                    <input id="cardExpiry" type="text" placeholder="MM/YY" maxlength="5"
-                        class="w-1/2 bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input id="cardCVC" type="text" placeholder="CVC" maxlength="4"
-                        class="w-1/2 bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="flex space-x-3 mb-4">
-                    <button id="deleteCreditBtn"
-                        class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 rounded-lg">
-                        Delete
-                    </button>
-
-                    <button id="setCreditBtn"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg">
-                        Set
-                    </button>
-                </div>
+                <!-- end of page -->
             </div>
+            <!-- end of content -->
         </div>
+    </div>
     </div>
 
     <script>
-        // Initialize localStorage if needed - default is empty
-        if (!localStorage.getItem('paymentAccounts')) {
-            localStorage.setItem('paymentAccounts', JSON.stringify([]));
-        }
+        // Base URL for API calls
+        const baseUrl = 'https://phluowise.azurewebsites.net';
 
-        // Network logo images
-        const networkLogos = {
-            'MTN': '../images/mtn.png',
-            'AirtelTigo': '../images/AirtelTigo.jpg',
-            'Telecel': '../images/telecel.jpeg',
+        // Sample user data
+        const users = [
+            { id: '1234', name: 'John Doe', location: 'New York' },
+            { id: '2345', name: 'Jane Smith', location: 'Los Angeles' },
+            { id: '3456', name: 'Robert Johnson', location: 'Chicago' },
+            { id: '4567', name: 'Emily Davis', location: 'Miami' },
+            { id: '5678', name: 'Michael Wilson', location: 'Seattle' },
+            { id: '6789', name: 'Sarah Brown', location: 'Boston' }
+        ];
 
-        };
+        // Function to create user cards
+        function createUserCards(usersToDisplay) {
+            const userGrid = document.getElementById('userGrid');
+            userGrid.innerHTML = '';
 
-        // Card logo images
-        const cardLogos = {
-            'mastercard': '../images/mastercard.png',
-            'visa': '../images/visacard.jpeg',
-        };
-
-        // Get all required elements
-        const mobileMoneyButton = document.getElementById('mobileMoneyButton');
-        const creditCardButton = document.getElementById('creditCardButton');
-        const chooseExistingBtn = document.getElementById('chooseExistingBtn');
-        const mobileMoneyModal = document.getElementById('mobileMoneyModal');
-        const creditCardModal = document.getElementById('creditCardModal');
-        const accountsPanel = document.getElementById('accounts-panel');
-        const accountsContainer = document.getElementById('accounts-container');
-        const noAccountsMessage = document.getElementById('no-accounts-message');
-        const mainPanel = document.getElementById('main-panel');
-        const cardTypeSelect = document.getElementById('cardType');
-        const cardTypeIcon = document.getElementById('cardTypeIcon');
-
-        // Function to check if there are accounts and display appropriate message
-        function checkAccountsExist() {
-            const accounts = JSON.parse(localStorage.getItem('paymentAccounts')) || [];
-
-            if (accounts.length === 0) {
-                accountsContainer.classList.add('hidden');
-                noAccountsMessage.classList.remove('hidden');
-                document.getElementById('continueBtn').classList.add('hidden');
-            } else {
-                accountsContainer.classList.remove('hidden');
-                noAccountsMessage.classList.add('hidden');
-                document.getElementById('continueBtn').classList.remove('hidden');
-            }
-        }
-
-        // Function to load accounts from localStorage
-        function loadAccounts() {
-            const accounts = JSON.parse(localStorage.getItem('paymentAccounts')) || [];
-            accountsContainer.innerHTML = '';
-
-            accounts.forEach((account, index) => {
-                const accountItem = document.createElement('div');
-                accountItem.className = 'flex items-center justify-between bg-black bg-opacity-60 p-3 rounded-lg';
-
-                if (account.type === 'mobileMoney') {
-                    accountItem.innerHTML = `
-                        <div class="flex items-center">
-                            <img src="${networkLogos[account.network]}" alt="${account.network}" class="network-logo" />
-                            <div>
-                                <div class="text-white">${account.name}</div>
-                                <div class="text-gray-400 text-sm">${account.network} - ${account.number}</div>
-                            </div>
+            usersToDisplay.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card bg-[#212121] rounded-lg p-4 flex';
+                userCard.innerHTML = `
+                    <div class="w-24 h-24 bg-zinc-800 rounded-md flex justify-center items-center"> Image</div>
+                    <div class="ml-4 flex-grow gap-3  relative">
+                        <h3 class="text-white text-lg">${user.name} / ${user.id}</h3>
+                        <p class="text-white mb-1">${user.location}</p>
+                        <div class="flex items-center text-gray-400 text-sm mb-4">
+                            <span>12:30am</span>
+                            <span class="ml-2">July 20, 2023</span>
                         </div>
-                        <label class="radio-label">
-                            <input type="radio" name="account" value="${index}">
-                            <span class="custom-radio"></span>
-                        </label>
-                    `;
-                } else {
-                    accountItem.innerHTML = `
-                        <div class="flex items-center">
-                            <img src="${cardLogos[account.cardType]}" alt="${account.cardType}" class="card-logo" />
-                            <div>
-                                <div class="text-white">${account.name}</div>
-                                <div class="text-gray-400 text-sm">${account.cardType} •••• ${account.cardNumber.slice(-4)}</div>
+                        <div class="absolute top-4 right-4 flex flex-col items-center ">
+                                <div class="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
+                                    <img src="../images/location.svg" alt="">
+                                </div>
+                                <p class="text-white text-xs mt-1">Visit</p>
                             </div>
+                        <div class="flex justify-between items-center">
+                            <div class="bg-gray-500 rounded-full px-4 py-1 text-white text-sm">
+                                Accepted
+                            </div>
+
                         </div>
-                        <label class="radio-label">
-                            <input type="radio" name="account" value="${index}">
-                            <span class="custom-radio"></span>
-                        </label>
-                    `;
-                }
-                accountsContainer.appendChild(accountItem);
+                    </div>
+
+
+                `;
+                userGrid.appendChild(userCard);
             });
-
-            // Attach event listeners to radio buttons
-            document.querySelectorAll('input[type="radio"]').forEach(input => {
-                input.addEventListener('change', function () {
-                    document.querySelectorAll('.custom-radio').forEach(radio => {
-                        radio.classList.remove('selected');
-                    });
-
-                    if (this.checked) {
-                        this.nextElementSibling.classList.add('selected');
-                    }
-                });
-            });
-
-            // Check if accounts exist
-            checkAccountsExist();
         }
 
-        // Load accounts when page loads
-        loadAccounts();
+        // Initialize with all users
+        createUserCards(users);
 
-        // Choose existing account button functionality
-        chooseExistingBtn.addEventListener('click', function () {
-            accountsPanel.classList.remove('hidden');
-            checkAccountsExist();
-        });
-
-        // Set Mobile Money button functionality
-        mobileMoneyButton.addEventListener('click', function () {
-            mobileMoneyModal.classList.remove('modal-closed');
-            mobileMoneyModal.classList.add('modal-open');
-        });
-
-        // Set Credit Card button functionality
-        creditCardButton.addEventListener('click', function () {
-            creditCardModal.classList.remove('modal-closed');
-            creditCardModal.classList.add('modal-open');
-        });
-
-        // Handle card type selection change
-        cardTypeSelect.addEventListener('change', function () {
-            const selectedCardType = this.value;
-            cardTypeIcon.src = cardLogos[selectedCardType];
-        });
-
-        // Format expiry date input
-        document.getElementById('cardExpiry').addEventListener('input', function (e) {
-            // Remove any non-digit characters
-            let value = e.target.value.replace(/\D/g, '');
-
-            // Add slash after 2 digits
-            if (value.length > 2) {
-                value = value.substring(0, 2) + '/' + value.substring(2, 4);
-            }
-
-            // Limit to MM/YY format
-            if (value.length > 5) {
-                value = value.substring(0, 5);
-            }
-
-            e.target.value = value;
-        });
-
-        // Handle Mobile Money modal buttons
-        document.getElementById('setMobileBtn').addEventListener('click', function () {
-            const name = document.getElementById('mobileName').value;
-            const network = document.getElementById('networkSelect').value;
-            const number = document.getElementById('mobileNumber').value;
-
-            if (!name || !network || !number) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Please fill in all fields',
-                    icon: 'error',
-                    background: 'rgba(30, 30, 30, 0.9)',
-                    color: '#fff',
-                    confirmButtonColor: '#3b82f6'
-                });
-                return;
-            }
-
-            // Get current accounts
-            const accounts = JSON.parse(localStorage.getItem('paymentAccounts')) || [];
-
-            // Add new mobile money account
-            accounts.push({
-                type: 'mobileMoney',
-                name: name,
-                network: network,
-                number: number,
-                dateAdded: new Date().toISOString()
-            });
-
-            // Save to localStorage
-            localStorage.setItem('paymentAccounts', JSON.stringify(accounts));
-
-            // Close modal
-            mobileMoneyModal.classList.remove('modal-open');
-            mobileMoneyModal.classList.add('modal-closed');
-
-            // Reset form
-            document.getElementById('mobileName').value = '';
-            document.getElementById('networkSelect').selectedIndex = 0;
-            document.getElementById('mobileNumber').value = '';
-
-            // Show success alert
-            Swal.fire({
-                title: 'Success!',
-                text: 'Mobile Money payment method has been added',
-                icon: 'success',
-                background: 'rgba(30, 30, 30, 0.9)',
-                color: '#fff',
-                confirmButtonColor: '#3b82f6'
-            });
-
-            // Show accounts panel and reload accounts
-            accountsPanel.classList.remove('hidden');
-            loadAccounts();
-        });
-
-        document.getElementById('deleteMobileBtn').addEventListener('click', function () {
-            mobileMoneyModal.classList.remove('modal-open');
-            mobileMoneyModal.classList.add('modal-closed');
-
-            // Reset form
-            document.getElementById('mobileName').value = '';
-            document.getElementById('networkSelect').selectedIndex = 0;
-            document.getElementById('mobileNumber').value = '';
-
-            // Show delete alert
-            Swal.fire({
-                title: 'Cancelled',
-                text: 'Mobile Money payment method was not added',
-                icon: 'info',
-                background: 'rgba(30, 30, 30, 0.9)',
-                color: '#fff',
-                confirmButtonColor: '#3b82f6'
-            });
-        });
-
-        // Handle Credit Card modal buttons
-        document.getElementById('setCreditBtn').addEventListener('click', function () {
-            const name = document.getElementById('cardName').value;
-            const cardType = document.getElementById('cardType').value;
-            const cardNumber = document.getElementById('cardNumber').value;
-            const expiry = document.getElementById('cardExpiry').value;
-            const cvc = document.getElementById('cardCVC').value;
-
-            if (!name || !cardType || !cardNumber || !expiry || !cvc) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Please fill in all fields',
-                    icon: 'error',
-                    background: 'rgba(30, 30, 30, 0.9)',
-                    color: '#fff',
-                    confirmButtonColor: '#3b82f6'
-                });
-                return;
-            }
-
-            // Validate expiry format (MM/YY)
-            if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Please enter expiry date in MM/YY format',
-                    icon: 'error',
-                    background: 'rgba(30, 30, 30, 0.9)',
-                    color: '#fff',
-                    confirmButtonColor: '#3b82f6'
-                });
-                return;
-            }
-
-            // Get current accounts
-            const accounts = JSON.parse(localStorage.getItem('paymentAccounts')) || [];
-
-            // Add new credit card account
-            accounts.push({
-                type: 'creditCard',
-                name: name,
-                cardType: cardType,
-                cardNumber: cardNumber,
-                expiry: expiry,
-                cvc: cvc,
-                dateAdded: new Date().toISOString()
-            });
-
-            // Save to localStorage
-            localStorage.setItem('paymentAccounts', JSON.stringify(accounts));
-
-            // Close modal
-            creditCardModal.classList.remove('modal-open');
-            creditCardModal.classList.add('modal-closed');
-
-            // Reset form
-            document.getElementById('cardName').value = '';
-            document.getElementById('cardType').selectedIndex = 0;
-            document.getElementById('cardNumber').value = '';
-            document.getElementById('cardExpiry').value = '';
-            document.getElementById('cardCVC').value = '';
-
-            // Show success alert
-            Swal.fire({
-                title: 'Success!',
-                text: 'Credit Card payment method has been added',
-                icon: 'success',
-                background: 'rgba(30, 30, 30, 0.9)',
-                color: '#fff',
-                confirmButtonColor: '#3b82f6'
-            });
-
-            // Show accounts panel and reload accounts
-            accountsPanel.classList.remove('hidden');
-            loadAccounts();
-        });
-
-        document.getElementById('deleteCreditBtn').addEventListener('click', function () {
-            creditCardModal.classList.remove('modal-open');
-            creditCardModal.classList.add('modal-closed');
-
-            // Reset form
-            document.getElementById('cardName').value = '';
-            document.getElementById('cardType').selectedIndex = 0;
-            document.getElementById('cardNumber').value = '';
-            document.getElementById('cardExpiry').value = '';
-            document.getElementById('cardCVC').value = '';
-
-            // Show delete alert
-            Swal.fire({
-                title: 'Cancelled',
-                text: 'Credit Card payment method was not added',
-                icon: 'info',
-                background: 'rgba(30, 30, 30, 0.9)',
-                color: '#fff',
-                confirmButtonColor: '#3b82f6'
-            });
-        });
-
-        // Account panel functionality
-        document.getElementById('continueBtn').addEventListener('click', function () {
-            const selectedAccount = document.querySelector('input[name="account"]:checked');
-
-            if (selectedAccount) {
-                const accountIndex = selectedAccount.value;
-                const accounts = JSON.parse(localStorage.getItem('paymentAccounts')) || [];
-                const selectedAccountData = accounts[accountIndex];
-
-                Swal.fire({
-                    title: 'Account Selected!',
-                    text: `You have selected ${selectedAccountData.type === 'mobileMoney' ?
-                        selectedAccountData.network + ' - ' + selectedAccountData.number :
-                        selectedAccountData.cardType + ' ending in ' + selectedAccountData.cardNumber.slice(-4)}`,
-                    icon: 'success',
-                    background: 'rgba(30, 30, 30, 0.9)',
-                    color: '#fff',
-                    confirmButtonColor: '#3b82f6'
-                });
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.trim() === '') {
+                createUserCards(users);
             } else {
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Please select an account to continue',
-                    icon: 'error',
-                    background: 'rgba(30, 30, 30, 0.9)',
-                    color: '#fff',
-                    confirmButtonColor: '#3b82f6'
-                });
+                const filteredUsers = users.filter(user =>
+                    user.name.toLowerCase().includes(searchTerm) ||
+                    user.id.includes(searchTerm)
+                );
+                createUserCards(filteredUsers);
             }
         });
-
-        // Close accounts panel
-        document.getElementById('closeAccountsBtn').addEventListener('click', function () {
-            accountsPanel.classList.add('hidden');
-        });
-
-        // // For demo purposes, provide a way to reset the demo
-        // const headerElement = document.querySelector('.text-center.mb-4');
-        // headerElement.addEventListener('dblclick', function () {
-        //     localStorage.removeItem('paymentAccounts');
-        //     localStorage.setItem('paymentAccounts', JSON.stringify([]));
-        //     loadAccounts();
-
-        //     Swal.fire({
-        //         title: 'Demo Reset',
-        //         text: 'All accounts have been cleared',
-        //         icon: 'info',
-        //         background: 'rgba(30, 30, 30, 0.9)',
-        //         color: '#fff',
-        //         confirmButtonColor: '#3b82f6'
-        //     });
-        // });
     </script>
 
+    <script>
+        // Function to update countdown timer
+        function updateCountdown(time) {
+            document.getElementById('countdown').textContent =
+                `${time.hours}hrs : ${time.minutes}min : ${time.seconds}s`;
+
+            // Start countdown
+            if (!window.countdownInterval) {
+                window.countdownInterval = setInterval(() => {
+                    if (time.seconds > 0) {
+                        time.seconds--;
+                    } else {
+                        if (time.minutes > 0) {
+                            time.minutes--;
+                            time.seconds = 59;
+                        } else {
+                            if (time.hours > 0) {
+                                time.hours--;
+                                time.minutes = 59;
+                                time.seconds = 59;
+                            } else {
+                                clearInterval(window.countdownInterval);
+                                // Using SweetAlert2 for notifications
+                                Swal.fire({
+                                    title: 'Account Disabled!',
+                                    text: 'Your account has been disabled due to outstanding payment.',
+                                    icon: 'error',
+                                    background: 'rgba(30, 30, 30, 0.9)',
+                                    color: '#fff',
+                                    confirmButtonColor: '#3b82f6'
+                                });
+                            }
+                        }
+                    }
+
+                    document.getElementById('countdown').textContent =
+                        `${time.hours}hrs : ${time.minutes}min : ${time.seconds}s`;
+                }, 1000);
+            }
+        }
+
+        // Event listeners for interactive elements
+        document.getElementById('pay-button').addEventListener('click', function () {
+            Swal.fire({
+                title: 'Payment Initiated!',
+                text: 'Redirecting to payment gateway...',
+                icon: 'info',
+                background: 'rgba(30, 30, 30, 0.9)',
+                color: '#fff',
+                confirmButtonColor: '#3b82f6'
+            });
+        });
+
+        document.getElementById('payment-method').addEventListener('click', function () {
+            window.location.href = 'payment_methods.html';
+        });
+
+        // Toggle switches - make them mutually exclusive for manual and auto
+        document.getElementById('auto-toggle').addEventListener('change', function () {
+            if (this.checked) {
+                document.getElementById('manual-toggle').checked = false;
+                createModal('Automatic Withdrawal', 'Withdrawal will automatically be processed.');
+            }
+        });
+
+        document.getElementById('manual-toggle').addEventListener('change', function () {
+            if (this.checked) {
+                document.getElementById('auto-toggle').checked = false;
+                createModal('Manual Withdrawal', 'By setting account to manual. You will have to confirm each transaction before withdrawal.');
+            }
+        });
+    </script>
+    <script>
+        // Function to display the active payment method and indicator
+        async function setupActivePaymentMethodDisplay() {
+            const paymentMethodDiv = document.getElementById('payment-method');
+            if (!paymentMethodDiv) return;
+
+            const activePaymentTextSpan = document.getElementById('activePaymentText');
+            const activePaymentIndicator = document.getElementById('activePaymentIndicator');
+            const paymentDetailsTooltip = document.getElementById('paymentDetailsTooltip');
+
+            // Retrieve active payment method from localStorage
+            const activePaymentMethodRaw = localStorage.getItem('activePaymentMethod');
+
+            if (activePaymentMethodRaw) {
+                try {
+                    const activeMethod = JSON.parse(activePaymentMethodRaw);
+                    let displayText = '';
+                    let detailsHtml = '';
+
+                    if (activeMethod.type === 'mobileMoney') {
+                        displayText = `Mobile Money (${activeMethod.network || 'N/A'})`;
+                        detailsHtml = `
+                            <div class="font-medium mb-1">Active Method:</div>
+                            <div><strong>Type:</strong> Mobile Money</div>
+                            <div><strong>Network:</strong> ${activeMethod.network || 'N/A'}</div>
+                            <div><strong>Number:</strong> ${activeMethod.number || 'N/A'}</div>
+                            <div><strong>Name:</strong> ${activeMethod.name || 'N/A'}</div>
+                        `;
+                    } else if (activeMethod.type === 'creditCard') {
+                        const lastFour = activeMethod.cardNumber ? activeMethod.cardNumber.slice(-4) : '••••';
+                        displayText = `${activeMethod.cardType || 'Credit'} Card (•••• ${lastFour})`;
+                        detailsHtml = `
+                            <div class="font-medium mb-1">Active Method:</div>
+                            <div><strong>Type:</strong> Credit Card</div>
+                            <div><strong>Card Type:</strong> ${activeMethod.cardType || 'N/A'}</div>
+                            <div><strong>Last 4:</strong> ${lastFour}</div>
+                            <div><strong>Name:</strong> ${activeMethod.name || 'N/A'}</div>
+                            <div><strong>Expiry:</strong> ${activeMethod.expiry || 'N/A'}</div>
+                        `;
+                    }
+
+                    // Update the text to show active status
+                    activePaymentTextSpan.textContent = `Active: ${displayText}`;
+                    activePaymentTextSpan.classList.add('font-semibold'); // Make it stand out
+
+                    // Set up the blinking indicator element
+                    activePaymentIndicator.classList.remove('bg-gray-500'); // Remove any default gray background
+                    activePaymentIndicator.classList.add('bg-green-500', 'animate-pulse-custom');
+
+                    // Populate and manage the tooltip
+                    paymentDetailsTooltip.innerHTML = detailsHtml;
+
+                    // Add hover events to show/hide tooltip
+                    // The tooltip is a child of a flex item, so positioning needs care.
+                    // This is handled by absolute positioning relative to its flex parent.
+                    paymentMethodDiv.querySelector('.flex.items-center.relative').addEventListener('mouseenter', () => {
+                        paymentDetailsTooltip.classList.remove('hidden');
+                    });
+                    paymentMethodDiv.querySelector('.flex.items-center.relative').addEventListener('mouseleave', () => {
+                        paymentDetailsTooltip.classList.add('hidden');
+                    });
+
+                } catch (error) {
+                    console.error('Error parsing active payment method from localStorage:', error);
+                    // Fallback to default if parsing fails
+                    activePaymentTextSpan.textContent = 'Set Account Payment Method';
+                    activePaymentIndicator.classList.remove('bg-green-500', 'animate-pulse-custom');
+                    paymentDetailsTooltip.classList.add('hidden');
+                }
+            } else {
+                // If no active method is set, ensure it shows the default prompt
+                activePaymentTextSpan.textContent = 'Set Account Payment Method';
+                activePaymentIndicator.classList.remove('bg-green-500', 'animate-pulse-custom');
+                paymentDetailsTooltip.classList.add('hidden');
+            }
+        }
+
+
+        // Create a modal component (reused from existing code, adjusted to use SweetAlert2)
+        function createModal(title, message) {
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: 'info',
+                background: 'rgba(30, 30, 30, 0.9)',
+                color: '#fff',
+                confirmButtonColor: '#3b82f6'
+            });
+        }
+
+        // Setup the toggle event listeners for withdrawal methods (already exists)
+        function setupWithdrawalMethodToggles() {
+            // Auto toggle
+            document.getElementById('auto-toggle').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('manual-toggle').checked = false;
+                    createModal('Automatic Withdrawal', 'Withdrawal will automatically be processed.');
+                }
+            });
+
+            // Manual toggle
+            document.getElementById('manual-toggle').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('auto-toggle').checked = false;
+                    createModal('Manual Withdrawal', 'By setting account to manual. You will have to confirm each transaction before withdrawal.');
+                }
+            });
+        }
+
+        // Initialize all new features
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load transaction data from JSON
+            loadTransactionData();
+
+            // Setup the active payment method display
+            setupActivePaymentMethodDisplay();
+
+            // Setup withdrawal method toggles with modals
+            setupWithdrawalMethodToggles();
+
+            // Initialize the countdown (from existing code)
+            updateCountdown({ hours: 12, minutes: 24, seconds: 29 });
+
+            // Initialize user cards (from existing code)
+            createUserCards(users);
+        });
+    </script>
 
 </body>
 

@@ -30,7 +30,6 @@
       .scrollbar-glass::-webkit-scrollbar {
         width: 4px;
         margin: 10px;
-        
       }
       .scrollbar-glass::-webkit-scrollbar-track {
         background: rgba(255, 255, 255, 0.1);
@@ -111,12 +110,30 @@
       const searchInput = document.getElementById("searchInput");
       let branches = [];
 
+      // Show loading animation
+      function showLoading() {
+        listContainer.innerHTML = `
+          <div class="flex justify-center items-center py-8">
+            <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+            <span class="ml-3 text-white">Loading branches...</span>
+          </div>
+        `;
+      }
+
+      // Hide loading animation
+      function hideLoading() {
+        listContainer.innerHTML = '';
+      }
+
       // Fetch branches from API
       async function fetchBranches() {
+        showLoading();
         try {
           const token = localStorage.getItem("authToken");
           const loggedInCompanyData = localStorage.getItem("loggedInCompany");
-          const companyData = loggedInCompanyData ? JSON.parse(loggedInCompanyData) : null;
+          const companyData = loggedInCompanyData
+            ? JSON.parse(loggedInCompanyData)
+            : null;
           const companyId = companyData?.id;
 
           if (!token || !companyId) {
@@ -124,9 +141,9 @@
             return;
           }
 
-          const baseUrl = "https://phluowise.azurewebsites.net/";
+          const baseUrl = "https://phluowise.azurewebsites.net";
           const response = await fetch(
-            `${baseUrl}/company-admin/GetBranches?companyId=${companyId}`,
+            `${baseUrl}/company-admin/GetBranches/${companyId}`,
             {
               method: "GET",
               headers: {
@@ -137,11 +154,14 @@
 
           if (response.ok) {
             branches = await response.json();
+            hideLoading();
             renderBranches();
           } else {
-            listContainer.innerHTML = `<p class="text-white text-center">Failed to load branches.</p>`;
+            hideLoading();
+            listContainer.innerHTML = `<p class="text-white text-center">Failed to load branches. Please try again.</p>`;
           }
         } catch (error) {
+          hideLoading();
           listContainer.innerHTML = `<p class="text-white text-center">Error: ${error.message}</p>`;
         }
       }
@@ -173,7 +193,7 @@
                             <div class="text-lg font-semibold">${branch.branchName}</div>
                             <div class="text-gray-400">${branch.branchLocation}</div>
                             <div class="text-gray-400 text-sm">${branch.branchCode}</div>
-                            <div class="text-gray-400 text-sm">●●●●●●●●</div>
+                           
                         </div>
                         <div>
                             <input type="checkbox" id="toggleBranch${index}" x-model="toggle" class="hidden">
