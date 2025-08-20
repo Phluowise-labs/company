@@ -5,8 +5,8 @@ const STORAGE_KEYS = {
   OTP_TOKEN: "otpToken",
   LOGIN_TOKEN: "loginToken",
   OTP_PURPOSE: "otpPurpose",
-  REGISTERED_COMPANY: "registeredCompany",
   LOGGED_IN_COMPANY: "loggedInCompany",
+  LOGGED_IN_BRANCH: "loggedInBranch",
   AUTH_TOKEN: "authToken",
   OTP_EMAIL: "otpEmail",
   RESEND_TIMEOUT: "resendTimeout",
@@ -784,10 +784,6 @@ async function handleOtpValidation(e) {
     errorElement.classList.add("hidden");
 
     if (registerToken) {
-      localStorage.setItem(
-        STORAGE_KEYS.REGISTERED_COMPANY,
-        JSON.stringify(result)
-      );
       localStorage.removeItem(STORAGE_KEYS.OTP_TOKEN);
       showSuccessToast("Registration successful! Redirecting to login...");
       setTimeout(() => (window.location.href = "user-signin.html"), 2000);
@@ -812,10 +808,9 @@ async function handleOtpValidation(e) {
         const branchManagerInfo = JSON.parse(localStorage.getItem("branchManagerInfo") || '{}');
         const branchCode = localStorage.getItem("branchCode");
         
-        // Store the branch manager info in the logged in company
-        localStorage.setItem(STORAGE_KEYS.LOGGED_IN_COMPANY, JSON.stringify({
+        // Store branch session separately to avoid confusion with company admin
+        localStorage.setItem(STORAGE_KEYS.LOGGED_IN_BRANCH, JSON.stringify({
           ...result,
-          isBranchManager: true,
           branchCode,
           ...branchManagerInfo
         }));

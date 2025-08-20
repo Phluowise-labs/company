@@ -97,5 +97,64 @@ if (!window.__TOPBAR_INIT__) {
   // Expose for manual refresh after add/delete in branches.html
   window.updateBranchCount = updateBranchCount;
 
+  // 🧭 Role-based visibility + impersonation banner
+  try {
+    const companyRaw = localStorage.getItem("loggedInCompany");
+    const branchRaw = localStorage.getItem("loggedInBranch");
+    const company = companyRaw ? JSON.parse(companyRaw) : null;
+    const branchSession = branchRaw ? JSON.parse(branchRaw) : null;
+    const isBranchManager = !!branchSession; // Branch session exists means branch role
+
+    // Hide entries not available for branch roles
+    const hideForBranchSelectors = [
+      'a[href="branches.html"]',
+      'a[href="account_verification.html"]'
+    ];
+    if (isBranchManager) {
+      hideForBranchSelectors.forEach((sel) => {
+        document.querySelectorAll(sel).forEach((el) => {
+          const item = el.closest('a, li, .block');
+          (item || el).style.display = 'none';
+        });
+      });
+      // Hide branches icon + badge section entirely
+      const branchesIconAnchor = document.querySelector('a[href="branches.html"]');
+      if (branchesIconAnchor) {
+        const container = branchesIconAnchor.closest('.relative') || branchesIconAnchor;
+        container.style.display = 'none';
+      }
+      const branchBadge = document.getElementById("branchCount");
+      if (branchBadge) branchBadge.style.display = 'none';
+    }
+
+    // For admins (default), leave Branches and Verification enabled.
+
+    // Impersonation UI (admin viewing a branch)
+    const asMode = new URLSearchParams(window.location.search).get('as') || localStorage.getItem('impersonateMode');
+    const branchName = localStorage.getItem('impersonateBranchName');
+    const branchId = new URLSearchParams(window.location.search).get('branchId') || localStorage.getItem('impersonateBranchId');
+    const pill = document.getElementById('impersonationPill');
+    const pillText = document.getElementById('impersonationText');
+    const exitBtn = document.getElementById('exitImpersonationBtn');
+    if (pill && asMode === 'admin' && branchId) {
+      pill.classList.remove('hidden');
+      pillText.textContent = `Viewing as ${branchName || 'Branch'} (Admin)`;
+      if (exitBtn) {
+        exitBtn.addEventListener('click', () => {
+          // Clear impersonation and go back to workspace
+          localStorage.removeItem('impersonateBranchId');
+          localStorage.removeItem('impersonateBranchName');
+          localStorage.removeItem('impersonateMode');
+          const url = new URL(window.location.href);
+          url.searchParams.delete('branchId');
+          url.searchParams.delete('as');
+          window.location.href = 'workspace.html';
+        });
+      }
+    }
+  } catch (e) {
+    console.error('Topbar role/impersonation init error:', e);
+  }
+
   console.log("Topbar init complete");
 }

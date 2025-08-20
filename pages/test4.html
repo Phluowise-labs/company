@@ -18,11 +18,12 @@
             outline: 2px solid #3b82f6;
             outline-offset: 2px;
         }
-        
+
         .btn-loading {
             position: relative;
             pointer-events: none;
         }
+
         .btn-loading::after {
             content: "";
             position: absolute;
@@ -38,9 +39,15 @@
             border-radius: 50%;
             animation: btn-loading-spinner 1s linear infinite;
         }
+
         @keyframes btn-loading-spinner {
-            from { transform: rotate(0turn); }
-            to { transform: rotate(1turn); }
+            from {
+                transform: rotate(0turn);
+            }
+
+            to {
+                transform: rotate(1turn);
+            }
         }
     </style>
 </head>
@@ -55,7 +62,7 @@
         </div>
         <p class="text-gray-400">We sent you a code.</p>
         <p class="text-xs text-gray-500 mb-4">Enter the verification code</p>
-    
+
         <form id="verificationForm">
             <div class="flex justify-center gap-2 mb-4">
                 <input type="text" inputmode="numeric" pattern="[0-9]*"
@@ -88,14 +95,14 @@
         </p>
         <p id="resendMessage" class="text-green-500 text-sm hidden mt-2"></p>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const baseUrl = "https://phlowise-amggdaagb5ancjfu.eastus-01.azurewebsites.net";
         const API_TIMEOUT = 15000; // 15 seconds
         let resendTimer;
         let resendTimeout = 30000; // 30 seconds
-        
+
         // Helper function to show SweetAlert notifications
         function showAlert(icon, title, text) {
             return Swal.fire({
@@ -105,7 +112,7 @@
                 confirmButtonColor: '#2563eb',
             });
         }
-        
+
         // Toggle loading state on buttons
         function setLoadingState(button, isLoading) {
             if (isLoading) {
@@ -119,11 +126,11 @@
                 button.textContent = button.dataset.originalText;
             }
         }
-        
+
         // Handle post-OTP verification redirect
         function handlePostOTPRedirect() {
             const purpose = localStorage.getItem("otpPurpose");
-            
+
             switch (purpose) {
                 case "registration":
                 case "login":
@@ -135,10 +142,10 @@
                 default:
                     window.location.href = "user-signin.html";
             }
-            
+
             localStorage.removeItem("otpPurpose");
         }
-        
+
         // API call with timeout handling
         async function makeAPICall(url, options) {
             const controller = new AbortController();
@@ -150,12 +157,12 @@
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
-                
+
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
                 }
-                
+
                 return await response.json();
             } catch (error) {
                 clearTimeout(timeoutId);
@@ -165,7 +172,7 @@
                 throw error;
             }
         }
-        
+
         // Combine OTP digits
         function getCombinedOTP() {
             let otp = '';
@@ -174,11 +181,11 @@
             }
             return otp;
         }
-        
+
         // Auto-focus and move between OTP fields
         function setupOTPInputs() {
             const inputs = document.querySelectorAll('.otp-field');
-            
+
             inputs.forEach((input, index) => {
                 input.addEventListener('input', (e) => {
                     if (e.target.value.length === 1) {
@@ -189,7 +196,7 @@
                         }
                     }
                 });
-                
+
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
                         inputs[index - 1].focus();
@@ -197,22 +204,22 @@
                 });
             });
         }
-        
+
         // Start resend timer
         function startResendTimer() {
             const resendButton = document.getElementById('resendCode');
             const resendMessage = document.getElementById('resendMessage');
-            
+
             resendButton.disabled = true;
             resendButton.classList.add('opacity-50');
-            
+
             let timeLeft = resendTimeout / 1000;
             resendButton.textContent = `Resend Code (${timeLeft}s)`;
-            
+
             resendTimer = setInterval(() => {
                 timeLeft--;
                 resendButton.textContent = `Resend Code (${timeLeft}s)`;
-                
+
                 if (timeLeft <= 0) {
                     clearInterval(resendTimer);
                     resendButton.disabled = false;
@@ -221,16 +228,16 @@
                 }
             }, 1000);
         }
-        
+
         // Verify OTP
         async function verifyOTP(otp) {
             const verifyButton = document.getElementById('verifyButton');
             setLoadingState(verifyButton, true);
-            
+
             try {
                 const purpose = localStorage.getItem("otpPurpose");
                 let result;
-                
+
                 // Registration OTP flow
                 const registerToken = localStorage.getItem("otpToken");
                 if (registerToken && purpose === "registration") {
@@ -240,10 +247,9 @@
                         body: JSON.stringify({ register_token: registerToken, otp })
                     });
 
-                    localStorage.setItem("registeredCompany", JSON.stringify(result));
                     localStorage.setItem("authToken", result.token);
                     localStorage.removeItem("otpToken");
-                    
+
                     await showAlert('success', 'Registration Complete', 'Your company has been successfully registered!');
                     handlePostOTPRedirect();
                     return;
@@ -260,10 +266,10 @@
 
                     localStorage.setItem("authToken", result.token);
                     localStorage.removeItem("loginToken");
-                    
-                    await showAlert('success', 'OTP Verified', 
-                        purpose === "forgot" 
-                            ? 'You can now reset your password' 
+
+                    await showAlert('success', 'OTP Verified',
+                        purpose === "forgot"
+                            ? 'You can now reset your password'
                             : 'Login successful');
                     handlePostOTPRedirect();
                     return;
@@ -278,15 +284,15 @@
                 setLoadingState(verifyButton, false);
             }
         }
-        
+
         // Resend OTP
         async function resendOTP() {
             const resendButton = document.getElementById('resendCode');
             const resendMessage = document.getElementById('resendMessage');
-            
+
             resendButton.disabled = true;
             resendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            
+
             try {
                 const purpose = localStorage.getItem("otpPurpose");
                 let result;
@@ -299,16 +305,16 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ register_token: registerToken })
                     });
-                } 
+                }
                 // Login/Forgot OTP resend
                 else {
                     const loginToken = localStorage.getItem("loginToken");
                     if (!loginToken) throw new Error("No active session found");
-                    
-                    const endpoint = purpose === "forgot" 
-                        ? "/company/resend-forgot-otp" 
+
+                    const endpoint = purpose === "forgot"
+                        ? "/company/resend-forgot-otp"
                         : "/company/resend-login-otp";
-                        
+
                     result = await makeAPICall(`${baseUrl}${endpoint}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -331,23 +337,23 @@
                 }, 2000);
             }
         }
-        
+
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             setupOTPInputs();
             startResendTimer();
-            
+
             const registerToken = localStorage.getItem("otpToken");
             const loginToken = localStorage.getItem("loginToken");
             const purpose = localStorage.getItem("otpPurpose");
-            
+
             if (!registerToken && !loginToken) {
                 showAlert('error', 'Invalid Access', 'No pending OTP verification found').then(() => {
                     window.location.href = "user-signin.html";
                 });
                 return;
             }
-            
+
             // Update UI based on purpose
             const title = document.getElementById('otpTitle');
             if (title && purpose) {
@@ -360,7 +366,7 @@
                     title.textContent = actionMap[purpose];
                 }
             }
-            
+
             // Form submission
             document.getElementById('verificationForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -372,7 +378,7 @@
                     document.getElementById('errorMessage').classList.remove('hidden');
                 }
             });
-            
+
             // Resend code
             document.getElementById('resendCode').addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -381,4 +387,5 @@
         });
     </script>
 </body>
+
 </html>

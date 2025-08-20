@@ -11,31 +11,7 @@ function getAuthHeaders() {
 
 // ------------------ REAL ENDPOINTS ------------------ //
 
-// Fetch company profile
-async function fetchCompanyProfile() {
-  try {
-    if (!authToken) {
-      console.warn("No auth token found");
-      return null;
-    }
 
-    const response = await fetch(`${baseUrl}/company-admin/GetProfile`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch profile: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (err) {
-    console.error("Error fetching company profile:", err);
-    return null;
-  }
-}
-
-// Fetch branches
 async function fetchBranches() {
   try {
     const company = JSON.parse(localStorage.getItem("loggedInCompany") || "{}");
@@ -48,9 +24,7 @@ async function fetchBranches() {
 
     const response = await fetch(
       `${baseUrl}/company-admin/GetBranches/${companyId}`,
-      {
-        headers: getAuthHeaders(),
-      }
+      { headers: getAuthHeaders() }
     );
 
     if (!response.ok) throw new Error("Failed to fetch branches");
@@ -62,7 +36,7 @@ async function fetchBranches() {
   }
 }
 
-// ------------------ DUMMY ENDPOINTS (to replace later) ------------------ //
+// ------------------ DUMMY ENDPOINTS (replace later) ------------------ //
 async function fetchActiveOrders() {
   return { count: 12, change: 5 };
 }
@@ -82,8 +56,6 @@ async function fetchBranchPerformance(timeRange = 30) {
 
 // ------------------ UI INITIALIZER ------------------ //
 async function initDashboard() {
-  document.body.classList.add("loading");
-
   // ---- Company Profile ----
   const companyData = await fetchCompanyProfile();
   if (companyData) {
@@ -100,22 +72,45 @@ async function initDashboard() {
 
   // ---- Branches ----
   try {
-    const branches = await fetchBranches();
-    const branchCount = Array.isArray(branches) ? branches.length : 0;
+const branches = await fetchBranches();
+const totalBranches = Array.isArray(branches) ? branches.length : 0;
+const resolveStatus = (b) => {
+  const raw = (b?.status ?? b?.branchStatus ?? b?.activeStatus ?? "")
+    .toString()
+    .trim()
+    .toLowerCase();
+  const isInactiveBool = b?.isActive === false || b?.active === false;
+  const isActiveBool = b?.isActive === true || b?.active === true;
+  if (isInactiveBool) return "inactive";
+  if (isActiveBool) return "active";
+  if (["inactive", "disabled", "suspended", "closed"].includes(raw)) return "inactive";
+  if (["active", "enabled", "open"].includes(raw)) return "active";
+  return "active"; // default when unspecified
+};
 
-    // Update summary card (Total Branches)
-    const totalBranchesEl = document.getElementById("totalBranches");
-    if (totalBranchesEl) {
-      totalBranchesEl.textContent = branchCount;
-    }
+const activeBranches = Array.isArray(branches)
+  ? branches.filter((b) => resolveStatus(b) === "active").length
+  : 0;
+const inactiveBranches = totalBranches - activeBranches;
 
-    // Update badge
-    const badge = document.getElementById("branchCount");
-    if (badge) {
-      badge.textContent = branchCount;
-      badge.style.display = branchCount > 0 ? "flex" : "none";
-    }
+// 🔹 Update summary card
+const totalBranchesEl = document.getElementById("totalBranches");
+if (totalBranchesEl) {
+  totalBranchesEl.textContent = `${totalBranches}`;
+}
 
+const activeBranchesEl = document.getElementById("activeBranches");
+if (activeBranchesEl) {
+  activeBranchesEl.textContent = activeBranches; // ✅ separate active count
+}
+
+const inactiveBranchesEl = document.getElementById("inactiveBranches");
+if (inactiveBranchesEl) {
+  inactiveBranchesEl.textContent = inactiveBranches; // ✅ separate inactive count
+}
+
+
+    
     // Fill lists
     const branchesList = document.getElementById("branchesList");
     const branchesDropdown = document.getElementById("branchesDropdownList");
@@ -123,22 +118,20 @@ async function initDashboard() {
     branchesList.innerHTML = "";
     branchesDropdown.innerHTML = "";
 
-    if (branchCount > 0) {
+    if (totalBranches > 0) {
       branches.forEach((b) => {
-        // Card list
         const div = document.createElement("div");
         div.className = "p-2 bg-white/5 rounded-lg";
         div.textContent = b.name || b.branchName;
         branchesList.appendChild(div);
 
-        // Dropdown
         const dd = document.createElement("div");
         dd.className =
           "flex justify-between items-center p-2 bg-white/5 rounded-lg";
-        dd.innerHTML = `<span>${b.name || b.branchName}</span>
-                        <span class="text-gray-400 text-sm">${
-                          b.status || "Active"
-                        }</span>`;
+        const s = resolveStatus(b);
+        dd.innerHTML = `
+        <span>${b.name || b.branchName}</span>
+        <span class="text-gray-400 text-sm">${s.charAt(0).toUpperCase() + s.slice(1)}</span>`;
         branchesDropdown.appendChild(dd);
       });
     } else {
@@ -194,8 +187,6 @@ async function initDashboard() {
   } else {
     tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-500">No performance data</td></tr>`;
   }
-
-  document.body.classList.remove("loading");
 }
 
 // ------------------ REFRESH HANDLER ------------------ //

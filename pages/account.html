@@ -90,6 +90,30 @@
                     .then(data => {
                         document.getElementById("sidebar").innerHTML = data;
                         highlightActivePage();
+                        // Append branch context to sidebar links if impersonating
+                        (function applyBranchContextToSidebar() {
+                            try {
+                                const params = new URLSearchParams(window.location.search);
+                                const branchId = params.get("branchId") || localStorage.getItem("impersonateBranchId");
+                                const as = params.get("as") || localStorage.getItem("impersonateMode");
+                                if (!branchId) return;
+                                // Persist for subsequent pages
+                                localStorage.setItem("impersonateBranchId", String(branchId));
+                                if (as) localStorage.setItem("impersonateMode", String(as));
+                                document.querySelectorAll('#sidebar a[href$=".html"]').forEach(a => {
+                                    const href = a.getAttribute('href');
+                                    if (!href || href.startsWith('http')) return;
+                                    const parts = href.split('?');
+                                    const base = parts[0];
+                                    const sp = new URLSearchParams(parts[1] || "");
+                                    sp.set('branchId', branchId);
+                                    if (as) sp.set('as', as);
+                                    a.setAttribute('href', `${base}?${sp.toString()}`);
+                                });
+                            } catch (e) {
+                                console.error('Failed to apply branch context to links', e);
+                            }
+                        })();
                     });
 
                 function highlightActivePage() {
@@ -107,30 +131,30 @@
         </div>
         <!-- Main Content -->
         <div class="ml-64  p-5 w-full text-white">
-         <!-- Top Bar -->
-<div id="topbar"></div>
+            <!-- Top Bar -->
+            <div id="topbar"></div>
 
-<script>
-  fetch("topbar.html")
-    .then((r) => r.text())
-    .then((html) => {
-      const container = document.getElementById("topbar");
-      container.innerHTML = html;
+            <script>
+                fetch("topbar.html")
+                    .then((r) => r.text())
+                    .then((html) => {
+                        const container = document.getElementById("topbar");
+                        container.innerHTML = html;
 
-      // Execute scripts found in the injected markup
-      container.querySelectorAll("script").forEach((oldScript) => {
-        const s = document.createElement("script");
-        if (oldScript.src) {
-          s.src = oldScript.src;
-          // Important: ensure predictable execution
-          s.async = false;
-        } else {
-          s.textContent = oldScript.textContent;
-        }
-        document.body.appendChild(s);
-      });
-    });
-</script>
+                        // Execute scripts found in the injected markup
+                        container.querySelectorAll("script").forEach((oldScript) => {
+                            const s = document.createElement("script");
+                            if (oldScript.src) {
+                                s.src = oldScript.src;
+                                // Important: ensure predictable execution
+                                s.async = false;
+                            } else {
+                                s.textContent = oldScript.textContent;
+                            }
+                            document.body.appendChild(s);
+                        });
+                    });
+            </script>
 
 
             <!-- Main Content Area -->
@@ -793,7 +817,7 @@
                 });
 
                 if (!response.ok) throw new Error('Failed to fetch payment methods');
-                
+
                 const data = await response.json();
                 const paymentMethods = data.data || [];
                 const activeMethod = paymentMethods[0]; // Get the default/active payment method
@@ -812,10 +836,10 @@
                 // Create details container that will show on hover
                 const detailsContainer = document.createElement('div');
                 detailsContainer.className = 'payment-details hidden absolute bg-gray-800 p-3 rounded-lg shadow-lg z-10 text-sm mt-2 border border-gray-700';
-                
+
                 // Add payment method details
                 let detailsHTML = '<div class="font-medium mb-1">Active Payment Method:</div>';
-                
+
                 if (activeMethod.type === 'mobileMoney') {
                     detailsHTML += `
                         <div class="flex items-center mb-1">
@@ -846,7 +870,7 @@
                             <span>•••• ${lastFour}</span>
                         </div>`;
                 }
-                
+
                 detailsContainer.innerHTML = detailsHTML;
                 indicatorContainer.appendChild(detailsContainer);
 
@@ -895,10 +919,10 @@
             // Create a details container that will show on hover
             const detailsContainer = document.createElement('div');
             detailsContainer.className = 'payment-details hidden absolute bg-gray-800 p-3 rounded-lg shadow-lg z-10 text-sm mt-2 border border-gray-700';
-            
+
             // Add payment method details
             let detailsHTML = '<div class="font-medium mb-1">Active Payment Method:</div>';
-            
+
             if (activeMethod.type === 'mobileMoney') {
                 detailsHTML += `
                     <div class="flex items-center mb-1">
@@ -928,7 +952,7 @@
                         <span>•••• ${activeMethod.cardNumber.slice(-4)}</span>
                     </div>`;
             }
-            
+
             detailsContainer.innerHTML = detailsHTML;
             indicatorContainer.appendChild(indicator);
             indicatorContainer.appendChild(detailsContainer);

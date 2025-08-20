@@ -24,7 +24,7 @@
     body {
       font-family: 'Inter', sans-serif;
     }
-    
+
     .driver-card {
       background: #1a1a1a;
       border-radius: 8px;
@@ -33,38 +33,39 @@
       position: relative;
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    
+
     .driver-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    
+
     .driver-card h3 {
       margin-top: 0;
       color: #fff;
       font-size: 1.2rem;
       margin-bottom: 0.75rem;
     }
-    
+
     .driver-card p {
       margin: 0.5rem 0;
       color: #aaa;
       font-size: 0.9rem;
     }
-    
+
     .driver-card p span {
       color: #fff;
       font-weight: 500;
     }
-    
+
     .driver-actions {
       display: flex;
       gap: 0.75rem;
       margin-top: 1rem;
       justify-content: flex-end;
     }
-    
-    .btn-edit, .btn-delete {
+
+    .btn-edit,
+    .btn-delete {
       padding: 0.5rem 1rem;
       border: none;
       border-radius: 4px;
@@ -75,31 +76,31 @@
       font-size: 0.85rem;
       transition: all 0.2s;
     }
-    
+
     .btn-edit {
       background-color: #3b82f6;
       color: white;
     }
-    
+
     .btn-edit:hover {
       background-color: #2563eb;
     }
-    
+
     .btn-delete {
       background-color: #ef4444;
       color: white;
     }
-    
+
     .btn-delete:hover {
       background-color: #dc2626;
     }
-    
+
     .form-actions {
       display: flex;
       gap: 1rem;
       margin-top: 1.5rem;
     }
-    
+
     .btn-cancel {
       background-color: #6b7280;
       color: white;
@@ -109,11 +110,11 @@
       cursor: pointer;
       transition: background-color 0.2s;
     }
-    
+
     .btn-cancel:hover {
       background-color: #4b5563;
     }
-    
+
     .no-drivers {
       text-align: center;
       color: #9ca3af;
@@ -131,6 +132,25 @@
           .then(data => {
             document.getElementById("sidebar").innerHTML = data;
             highlightActivePage();
+            (function applyBranchContextToSidebar() {
+              try {
+                const params = new URLSearchParams(window.location.search);
+                const branchId = params.get("branchId") || localStorage.getItem("impersonateBranchId");
+                const as = params.get("as") || localStorage.getItem("impersonateMode");
+                if (!branchId) return;
+                localStorage.setItem("impersonateBranchId", String(branchId));
+                if (as) localStorage.setItem("impersonateMode", String(as));
+                document.querySelectorAll('#sidebar a[href$=".html"]').forEach(a => {
+                  const href = a.getAttribute('href');
+                  if (!href || href.startsWith('http')) return;
+                  const [base, query] = href.split('?');
+                  const sp = new URLSearchParams(query || "");
+                  sp.set('branchId', branchId);
+                  if (as) sp.set('as', as);
+                  a.setAttribute('href', `${base}?${sp.toString()}`);
+                });
+              } catch (e) { console.error(e); }
+            })();
           });
 
         function highlightActivePage() {
@@ -148,30 +168,30 @@
     </div>
     <!-- Main Content -->
     <div class="ml-64 mt-12 p-5 w-full text-white">
-   <!-- Top Bar -->
-<div id="topbar"></div>
+      <!-- Top Bar -->
+      <div id="topbar"></div>
 
-<script>
-  fetch("topbar.html")
-    .then((r) => r.text())
-    .then((html) => {
-      const container = document.getElementById("topbar");
-      container.innerHTML = html;
+      <script>
+        fetch("topbar.html")
+          .then((r) => r.text())
+          .then((html) => {
+            const container = document.getElementById("topbar");
+            container.innerHTML = html;
 
-      // Execute scripts found in the injected markup
-      container.querySelectorAll("script").forEach((oldScript) => {
-        const s = document.createElement("script");
-        if (oldScript.src) {
-          s.src = oldScript.src;
-          // ✅ ensure predictable execution
-          s.async = false;
-        } else {
-          s.textContent = oldScript.textContent;
-        }
-        document.body.appendChild(s);
-      });
-    });
-</script>
+            // Execute scripts found in the injected markup
+            container.querySelectorAll("script").forEach((oldScript) => {
+              const s = document.createElement("script");
+              if (oldScript.src) {
+                s.src = oldScript.src;
+                // ✅ ensure predictable execution
+                s.async = false;
+              } else {
+                s.textContent = oldScript.textContent;
+              }
+              document.body.appendChild(s);
+            });
+          });
+      </script>
 
 
 
@@ -275,7 +295,8 @@
             </div>
 
             <div class="form-actions">
-              <button type="button" class="btn btn-block animate__animated animate__pulse animate__infinite" id="addDriver">
+              <button type="button" class="btn btn-block animate__animated animate__pulse animate__infinite"
+                id="addDriver">
                 Add Driver
               </button>
               <button type="button" class="btn btn-cancel" id="cancelEdit" style="display: none;">

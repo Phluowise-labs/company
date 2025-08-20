@@ -256,7 +256,129 @@ const orderData = {
     "denied": []
 };
 
+// --- Real API integration ---
+const BASE_URL = "https://phluowise.azurewebsites.net";
+const API_BASE = `${BASE_URL}/api/order`;
+function getAuthToken() {
+	return localStorage.getItem("authToken");
+}
+function getCompanyId() {
+	try {
+		const raw = localStorage.getItem("loggedInCompany");
+		if (!raw) return null;
+		const obj = JSON.parse(raw);
+		return obj?.id || null;
+	} catch {
+		return null;
+	}
+}
+function authHeaders() {
+	const token = getAuthToken();
+	return {
+		"Content-Type": "application/json",
+		...(token ? { Authorization: `Bearer ${token}` } : {}),
+	};
+}
+// Debug helpers to standardize logs
+function debugLog(message, data) {
+	try {
+		if (data !== undefined) {
+			console.log(`[Requests] ${message}`, data);
+		} else {
+			console.log(`[Requests] ${message}`);
+		}
+	} catch (_) {
+		console.log(`[Requests] ${message}`);
+	}
+}
+function debugError(message, error) {
+	try {
+		console.error(`[Requests] ${message}`, error);
+	} catch (_) {
+		console.error(`[Requests] ${message}`);
+	}
+}
+async function fetchCompanyOrders(companyId) {
+	const url = `${API_BASE}/get-company-order`;
+	const reqInit = {
+		method: "POST",
+		headers: authHeaders(),
+		body: JSON.stringify({ companyId }),
+	};
+	debugLog("Fetching company orders – endpoint", url);
+	debugLog("Request init", reqInit);
+	const res = await fetch(url, reqInit);
+	const data = await res.json().catch(() => null);
+	debugLog("Fetch company orders – status", { status: res.status, ok: res.ok });
+	debugLog("Fetch company orders – response", data);
+	if (!res.ok) {
+		const msg = data?.message || data?.detail || res.statusText;
+		throw new Error(msg);
+	}
+	return Array.isArray(data) ? data : (data?.orders || []);
+}
+async function setOrderStatus(companyId, orderId, status) {
+	const url = `${API_BASE}/set-order-by-company-status`;
+	const reqInit = {
+		method: "POST",
+		headers: authHeaders(),
+		body: JSON.stringify({ companyId, orderId, status }),
+	};
+	debugLog("Updating order status – endpoint", url);
+	debugLog("Updating order status – payload", { companyId, orderId, status });
+	const res = await fetch(url, reqInit);
+	const data = await res.json().catch(() => null);
+	debugLog("Update order status – status", { status: res.status, ok: res.ok });
+	debugLog("Update order status – response", data);
+	if (!res.ok) {
+		const msg = data?.message || data?.detail || res.statusText;
+		throw new Error(msg);
+	}
+	return data;
+}
+function toTitleCase(value) {
+	if (!value) return "";
+	return String(value).split(" ").filter(Boolean).map(p => p[0]?.toUpperCase() + p.slice(1)).join(" ");
+}
+function toDisplayDate(dateLike) {
+	if (!dateLike) return "";
+	const d = new Date(dateLike);
+	if (Number.isNaN(d.getTime())) return String(dateLike);
+	return d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "2-digit" });
+}
+function toDisplayTime(dateLike) {
+	if (!dateLike) return "";
+	const d = new Date(dateLike);
+	if (Number.isNaN(d.getTime())) return "";
+	return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+}
+function normalizeOrder(raw) {
+	const id = raw?.id || raw?.orderId || raw?.orderID || raw?._id || String(Math.random());
+	const customerName = raw?.name || raw?.customerName || raw?.userName || "Unknown";
+	const location = raw?.location || raw?.address || raw?.pickupLocation || "";
+	const createdAt = raw?.createdAt || raw?.createdDate || raw?.date || raw?.timestamp;
+	const date = toDisplayDate(createdAt) || raw?.date || "";
+	const time = toDisplayTime(createdAt) || raw?.time || "";
+	const status = (raw?.status || "pending").toLowerCase();
+	const notes = raw?.additionalInfo || raw?.notes || "";
+	const products = Array.isArray(raw?.products) ? raw.products.map(p => ({
+		name: p?.name || p?.productName || "Product",
+		description: p?.description || p?.type || "",
+		price: Number(p?.price || 0),
+		quantity: Number(p?.quantity || 0),
+		image: p?.image || p?.imageUrl || "https://via.placeholder.com/80",
+	})) : [];
+	const total = raw?.total ?? products.reduce((s, p) => s + (p.price * p.quantity), 0);
+	return { id, name: toTitleCase(customerName), location, date, time, status, total: Number(total || 0), notes, products, __raw: raw };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Log environment context
+    debugLog("DOM loaded for Requests page");
+    debugLog("Base URL", BASE_URL);
+    debugLog("API base", API_BASE);
+    debugLog("Auth token present", Boolean(getAuthToken()));
+    debugLog("Logged in company", (() => { try { return JSON.parse(localStorage.getItem('loggedInCompany')||'null'); } catch { return null; } })());
     // Tab switching functionality
     const tabs = document.querySelectorAll('.tab-button');
     tabs.forEach(tab => {
@@ -273,8 +395,25 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('text-gray-400');
             const paneId = this.id.replace('-tab', '-content');
             document.getElementById(paneId).classList.remove('hidden');
+            debugLog("Tab switched", { tabId: this.id, paneId });
         });
     });
+
+    // Auth guard
+    const token = getAuthToken();
+    const companyId = getCompanyId();
+    if (!token || !companyId) {
+        debugError("Auth guard failed", { hasToken: Boolean(token), companyId });
+        Swal.fire({
+            icon: 'error',
+            title: 'Not authorized',
+            text: 'Please sign in to view and manage orders.',
+            confirmButtonText: 'Go to Sign in'
+        }).then(() => {
+            window.location.href = 'user-signin.html';
+        });
+        return;
+    }
 
     // Initialize containers
     const ordersContainer = document.getElementById('orders-container');
@@ -376,7 +515,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Set up view details button
         const viewDetailsBtn = orderCard.querySelector('.view-details-btn');
-        viewDetailsBtn.addEventListener('click', () => showModal(order));
+        viewDetailsBtn.addEventListener('click', () => {
+            debugLog("Open modal for order", order);
+            showModal(order);
+        });
         
         // Only show action buttons if specified
         if (showButtons) {
@@ -385,6 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const pendingBtn = orderCard.querySelector('.pending-btn');
             
             acceptBtn.addEventListener('click', async () => {
+                debugLog("Accept clicked", { orderId: order.id, currentStatus: order.status });
                 const { isConfirmed } = await Swal.fire({
                     title: 'Accept Order?',
                     text: "This will move the order to Accepted tab",
@@ -397,11 +540,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 if (isConfirmed) {
-                    moveOrder(order, orderCard, acceptedContainer, 'accepted');
+                    try {
+                        await setOrderStatus(companyId, order.id, 'accepted');
+                        order.status = 'accepted';
+                        moveOrder(order, orderCard, acceptedContainer, 'accepted');
+                    } catch (e) {
+                        debugError("Accept failed", e);
+                        Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'Failed to accept order' });
+                    }
                 }
             });
             
             denyBtn.addEventListener('click', async () => {
+                debugLog("Deny clicked", { orderId: order.id, currentStatus: order.status });
                 const { isConfirmed } = await Swal.fire({
                     title: 'Deny Order?',
                     text: "This will move the order to Denied tab",
@@ -414,11 +565,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 if (isConfirmed) {
-                    moveOrder(order, orderCard, deniedContainer, 'denied');
+                    try {
+                        await setOrderStatus(companyId, order.id, 'rejected');
+                        order.status = 'rejected';
+                        moveOrder(order, orderCard, deniedContainer, 'denied');
+                    } catch (e) {
+                        debugError("Deny failed", e);
+                        Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'Failed to deny order' });
+                    }
                 }
             });
             
             pendingBtn.addEventListener('click', async () => {
+                debugLog("Pending clicked", { orderId: order.id, currentStatus: order.status });
                 const { isConfirmed } = await Swal.fire({
                     title: 'Mark as Pending?',
                     text: "This will move the order to Pending tab",
@@ -431,7 +590,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 if (isConfirmed) {
-                    moveOrder(order, orderCard, pendingContainer, 'pending');
+                    try {
+                        await setOrderStatus(companyId, order.id, 'pending');
+                        order.status = 'pending';
+                        moveOrder(order, orderCard, pendingContainer, 'pending');
+                    } catch (e) {
+                        debugError("Mark pending failed", e);
+                        Swal.fire({ icon: 'error', title: 'Error', text: e.message || 'Failed to mark pending' });
+                    }
                 }
             });
         } else {
@@ -463,22 +629,41 @@ document.addEventListener('DOMContentLoaded', function() {
         createOrderCard(order, targetContainer, false);
         
         // In a real app, you would send this update to your backend
-        console.log(`Order ${order.id} moved to ${newStatus}`);
+        debugLog("Order moved", { orderId: order.id, newStatus });
     }
 
-    // Initialize the app with sample data
-    function initializeApp() {
+    // Initialize the app with live data
+    async function initializeApp() {
+        debugLog("Initialize app – start");
         // Clear all containers
         ordersContainer.innerHTML = '';
         acceptedContainer.innerHTML = '';
         pendingContainer.innerHTML = '';
         deniedContainer.innerHTML = '';
-        
-        // Populate orders based on status
-        orderData.orders.forEach(order => createOrderCard(order, ordersContainer));
-        orderData.accepted.forEach(order => createOrderCard(order, acceptedContainer, false));
-        orderData.pending.forEach(order => createOrderCard(order, pendingContainer, false));
-        orderData.denied.forEach(order => createOrderCard(order, deniedContainer, false));
+        try {
+            const rawOrders = await fetchCompanyOrders(companyId);
+            debugLog("Raw orders received", rawOrders);
+            const orders = rawOrders.map(normalizeOrder);
+            debugLog("Normalized orders", orders);
+            // All orders list (buttons only for pending)
+            orders.forEach(o => {
+                const showButtons = (o.status || 'pending').toLowerCase() === 'pending';
+                createOrderCard(o, ordersContainer, showButtons);
+            });
+            orders.filter(o => (o.status || '').toLowerCase() === 'accepted')
+                .forEach(o => createOrderCard(o, acceptedContainer, false));
+            orders.filter(o => (o.status || '').toLowerCase() === 'pending')
+                .forEach(o => createOrderCard(o, pendingContainer, false));
+            orders.filter(o => { const s = (o.status || '').toLowerCase(); return s === 'rejected' || s === 'denied'; })
+                .forEach(o => createOrderCard(o, deniedContainer, false));
+            if (orders.length === 0) {
+                ordersContainer.innerHTML = `<div class="text-gray-400 text-center py-6">No orders yet</div>`;
+            }
+        } catch (err) {
+            debugError("Initialize app failed", err);
+            ordersContainer.innerHTML = `<div class=\"text-red-400 text-center py-6\">Failed to load orders. ${err.message}</div>`;
+        }
+        debugLog("Initialize app – end");
     }
 
     // Start the app

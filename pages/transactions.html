@@ -60,6 +60,25 @@
                     .then(data => {
                         document.getElementById("sidebar").innerHTML = data;
                         highlightActivePage();
+                        (function applyBranchContextToSidebar() {
+                            try {
+                                const params = new URLSearchParams(window.location.search);
+                                const branchId = params.get("branchId") || localStorage.getItem("impersonateBranchId");
+                                const as = params.get("as") || localStorage.getItem("impersonateMode");
+                                if (!branchId) return;
+                                localStorage.setItem("impersonateBranchId", String(branchId));
+                                if (as) localStorage.setItem("impersonateMode", String(as));
+                                document.querySelectorAll('#sidebar a[href$=".html"]').forEach(a => {
+                                    const href = a.getAttribute('href');
+                                    if (!href || href.startsWith('http')) return;
+                                    const [base, query] = href.split('?');
+                                    const sp = new URLSearchParams(query || "");
+                                    sp.set('branchId', branchId);
+                                    if (as) sp.set('as', as);
+                                    a.setAttribute('href', `${base}?${sp.toString()}`);
+                                });
+                            } catch (e) { console.error(e); }
+                        })();
                     });
 
                 function highlightActivePage() {
