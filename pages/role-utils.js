@@ -1,6 +1,6 @@
 /**
  * Role Management Utilities for Phluowise
- * Handles automatic role setting, authentication checks, and session management
+ * Handles role checking and session management without automatic redirects
  */
 
 // Role constants
@@ -22,19 +22,6 @@ const STORAGE_KEYS = {
     BRANCH_CODE: 'branchCode',
     BRANCH_MANAGER_INFO: 'branchManagerInfo'
 };
-
-/**
- * Set user role based on login source
- * @param {string} role - 'admin' or 'branch'
- */
-function setUserRole(role) {
-    if (role === ROLES.ADMIN || role === ROLES.BRANCH) {
-        localStorage.setItem(STORAGE_KEYS.ROLE, role);
-        console.log(`Role set to: ${role}`);
-    } else {
-        console.error('Invalid role specified:', role);
-    }
-}
 
 /**
  * Get current user role
@@ -84,27 +71,6 @@ function clearRoleData() {
 }
 
 /**
- * Redirect user based on their current role
- * @param {string} fallbackUrl - URL to redirect to if no role is set
- */
-function redirectBasedOnRole(fallbackUrl = 'user-signin.html') {
-    const currentRole = getCurrentRole();
-    
-    if (!currentRole) {
-        window.location.href = fallbackUrl;
-        return;
-    }
-    
-    if (currentRole === ROLES.ADMIN) {
-        window.location.href = 'home.html';
-    } else if (currentRole === ROLES.BRANCH) {
-        window.location.href = 'home.html';
-    } else {
-        window.location.href = fallbackUrl;
-    }
-}
-
-/**
  * Check if user should be redirected from current page
  * @param {string} expectedRole - Role expected for current page
  * @param {string} redirectUrl - URL to redirect to if role doesn't match
@@ -113,8 +79,14 @@ function checkPageAccess(expectedRole, redirectUrl = 'home.html') {
     const currentRole = getCurrentRole();
     
     if (!currentRole) {
-        // No role set, redirect to login
-        window.location.href = 'user-signin.html';
+        // No role set, redirect to appropriate login
+        if (expectedRole === ROLES.ADMIN) {
+            window.location.href = 'user-signin.html';
+        } else if (expectedRole === ROLES.BRANCH) {
+            window.location.href = 'branch-signin.html';
+        } else {
+            window.location.href = 'user-signin.html';
+        }
         return false;
     }
     
@@ -128,29 +100,10 @@ function checkPageAccess(expectedRole, redirectUrl = 'home.html') {
 }
 
 /**
- * Auto-set role based on current page URL
- * This should be called on login pages to automatically set the role
- */
-function autoSetRoleFromPage() {
-    const currentPage = window.location.pathname.split('/').pop();
-    
-    if (currentPage === 'user-signin.html') {
-        // User is on admin login page, set role as admin
-        setUserRole(ROLES.ADMIN);
-    } else if (currentPage === 'branch-signin.html') {
-        // User is on branch login page, set role as branch
-        setUserRole(ROLES.BRANCH);
-    }
-}
-
-/**
  * Initialize role management for the current page
  * @param {string} expectedRole - Expected role for current page
  */
 function initializeRoleManagement(expectedRole = null) {
-    // Auto-set role if on login pages
-    autoSetRoleFromPage();
-    
     // Check page access if expected role is specified
     if (expectedRole) {
         checkPageAccess(expectedRole);
@@ -162,15 +115,12 @@ function initializeRoleManagement(expectedRole = null) {
 
 // Export functions for use in other scripts
 window.RoleUtils = {
-    setUserRole,
     getCurrentRole,
     isAuthenticatedAs,
     isAuthenticated,
     clearAllSessions,
     clearRoleData,
-    redirectBasedOnRole,
     checkPageAccess,
-    autoSetRoleFromPage,
     initializeRoleManagement,
     ROLES,
     STORAGE_KEYS

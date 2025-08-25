@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+  <link rel="icon" href="images/Phluowise_Business_icon.svg" type="image/x-icon">
   <title>Login Page</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -39,18 +39,6 @@
             type="email" id="loginEmail" placeholder="Enter your email">
         </div>
         <span id="emailError" class="error-message text-red-500 text-sm"></span>
-      </div>
-      <div class="mb-4 hidden" id="branchContainer">
-        <label class="block text-gray-400 mb-2" for="branch">Branch Code</label>
-        <div class="relative">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-            <img src="../images/solar_password-linear.svg" alt="Branch Icon" class="h-5 w-5 text-gray-500">
-          </span>
-          <input
-            class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-            type="text" id="branch" placeholder="Enter branch unique code">
-        </div>
-        <span id="branchError" class="error-message text-red-500 text-sm"></span>
       </div>
       <div class="mb-4">
         <label class="block text-gray-400 mb-2" for="password">Password</label>
@@ -116,10 +104,14 @@
   </div>
 
   <script>
-    // Check if user is already logged in with a different role
+    // Check if user is already logged in
     function checkExistingSession() {
-      if (RoleUtils.isAuthenticatedAs(RoleUtils.ROLES.BRANCH)) {
-        // User is logged in as branch, redirect to home
+      const authToken = localStorage.getItem('authToken');
+      const loggedInCompany = localStorage.getItem('loggedInCompany');
+      const loggedInBranch = localStorage.getItem('loggedInBranch');
+
+      if (authToken && (loggedInCompany || loggedInBranch)) {
+        // User is already logged in, redirect to home
         window.location.href = 'home.html';
         return;
       }
@@ -127,9 +119,6 @@
 
     // Run check when page loads
     checkExistingSession();
-
-    // Initialize role management
-    RoleUtils.initializeRoleManagement();
 
     function togglePassword() {
       const passwordField = document.getElementById('loginPassword');
@@ -144,17 +133,17 @@
         toggleIcon.classList.add('fa-eye');
       }
     }
-  </script>
 
-  <script src="role-utils.js"></script>
-  <script defer src="company-auth.js"></script>
-
-  <script>
     function selectRole(role) {
+      // Update the role value and button styles
+      document.getElementById('role').value = role;
+      document.getElementById('adminBtn').classList.toggle('bg-blue-900', role === 'admin');
+      document.getElementById('adminBtn').classList.toggle('bg-gray-600', role !== 'admin');
+      document.getElementById('branchBtn').classList.toggle('bg-blue-900', role === 'branch');
+      document.getElementById('branchBtn').classList.toggle('bg-gray-600', role !== 'branch');
+
       // Redirect based on selected role
-      if (role === 'admin') {
-        window.location.href = 'user-signin.html';
-      } else if (role === 'branch') {
+      if (role === 'branch') {
         window.location.href = 'branch-signin.html';
       }
     }
@@ -177,10 +166,9 @@
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
-
-
   </script>
 
+  <script defer src="company-auth.js"></script>
 
 </body>
 

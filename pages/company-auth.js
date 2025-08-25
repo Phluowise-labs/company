@@ -134,8 +134,7 @@ async function handleBranchLogin(e) {
           localStorage.setItem(STORAGE_KEYS.OTP_EMAIL, email);
           localStorage.setItem("branchCode", branchCode);
           
-          // Set role as branch for branch signin
-          localStorage.setItem('phluowise_role', 'branch');
+          // Don't set role yet - wait for OTP validation
         
         // Show success message before redirecting
         await Swal.fire({
@@ -927,8 +926,7 @@ async function handleLogin(e) {
       localStorage.setItem(STORAGE_KEYS.OTP_EMAIL, email);
       localStorage.setItem(STORAGE_KEYS.OTP_PASSWORD, password); // Store password for OTP resend
       
-      // Set role as admin for user signin
-      localStorage.setItem('phluowise_role', 'admin');
+      // Don't set role yet - wait for OTP validation
 
       // Redirect to OTP page after success
       window.location.href = "otp-verification.html";
