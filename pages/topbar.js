@@ -29,14 +29,23 @@ if (!window.__TOPBAR_INIT__) {
     doConfirm().then((ok) => {
       if (!ok) return;
 
-      // Clear login-related storage
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("loginToken");
-      localStorage.removeItem("otpPurpose");
-      localStorage.removeItem("otpToken");
-      localStorage.removeItem("otpEmail");
-      localStorage.removeItem("loggedInCompany");
-      localStorage.removeItem("resendTimeout");
+      // Clear all sessions using RoleUtils if available
+      if (window.RoleUtils) {
+        RoleUtils.clearAllSessions();
+      } else {
+        // Fallback to manual clearing
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("loginToken");
+        localStorage.removeItem("otpPurpose");
+        localStorage.removeItem("otpToken");
+        localStorage.removeItem("otpEmail");
+        localStorage.removeItem("loggedInCompany");
+        localStorage.removeItem("resendTimeout");
+        localStorage.removeItem("phluowise_role");
+        localStorage.removeItem("loggedInBranch");
+        localStorage.removeItem("branchCode");
+        localStorage.removeItem("branchManagerInfo");
+      }
 
       // Redirect
       window.location.href = "user-signin.html";

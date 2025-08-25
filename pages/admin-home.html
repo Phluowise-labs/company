@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Admin Dashboard - Phluowise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+
+    <div class="flex">
+        <!-- Admin Sidebar -->
+        <div class="w-64 h-screen p-4 pr-0 bg-[#212121] fixed">
+            <div class="text-center mb-8">
+                <img src="../images/phluowise_logo.svg" alt="Phluowise Logo">
+            </div>
+
+            <!-- Admin Navigation Menu -->
+            <div class="space-y-6 text-white">
+                <div>
+                    <h2 class="text-gray-500 text-xs mb-3 font-semibold uppercase tracking-wider">DASHBOARD</h2>
+                    <ul class="space-y-2">
+                        <li class="flex items-center space-x-3 text-blue-400 bg-blue-900/20 p-3 rounded-lg">
+                            <i class="fas fa-home text-lg"></i>
+                            <span class="font-semibold">Dashboard</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-chart-line text-lg"></i>
+                            <span>Analytics</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-store text-lg"></i>
+                            <span>Branches</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="text-gray-500 text-xs mb-3 font-semibold uppercase tracking-wider">OPERATIONS</h2>
+                    <ul class="space-y-2">
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-shopping-cart text-lg"></i>
+                            <span>Orders</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-box text-lg"></i>
+                            <span>Products</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-users text-lg"></i>
+                            <span>Customers</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-truck text-lg"></i>
+                            <span>Drivers</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="text-gray-500 text-xs mb-3 font-semibold uppercase tracking-wider">FINANCE</h2>
+                    <ul class="space-y-2">
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-credit-card text-lg"></i>
+                            <span>Payments</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-receipt text-lg"></i>
+                            <span>Transactions</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-chart-pie text-lg"></i>
+                            <span>Reports</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="text-gray-500 text-xs mb-3 font-semibold uppercase tracking-wider">SETTINGS</h2>
+                    <ul class="space-y-2">
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-cog text-lg"></i>
+                            <span>System</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-user-shield text-lg"></i>
+                            <span>Users</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-8 text-blue-600">
+                <a target="_blank"
+                    href="https://concrete-aurora-836.notion.site/Phluowise-Business-Web-app-Documentation-1dcc077ea6428001984fed3965d129f6?pvs=4">
+                    <p class="text-sm">Beta version (1.0.00)</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 p-6 w-full text-white">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Admin Dashboard</h1>
+                    <p class="text-gray-400">Welcome back, Administrator</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <i class="fas fa-bell text-xl text-gray-400 cursor-pointer"></i>
+                        <span
+                            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-gray-800 p-2 rounded-lg">
+                        <img src="../images/user.png" alt="User" class="w-8 h-8 rounded-full">
+                        <span class="text-sm">Admin User</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Today's Revenue -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-200 text-sm">Today's Revenue</p>
+                            <p class="text-2xl font-bold text-white">₵12,450</p>
+                            <p class="text-blue-200 text-sm">+15% vs yesterday</p>
+                        </div>
+                        <div class="bg-blue-500/30 p-3 rounded-lg">
+                            <i class="fas fa-dollar-sign text-2xl text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- New Orders -->
+                <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-200 text-sm">New Orders</p>
+                            <p class="text-2xl font-bold text-white">24</p>
+                            <p class="text-green-200 text-sm">+8 from yesterday</p>
+                        </div>
+                        <div class="bg-green-500/30 p-3 rounded-lg">
+                            <i class="fas fa-shopping-cart text-2xl text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Customers -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6 rounded-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-200 text-sm">Total Customers</p>
+                            <p class="text-2xl font-bold text-white">1,247</p>
+                            <p class="text-purple-200 text-sm">+12 this week</p>
+                        </div>
+                        <div class="bg-purple-500/30 p-3 rounded-lg">
+                            <i class="fas fa-users text-2xl text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversion Rate -->
+                <div class="bg-gradient-to-r from-orange-600 to-orange-700 p-6 rounded-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-orange-200 text-sm">Conversion Rate</p>
+                            <p class="text-2xl font-bold text-white">3.2%</p>
+                            <p class="text-orange-200 text-sm">+0.5% vs last week</p>
+                        </div>
+                        <div class="bg-orange-500/30 p-3 rounded-lg">
+                            <i class="fas fa-chart-line text-2xl text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Sales Chart -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Sales Overview</h3>
+                        <select class="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm">
+                            <option>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                            <option>Last 3 Months</option>
+                        </select>
+                    </div>
+                    <canvas id="salesChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Revenue by Category -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Revenue by Category</h3>
+                        <i class="fas fa-ellipsis-h text-gray-400 cursor-pointer"></i>
+                    </div>
+                    <canvas id="categoryChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Quick Access & Alerts -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Recent Orders -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Recent Orders</h3>
+                        <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium">Order #1234</p>
+                                <p class="text-sm text-gray-400">John Doe</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium">₵245</p>
+                                <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Completed</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium">Order #1235</p>
+                                <p class="text-sm text-gray-400">Jane Smith</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium">₵189</p>
+                                <span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">Processing</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium">Order #1236</p>
+                                <p class="text-sm text-gray-400">Mike Johnson</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium">₵320</p>
+                                <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Shipped</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts & Notifications -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Alerts</h3>
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">3 New</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                            <i class="fas fa-exclamation-triangle text-red-400 mt-1"></i>
+                            <div>
+                                <p class="text-sm font-medium">Low Stock Alert</p>
+                                <p class="text-xs text-gray-400">Product XYZ is below threshold</p>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-start space-x-3 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                            <i class="fas fa-clock text-yellow-400 mt-1"></i>
+                            <div>
+                                <p class="text-sm font-medium">Pending Refunds</p>
+                                <p class="text-xs text-gray-400">5 refunds awaiting approval</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                            <i class="fas fa-info-circle text-blue-400 mt-1"></i>
+                            <div>
+                                <p class="text-sm font-medium">System Update</p>
+                                <p class="text-xs text-gray-400">New features available</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branch Status -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Branch Status</h3>
+                        <a href="#" class="text-blue-400 text-sm hover:underline">Manage</a>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <span class="text-sm">Main Branch</span>
+                            </div>
+                            <span class="text-green-400 text-sm">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <span class="text-sm">North Branch</span>
+                            </div>
+                            <span class="text-green-400 text-sm">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <span class="text-sm">South Branch</span>
+                            </div>
+                            <span class="text-red-400 text-sm">Offline</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="bg-gray-900 p-6 rounded-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Recent Activity</h3>
+                    <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-4 p-4 bg-gray-800 rounded-lg">
+                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-shopping-cart text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm"><span class="font-medium">New order</span> #1237 was placed by Sarah
+                                Wilson</p>
+                            <p class="text-xs text-gray-400">2 minutes ago</p>
+                        </div>
+                        <span class="text-blue-400 text-sm">₵156</span>
+                    </div>
+                    <div class="flex items-start space-x-4 p-4 bg-gray-800 rounded-lg">
+                        <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user-plus text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm"><span class="font-medium">New customer</span> registered: Robert Brown
+                            </p>
+                            <p class="text-xs text-gray-400">15 minutes ago</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4 p-4 bg-gray-800 rounded-lg">
+                        <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-box text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm"><span class="font-medium">Product updated</span> "Premium Widget" by
+                                Admin</p>
+                            <p class="text-xs text-gray-400">1 hour ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sales Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Category Chart
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Electronics', 'Clothing', 'Food', 'Books'],
+                datasets: [{
+                    data: [35, 25, 25, 15],
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#10b981',
+                        '#f59e0b',
+                        '#8b5cf6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#9ca3af',
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

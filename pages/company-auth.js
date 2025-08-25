@@ -127,12 +127,15 @@ async function handleBranchLogin(e) {
 
     // Handle successful OTP sent response
     if (response.ok && result.message && result.message.includes("OTP sent to email")) {
-      // Store the token from the response
-      if (result.token) {
-        localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token);
-        localStorage.setItem(STORAGE_KEYS.OTP_EMAIL, email);
-        localStorage.setItem("branchCode", branchCode);
-        localStorage.setItem(STORAGE_KEYS.OTP_PURPOSE, "branch-login");
+              // Store the token from the response
+        if (result.token) {
+          localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token);
+          localStorage.setItem(STORAGE_KEYS.OTP_PURPOSE, "branch-login");
+          localStorage.setItem(STORAGE_KEYS.OTP_EMAIL, email);
+          localStorage.setItem("branchCode", branchCode);
+          
+          // Set role as branch for branch signin
+          localStorage.setItem('phluowise_role', 'branch');
         
         // Show success message before redirecting
         await Swal.fire({
@@ -815,14 +818,21 @@ async function handleOtpValidation(e) {
           ...branchManagerInfo
         }));
         
+        // Ensure role is set as branch for branch login
+        localStorage.setItem('phluowise_role', 'branch');
+        
         showSuccessToast("Branch login successful!");
-        setTimeout(() => (window.location.href = "account.html"), 1500);
+        setTimeout(() => (window.location.href = "home.html"), 1500);
       } else {
         // Regular company login
         localStorage.removeItem(STORAGE_KEYS.LOGIN_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.OTP_PURPOSE);
+        
+        // Ensure role is set as admin for company login
+        localStorage.setItem('phluowise_role', 'admin');
+        
         showSuccessToast("Login successful!");
-        setTimeout(() => (window.location.href = "account.html"), 1500);
+        setTimeout(() => (window.location.href = "home.html"), 1500);
       }
     }
   } catch (error) {
@@ -916,6 +926,9 @@ async function handleLogin(e) {
       localStorage.setItem(STORAGE_KEYS.LOGIN_TOKEN, result.token);
       localStorage.setItem(STORAGE_KEYS.OTP_EMAIL, email);
       localStorage.setItem(STORAGE_KEYS.OTP_PASSWORD, password); // Store password for OTP resend
+      
+      // Set role as admin for user signin
+      localStorage.setItem('phluowise_role', 'admin');
 
       // Redirect to OTP page after success
       window.location.href = "otp-verification.html";

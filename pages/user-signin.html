@@ -9,9 +9,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
 </head>
+
 <body class="bg-black flex items-center justify-center min-h-screen p-4">
   <style>
     body {
@@ -20,7 +21,8 @@
   </style>
   <style>
     .input-error {
-      border: 1px solid #f87171 !important; /* Tailwind red-400 */
+      border: 1px solid #f87171 !important;
+      /* Tailwind red-400 */
     }
   </style>
   <div class="bg-[#121212] p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700">
@@ -32,7 +34,9 @@
           <span class="absolute inset-y-0 left-0 flex items-center pl-3">
             <i class="fas fa-envelope text-gray-500"></i>
           </span>
-          <input class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" type="email" id="loginEmail" placeholder="Enter your email">
+          <input
+            class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="email" id="loginEmail" placeholder="Enter your email">
         </div>
         <span id="emailError" class="error-message text-red-500 text-sm"></span>
       </div>
@@ -42,7 +46,9 @@
           <span class="absolute inset-y-0 left-0 flex items-center pl-3">
             <img src="../images/solar_password-linear.svg" alt="Branch Icon" class="h-5 w-5 text-gray-500">
           </span>
-          <input class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" type="text" id="branch" placeholder="Enter branch unique code">
+          <input
+            class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="text" id="branch" placeholder="Enter branch unique code">
         </div>
         <span id="branchError" class="error-message text-red-500 text-sm"></span>
       </div>
@@ -54,16 +60,13 @@
           </span>
           <input
             class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-10 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-            type="password"
-            id="loginPassword"
-            placeholder="Enter password"
-          />
+            type="password" id="loginPassword" placeholder="Enter password" />
           <span class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onclick="togglePassword()">
             <i id="toggleIcon" class="fas fa-eye text-gray-500"></i>
           </span>
         </div>
         <span id="passwordError" class="error-message text-red-500 text-sm"></span>
-      
+
         <!-- Password Requirement Checklist -->
         <div id="loginPasswordRequirements" class="text-sm mt-2 hidden space-y-1">
           <div id="login-req-length" class="text-gray-400 flex items-center gap-1">
@@ -85,19 +88,25 @@
             <i class="fas fa-check-circle"></i> No spaces
           </div>
         </div>
-      
+
         <div class="text-right mt-2">
           <a href="forgot_password.html" class="text-sm text-blue-500 hover:underline">Forgot Password?</a>
         </div>
       </div>
-      
+
       <div class="flex gap-2 justify-center mb-8">
-        <button type="button" id="adminBtn" class="role-toggle bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg" onclick="selectRole('admin')">Admin</button>
-        <button type="button" id="branchBtn" class="role-toggle bg-gray-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg" onclick="selectRole('branch')">Branch</button>
+        <button type="button" id="adminBtn"
+          class="role-toggle bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
+          onclick="selectRole('admin')">Admin</button>
+        <button type="button" id="branchBtn"
+          class="role-toggle bg-gray-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
+          onclick="selectRole('branch')">Branch</button>
         <input type="hidden" id="role" name="role" value="admin">
       </div>
       <div class="mb-6">
-        <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Log In</button>
+        <button type="submit"
+          class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Log
+          In</button>
       </div>
       <div class="text-center text-gray-400">
         or don't have an account? <a href="user-signup.html" class="text-blue-500 hover:underline">Sign up</a>
@@ -107,6 +116,21 @@
   </div>
 
   <script>
+    // Check if user is already logged in with a different role
+    function checkExistingSession() {
+      if (RoleUtils.isAuthenticatedAs(RoleUtils.ROLES.BRANCH)) {
+        // User is logged in as branch, redirect to home
+        window.location.href = 'home.html';
+        return;
+      }
+    }
+
+    // Run check when page loads
+    checkExistingSession();
+
+    // Initialize role management
+    RoleUtils.initializeRoleManagement();
+
     function togglePassword() {
       const passwordField = document.getElementById('loginPassword');
       const toggleIcon = document.getElementById('toggleIcon');
@@ -122,9 +146,10 @@
     }
   </script>
 
-<script defer src="company-auth.js"></script>
+  <script src="role-utils.js"></script>
+  <script defer src="company-auth.js"></script>
 
-    <script>
+  <script>
     function selectRole(role) {
       // Redirect based on selected role
       if (role === 'admin') {

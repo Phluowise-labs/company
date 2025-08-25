@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Branch Dashboard - Phluowise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+
+    <div class="flex">
+        <!-- Branch Sidebar -->
+        <div class="w-64 h-screen p-4 pr-0 bg-[#212121] fixed">
+            <div class="text-center mb-8">
+                <img src="../images/phluowise_logo.svg" alt="Phluowise Logo">
+                <div class="mt-2">
+                    <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Branch Mode</span>
+                </div>
+            </div>
+
+            <!-- Branch Navigation Menu -->
+            <div class="space-y-6 text-white">
+                <div>
+                    <h2 class="text-gray-500 text-xs mb-3 font-semibold uppercase tracking-wider">BRANCH OPERATIONS</h2>
+                    <ul class="space-y-2">
+                        <li class="flex items-center space-x-3 text-blue-400 bg-blue-900/20 p-3 rounded-lg">
+                            <i class="fas fa-home text-lg"></i>
+                            <span class="font-semibold">Dashboard</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-box text-lg"></i>
+                            <span>Inventory</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-shopping-cart text-lg"></i>
+                            <span>Local Orders</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-truck text-lg"></i>
+                            <span>Pickups</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="text-gray-500 text-xs mb-3 font-semibold uppercase tracking-wider">CUSTOMER SERVICE</h2>
+                    <ul class="space-y-2">
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-users text-lg"></i>
+                            <span>Walk-in Customers</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-phone text-lg"></i>
+                            <span>Phone Orders</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-undo text-lg"></i>
+                            <span>Returns</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="text-gray-500 text-xs mb-3 font-semibold uppercase tracking-wider">STOCK MANAGEMENT</h2>
+                    <ul class="space-y-2">
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-warehouse text-lg"></i>
+                            <span>Stock Levels</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-exchange-alt text-lg"></i>
+                            <span>Transfers</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-clipboard-list text-lg"></i>
+                            <span>Stock Count</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="text-gray-500 text-xs mb-3 font-semibold uppercase tracking-wider">REPORTS</h2>
+                    <ul class="space-y-2">
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-chart-bar text-lg"></i>
+                            <span>Daily Sales</span>
+                        </li>
+                        <li
+                            class="flex items-center space-x-3 text-gray-300 hover:text-blue-400 p-3 rounded-lg hover:bg-gray-800/50 cursor-pointer">
+                            <i class="fas fa-file-alt text-lg"></i>
+                            <span>End of Day</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-8 text-blue-600">
+                <a target="_blank"
+                    href="https://concrete-aurora-836.notion.site/Phluowise-Business-Web-app-Documentation-1dcc077ea6428001984fed3965d129f6?pvs=4">
+                    <p class="text-sm">Beta version (1.0.00)</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 p-6 w-full text-white">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Branch Dashboard</h1>
+                    <p class="text-gray-400">North Branch - Welcome back, Branch Manager</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <i class="fas fa-bell text-xl text-gray-400 cursor-pointer"></i>
+                        <span
+                            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">5</span>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-gray-800 p-2 rounded-lg">
+                        <img src="../images/user.png" alt="User" class="w-8 h-8 rounded-full">
+                        <span class="text-sm">Branch Manager</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Branch KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Today's In-Store Sales -->
+                <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-200 text-sm">Today's Sales</p>
+                            <p class="text-2xl font-bold text-white">₵3,240</p>
+                            <p class="text-green-200 text-sm">+12% vs yesterday</p>
+                        </div>
+                        <div class="bg-green-500/30 p-3 rounded-lg">
+                            <i class="fas fa-store text-2xl text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Local Stock Items -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-200 text-sm">Stock Items</p>
+                            <p class="text-2xl font-bold text-white">1,247</p>
+                            <p class="text-blue-200 text-sm">+5 new today</p>
+                        </div>
+                        <div class="bg-blue-500/30 p-3 rounded-lg">
+                            <i class="fas fa-boxes text-2xl text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Pickups -->
+                <div class="bg-gradient-to-r from-orange-600 to-orange-700 p-6 rounded-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-orange-200 text-sm">Ready Pickups</p>
+                            <p class="text-2xl font-bold text-white">8</p>
+                            <p class="text-orange-200 text-sm">2 urgent</p>
+                        </div>
+                        <div class="bg-orange-500/30 p-3 rounded-lg">
+                            <i class="fas fa-truck text-2xl text-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Walk-in Customers -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6 rounded-xl card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-200 text-sm">Walk-ins Today</p>
+                            <p class="text-2xl font-bold text-white">23</p>
+                            <p class="text-purple-200 text-sm">+3 from yesterday</p>
+                        </div>
+                        <div class="bg-purple-500/30 p-3 rounded-lg">
+                            <i class="fas fa-user-friends text-2xl text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory & Stock Management -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Low Stock Alerts -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Low Stock Alerts</h3>
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">4 Items</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div
+                            class="flex items-center justify-between p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Premium Widget</p>
+                                <p class="text-xs text-gray-400">SKU: PW-001</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-red-400 font-bold">2 left</p>
+                                <p class="text-xs text-gray-400">Threshold: 10</p>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-center justify-between p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Smart Phone Case</p>
+                                <p class="text-xs text-gray-400">SKU: SPC-002</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-red-400 font-bold">5 left</p>
+                                <p class="text-xs text-gray-400">Threshold: 15</p>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-center justify-between p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Wireless Earbuds</p>
+                                <p class="text-xs text-gray-400">SKU: WE-003</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-yellow-400 font-bold">8 left</p>
+                                <p class="text-xs text-gray-400">Threshold: 12</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Stock Activities -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Recent Stock Activities</h3>
+                        <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-plus text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Stock received: 50 units</p>
+                                <p class="text-xs text-gray-400">Premium Widget - 2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-exchange-alt text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Stock transferred: 25 units</p>
+                                <p class="text-xs text-gray-400">To South Branch - 4 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-edit text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Stock adjusted: -3 units</p>
+                                <p class="text-xs text-gray-400">Damaged items - 6 hours ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Local Operations -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Today's Orders -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Today's Orders</h3>
+                        <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Order #B001</p>
+                                <p class="text-xs text-gray-400">Walk-in customer</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium">₵89</p>
+                                <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Completed</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Order #B002</p>
+                                <p class="text-xs text-gray-400">Phone order</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium">₵156</p>
+                                <span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">Processing</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Order #B003</p>
+                                <p class="text-xs text-gray-400">Online pickup</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium">₵234</p>
+                                <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pickups Ready -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Pickups Ready</h3>
+                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">8 Ready</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div
+                            class="flex items-center justify-between p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Order #B003</p>
+                                <p class="text-xs text-gray-400">Sarah Wilson</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Ready</span>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-center justify-between p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Order #B004</p>
+                                <p class="text-xs text-gray-400">Mike Johnson</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Ready</span>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-center justify-between p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Order #B005</p>
+                                <p class="text-xs text-gray-400">Lisa Brown</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">Preparing</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branch Notifications -->
+                <div class="bg-gray-900 p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Branch Alerts</h3>
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">5 New</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                            <i class="fas fa-exclamation-triangle text-red-400 mt-1"></i>
+                            <div>
+                                <p class="text-sm font-medium">Low Stock Alert</p>
+                                <p class="text-xs text-gray-400">Premium Widget below threshold</p>
+                            </div>
+                        </div>
+                        <div
+                            class="flex items-start space-x-3 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                            <i class="fas fa-clock text-yellow-400 mt-1"></i>
+                            <div>
+                                <p class="text-sm font-medium">Pickup Reminder</p>
+                                <p class="text-xs text-gray-400">3 orders ready for pickup</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                            <i class="fas fa-info-circle text-blue-400 mt-1"></i>
+                            <div>
+                                <p class="text-sm font-medium">Stock Transfer</p>
+                                <p class="text-xs text-gray-400">Incoming from Main Branch</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Summary Chart -->
+            <div class="bg-gray-900 p-6 rounded-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Today's Sales Trend</h3>
+                    <select class="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm">
+                        <option>Today</option>
+                        <option>This Week</option>
+                        <option>This Month</option>
+                    </select>
+                </div>
+                <canvas id="branchSalesChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Branch Sales Chart
+        const branchSalesCtx = document.getElementById('branchSalesChart').getContext('2d');
+        new Chart(branchSalesCtx, {
+            type: 'line',
+            data: {
+                labels: ['9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [120, 180, 220, 350, 280, 320, 400, 380, 450, 420],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#9ca3af'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

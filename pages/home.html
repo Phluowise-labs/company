@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Home - Phluowise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="role-utils.js"></script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .glassmorphism {
+            background: #212121;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 p-5 w-full text-white">
+            <!-- Top Bar -->
+            <div id="topbar"></div>
+
+            <script>
+                fetch("topbar.html")
+                    .then((r) => r.text())
+                    .then((html) => {
+                        const container = document.getElementById("topbar");
+                        container.innerHTML = html;
+
+                        // Execute scripts found in the injected markup
+                        container.querySelectorAll("script").forEach((oldScript) => {
+                            const s = document.createElement("script");
+                            if (oldScript.src) {
+                                s.src = oldScript.src;
+                                s.async = false;
+                            } else {
+                                s.textContent = oldScript.textContent;
+                            }
+                            document.body.appendChild(s);
+                        });
+
+                        // Add role switcher after topbar loads
+                        setTimeout(() => {
+                            addRoleSwitcher();
+                        }, 100);
+                    });
+            </script>
+
+            <!-- Main Content Area -->
+            <div class="container mx-auto p-4 pt-20">
+                <!-- Role Switcher -->
+                <div id="role-switcher-container" class="mb-6 "></div>
+
+                <!-- Dashboard Content -->
+                <div id="dashboard-content" class="glassmorphism p-4">
+                    <!-- Content will be loaded based on role -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication and redirect if needed
+        function checkAuthentication() {
+            if (!RoleUtils.isAuthenticated()) {
+                // No role set, redirect to login
+                window.location.href = 'user-signin.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Role Manager for Home Page
+        class HomeRoleManager {
+            constructor() {
+                // Check authentication first
+                if (!checkAuthentication()) return;
+
+                this.currentRole = this.getStoredRole();
+                this.initializeRole();
+            }
+
+            getStoredRole() {
+                return localStorage.getItem('phluowise_role') || 'branch';
+            }
+
+            setStoredRole(role) {
+                localStorage.setItem('phluowise_role', role);
+                this.currentRole = role;
+            }
+
+            initializeRole() {
+                this.loadDashboardContent();
+            }
+
+            loadDashboardContent() {
+                const dashboardContent = document.getElementById('dashboard-content');
+                if (!dashboardContent) return;
+
+                if (this.currentRole === 'admin') {
+                    this.loadAdminDashboard();
+                } else {
+                    this.loadBranchDashboard();
+                }
+            }
+
+            loadAdminDashboard() {
+                const dashboardContent = document.getElementById('dashboard-content');
+                dashboardContent.innerHTML = `
+                    <!-- Admin Dashboard Content -->
+                    <div class="mb-8">
+                        <h1 class="text-3xl font-bold text-white">Phluowise Logistics Dashboard</h1>
+                        <p class="text-gray-400">Welcome back, Administrator - Monitor your delivery operations across all branches</p>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Today's Deliveries -->
+                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl card-hover relative group">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-200 text-sm">Today's Deliveries</p>
+                                    <p class="text-2xl font-bold text-white">47</p>
+                                    <p class="text-blue-200 text-sm">+12% vs yesterday</p>
+                                </div>
+                                <div class="bg-blue-500/30 p-3 rounded-lg">
+                                    <i class="fas fa-truck text-2xl text-white"></i>
+                                </div>
+                            </div>
+                            <!-- Help Tooltip -->
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
+                                 onclick="showHelpDialog('deliveries', 'This shows the total number of deliveries completed today across all branches. Compare with previous days to track performance trends.')">
+                                <i class="fas fa-question text-white text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Active Drivers -->
+                        <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl card-hover relative group">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-200 text-sm">Active Drivers</p>
+                                    <p class="text-2xl font-bold text-white">23</p>
+                                    <p class="text-green-200 text-sm">3 on break, 2 offline</p>
+                                </div>
+                                <div class="bg-green-500/30 p-3 rounded-lg">
+                                    <i class="fas fa-user-tie text-2xl text-white"></i>
+                                </div>
+                            </div>
+                            <!-- Help Tooltip -->
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center cursor-help" 
+                                 onclick="showHelpDialog('drivers', 'Shows drivers currently on duty, on break, or offline. Monitor driver availability and workload distribution.')">
+                                <i class="fas fa-question text-white text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Pending Pickups -->
+                        <div class="bg-gradient-to-r from-orange-600 to-orange-700 p-6 rounded-xl card-hover relative group">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-orange-200 text-sm">Pending Pickups</p>
+                                    <p class="text-2xl font-bold text-white">18</p>
+                                    <p class="text-orange-200 text-sm">5 urgent (within 2hrs)</p>
+                                </div>
+                                <div class="bg-orange-500/30 p-3 rounded-lg">
+                                    <i class="fas fa-box-open text-2xl text-white"></i>
+                                </div>
+                            </div>
+                            <!-- Help Tooltip -->
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center cursor-help" 
+                                 onclick="showHelpDialog('pickups', 'Orders waiting to be picked up by drivers. Urgent pickups are highlighted for immediate attention.')">
+                                <i class="fas fa-question text-white text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Customer Satisfaction -->
+                        <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6 rounded-xl card-hover relative group">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-purple-200 text-sm">Customer Rating</p>
+                                    <p class="text-2xl font-bold text-white">4.8★</p>
+                                    <p class="text-purple-200 text-sm">Based on 156 reviews</p>
+                                </div>
+                                <div class="bg-purple-500/30 p-3 rounded-lg">
+                                    <i class="fas fa-star text-2xl text-white"></i>
+                                </div>
+                            </div>
+                            <!-- Help Tooltip -->
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center cursor-help" 
+                                 onclick="showHelpDialog('rating', 'Average customer rating from delivery feedback. Monitor service quality and identify areas for improvement.')">
+                                <i class="fas fa-question text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Delivery Performance Chart -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Daily Delivery Performance</h3>
+                                <div class="flex items-center space-x-2">
+                                    <select class="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm">
+                                        <option>Last 7 Days</option>
+                                        <option>Last 30 Days</option>
+                                        <option>Last 3 Months</option>
+                                    </select>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('delivery-chart', 'Track delivery completion rates over time. Identify peak delivery hours and optimize driver scheduling.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="h-64">
+                                <canvas id="deliveryChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Branch Performance -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Branch Performance</h3>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-ellipsis-h text-gray-400 cursor-pointer"></i>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('branch-chart', 'Compare delivery performance across different branches. Identify top-performing locations and areas needing support.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="h-64">
+                                <canvas id="branchChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Access & Alerts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Recent Deliveries -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Recent Deliveries</h3>
+                                <div class="flex items-center space-x-2">
+                                    <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('recent-deliveries', 'Monitor the latest completed deliveries. Track delivery times, customer feedback, and driver performance.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div>
+                                        <p class="font-medium">Order #DL-001</p>
+                                        <p class="text-sm text-gray-400">John Doe - Accra Central</p>
+                                        <p class="text-xs text-green-400">Delivered 2 mins ago</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-medium">₵45</p>
+                                        <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Completed</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div>
+                                        <p class="font-medium">Order #DL-002</p>
+                                        <p class="text-sm text-gray-400">Sarah Wilson - East Legon</p>
+                                        <p class="text-xs text-blue-400">In Transit - 15 mins</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-medium">₵78</p>
+                                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">In Transit</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div>
+                                        <p class="font-medium">Order #DL-003</p>
+                                        <p class="text-sm text-gray-400">Mike Johnson - Airport</p>
+                                        <p class="text-xs text-yellow-400">Out for Delivery</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-medium">₵120</p>
+                                        <span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">Out for Delivery</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Driver Alerts -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Driver Alerts</h3>
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">3 New</span>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('driver-alerts', 'Critical alerts about drivers, vehicles, or delivery issues that require immediate attention.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                                    <i class="fas fa-exclamation-triangle text-red-400 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-medium">Driver Overdue Break</p>
+                                        <p class="text-xs text-gray-400">Driver #12 - 2 hours overdue</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                                    <i class="fas fa-clock text-yellow-400 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-medium">Low Fuel Alert</p>
+                                        <p class="text-xs text-gray-400">Vehicle #5 - 15% fuel remaining</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                                    <i class="fas fa-info-circle text-blue-400 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-medium">Traffic Delay</p>
+                                        <p class="text-xs text-gray-400">Route to Airport - 20 min delay</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Branch Status -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Branch Operations</h3>
+                                <div class="flex items-center space-x-2">
+                                    <a href="#" class="text-blue-400 text-sm hover:underline">Manage</a>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('branch-status', 'Real-time status of all branches. Monitor operational capacity, staff availability, and order processing status.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <span class="text-sm">Main Branch</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-green-400 text-sm">Online</span>
+                                        <p class="text-xs text-gray-400">12 drivers active</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <span class="text-sm">North Branch</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-green-400 text-sm">Online</span>
+                                        <p class="text-xs text-gray-400">8 drivers active</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                        <span class="text-sm">South Branch</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-yellow-400 text-sm">Limited</span>
+                                        <p class="text-xs text-gray-400">3 drivers active</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Feed -->
+                    <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Live Operations Feed</h3>
+                            <div class="flex items-center space-x-2">
+                                <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
+                                <!-- Help Tooltip -->
+                                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
+                                     onclick="showHelpDialog('activity-feed', 'Real-time updates on all delivery operations, driver activities, and system events. Monitor operational flow and identify bottlenecks.')">
+                                    <i class="fas fa-question text-white text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-4 p-4 bg-gray-800 rounded-lg">
+                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-truck text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm"><span class="font-medium">Driver #8</span> picked up order #DL-004 from North Branch</p>
+                                    <p class="text-xs text-gray-400">2 minutes ago</p>
+                                </div>
+                                <span class="text-blue-400 text-sm">₵89</span>
+                            </div>
+                            <div class="flex items-start space-x-4 p-4 bg-gray-800 rounded-lg">
+                                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm"><span class="font-medium">Order #DL-001</span> delivered successfully to John Doe</p>
+                                    <p class="text-xs text-gray-400">5 minutes ago</p>
+                                </div>
+                                <span class="text-green-400 text-sm">Completed</span>
+                            </div>
+                            <div class="flex items-start space-x-4 p-4 bg-gray-800 rounded-lg">
+                                <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-exclamation text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm"><span class="font-medium">Traffic alert</span> - Heavy congestion on Airport Road</p>
+                                    <p class="text-xs text-gray-400">8 minutes ago</p>
+                                </div>
+                                <span class="text-yellow-400 text-sm">Alert</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Initialize charts after content loads
+                setTimeout(() => {
+                    this.initializeAdminCharts();
+                }, 100);
+            }
+
+            loadBranchDashboard() {
+                const dashboardContent = document.getElementById('dashboard-content');
+                dashboardContent.innerHTML = `
+                    <!-- Branch Dashboard Content -->
+                    <div class="mb-8">
+                        <h1 class="text-3xl font-bold text-white">Branch Operations Dashboard</h1>
+                        <p class="text-gray-400">North Branch - Welcome back, Branch Manager - Manage local delivery operations</p>
+                    </div>
+
+                    <!-- Branch KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Today's Local Deliveries -->
+                        <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl card-hover relative group">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-green-200 text-sm">Today's Deliveries</p>
+                                    <p class="text-2xl font-bold text-white">23</p>
+                                    <p class="text-green-200 text-sm">+8 from yesterday</p>
+                                </div>
+                                <div class="bg-green-500/30 p-3 rounded-lg">
+                                    <i class="fas fa-truck text-2xl text-white"></i>
+                                </div>
+                            </div>
+                            <!-- Help Tooltip -->
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center cursor-help" 
+                                 onclick="showHelpDialog('local-deliveries', 'Total deliveries completed from this branch today. Track daily performance and compare with previous days.')">
+                                <i class="fas fa-question text-white text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Available Drivers -->
+                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl card-hover relative group">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-200 text-sm">Available Drivers</p>
+                                    <p class="text-2xl font-bold text-white">8</p>
+                                    <p class="text-blue-200 text-sm">2 on delivery, 1 on break</p>
+                                </div>
+                                <div class="bg-blue-500/30 p-3 rounded-lg">
+                                    <i class="fas fa-user-tie text-2xl text-white"></i>
+                                </div>
+                            </div>
+                            <!-- Help Tooltip -->
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
+                                 onclick="showHelpDialog('available-drivers', 'Drivers currently available for new assignments. Monitor driver workload and availability for optimal scheduling.')">
+                                <i class="fas fa-question text-white text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Pending Pickups -->
+                        <div class="bg-gradient-to-r from-orange-600 to-orange-700 p-6 rounded-xl card-hover relative group">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-orange-200 text-sm">Ready for Pickup</p>
+                                    <p class="text-2xl font-bold text-white">12</p>
+                                    <p class="text-orange-200 text-sm">3 urgent (within 1hr)</p>
+                                </div>
+                                <div class="bg-orange-500/30 p-3 rounded-lg">
+                                    <i class="fas fa-box-open text-2xl text-white"></i>
+                                </div>
+                            </div>
+                            <!-- Help Tooltip -->
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center cursor-help" 
+                                 onclick="showHelpDialog('ready-pickups', 'Orders packaged and ready for driver pickup. Urgent orders are highlighted for immediate attention.')">
+                                <i class="fas fa-question text-white text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Customer Satisfaction -->
+                        <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6 rounded-xl card-hover relative group">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-purple-200 text-sm">Branch Rating</p>
+                                    <p class="text-2xl font-bold text-white">4.9★</p>
+                                    <p class="text-purple-200 text-sm">Based on 89 reviews</p>
+                                </div>
+                                <div class="bg-purple-500/30 p-3 rounded-lg">
+                                    <i class="fas fa-star text-2xl text-white"></i>
+                                </div>
+                            </div>
+                            <!-- Help Tooltip -->
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center cursor-help" 
+                                 onclick="showHelpDialog('branch-rating', 'Customer satisfaction rating for this specific branch. Monitor service quality and identify improvement areas.')">
+                                <i class="fas fa-question text-white text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Local Operations Management -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Today's Pickup Schedule -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Pickup Schedule</h3>
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">12 Orders</span>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('pickup-schedule', 'Scheduled pickup times for today. Organize driver routes efficiently and ensure timely pickups.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                                    <div>
+                                        <p class="font-medium text-sm">Order #B001</p>
+                                        <p class="text-xs text-gray-400">Sarah Wilson - East Legon</p>
+                                        <p class="text-xs text-blue-400">Pickup: 2:00 PM</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Ready</span>
+                                        <p class="text-xs text-gray-400">₵89</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                                    <div>
+                                        <p class="font-medium text-sm">Order #B002</p>
+                                        <p class="text-xs text-gray-400">Mike Johnson - Airport</p>
+                                        <p class="text-xs text-yellow-400">Pickup: 2:30 PM</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">Preparing</span>
+                                        <p class="text-xs text-gray-400">₵156</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                                    <div>
+                                        <p class="font-medium text-sm">Order #B003</p>
+                                        <p class="text-xs text-gray-400">Lisa Brown - Accra Mall</p>
+                                        <p class="text-xs text-red-400">Pickup: 1:00 PM (URGENT)</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">Overdue</span>
+                                        <p class="text-xs text-gray-400">₵234</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Driver Status -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Driver Status</h3>
+                                <div class="flex items-center space-x-2">
+                                    <a href="#" class="text-blue-400 text-sm hover:underline">Manage</a>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('driver-status', 'Real-time status of all drivers assigned to this branch. Monitor availability, current assignments, and performance.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+                                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-truck text-white text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">Driver #5 - John Smith</p>
+                                        <p class="text-xs text-gray-400">On delivery - Order #B004</p>
+                                        <p class="text-xs text-green-400">ETA: 15 minutes</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-clock text-white text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">Driver #8 - Sarah Davis</p>
+                                        <p class="text-xs text-gray-400">On break - 20 min remaining</p>
+                                        <p class="text-xs text-blue-400">Next pickup: 3:00 PM</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+                                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">Driver #12 - Mike Wilson</p>
+                                        <p class="text-xs text-gray-400">Available for assignment</p>
+                                        <p class="text-xs text-green-400">Last delivery: 1 hour ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Local Operations -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Incoming Orders -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Incoming Orders</h3>
+                                <div class="flex items-center space-x-2">
+                                    <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('incoming-orders', 'New orders assigned to this branch. Review details, prepare packages, and assign to available drivers.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div>
+                                        <p class="font-medium text-sm">Order #B005</p>
+                                        <p class="text-xs text-gray-400">New customer - West Hills</p>
+                                        <p class="text-xs text-blue-400">Just received</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">New</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div>
+                                        <p class="font-medium text-sm">Order #B006</p>
+                                        <p class="text-xs text-gray-400">Return customer - Labone</p>
+                                        <p class="text-xs text-green-400">Priority order</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Priority</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Local Alerts -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Branch Alerts</h3>
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">4 New</span>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('branch-alerts', 'Important notifications about branch operations, driver issues, or customer concerns that need attention.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                                    <i class="fas fa-exclamation-triangle text-red-400 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-medium">Driver Late Return</p>
+                                        <p class="text-xs text-gray-400">Driver #5 - 30 min overdue</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                                    <i class="fas fa-clock text-yellow-400 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-medium">High Order Volume</p>
+                                        <p class="text-xs text-gray-400">15 orders pending pickup</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                                    <i class="fas fa-info-circle text-blue-400 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-medium">Weather Alert</p>
+                                        <p class="text-xs text-gray-400">Heavy rain expected - plan routes</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance Metrics -->
+                        <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Today's Performance</h3>
+                                <div class="flex items-center space-x-2">
+                                    <a href="#" class="text-blue-400 text-sm hover:underline">Details</a>
+                                    <!-- Help Tooltip -->
+                                    <div class="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center cursor-help" 
+                                         onclick="showHelpDialog('performance-metrics', 'Key performance indicators for today. Track delivery times, customer satisfaction, and operational efficiency.')">
+                                        <i class="fas fa-question text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div>
+                                        <p class="text-sm font-medium">Average Delivery Time</p>
+                                        <p class="text-xs text-gray-400">From pickup to delivery</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-green-400 font-bold">45 min</p>
+                                        <p class="text-xs text-gray-400">Target: 60 min</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div>
+                                        <p class="text-sm font-medium">Customer Rating</p>
+                                        <p class="text-xs text-gray-400">Today's deliveries</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-green-400 font-bold">4.9★</p>
+                                        <p class="text-xs text-gray-400">Based on 12 reviews</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                    <div>
+                                        <p class="text-sm font-medium">On-Time Rate</p>
+                                        <p class="text-xs text-gray-400">Deliveries within ETA</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-green-400 font-bold">95%</p>
+                                        <p class="text-xs text-gray-400">Target: 90%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Operations Chart -->
+                    <div class="bg-zinc-900 p-6 rounded-xl relative group">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Today's Operations Timeline</h3>
+                            <div class="flex items-center space-x-2">
+                                <select class="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm">
+                                    <option>Today</option>
+                                    <option>This Week</option>
+                                    <option>This Month</option>
+                                </select>
+                                <!-- Help Tooltip -->
+                                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
+                                     onclick="showHelpDialog('operations-timeline', 'Visual representation of daily operations. Track delivery patterns, peak hours, and optimize driver scheduling.')">
+                                    <i class="fas fa-question text-white text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="branchOperationsChart"></canvas>
+                        </div>
+                    </div>
+                `;
+
+                // Initialize charts after content loads
+                setTimeout(() => {
+                    this.initializeBranchCharts();
+                }, 100);
+            }
+
+            initializeAdminCharts() {
+                // Delivery Performance Chart
+                const deliveryCtx = document.getElementById('deliveryChart');
+                if (deliveryCtx) {
+                    new Chart(deliveryCtx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                            datasets: [{
+                                label: 'Deliveries Completed',
+                                data: [42, 38, 45, 52, 47, 39, 43],
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 2,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { color: '#9ca3af' }
+                                },
+                                x: {
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { color: '#9ca3af' }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Branch Performance Chart
+                const branchCtx = document.getElementById('branchChart');
+                if (branchCtx) {
+                    new Chart(branchCtx.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Main Branch', 'North Branch', 'South Branch', 'East Branch'],
+                            datasets: [{
+                                data: [35, 28, 22, 15],
+                                backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 1.5,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { color: '#9ca3af', padding: 20 }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            initializeBranchCharts() {
+                // Branch Operations Chart
+                const branchOperationsCtx = document.getElementById('branchOperationsChart');
+                if (branchOperationsCtx) {
+                    new Chart(branchOperationsCtx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: ['8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM'],
+                            datasets: [{
+                                label: 'Deliveries',
+                                data: [2, 5, 8, 12, 15, 18, 20, 22, 23, 23, 23, 23],
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 2,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { color: '#9ca3af' }
+                                },
+                                x: {
+                                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                    ticks: { color: '#9ca3af' }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            switchRole() {
+                const newRole = this.currentRole === 'admin' ? 'branch' : 'admin';
+
+                // Clear only role-specific data, keep authentication token
+                RoleUtils.clearRoleData();
+
+                // Set new role
+                this.setStoredRole(newRole);
+
+                // Show confirmation
+                Swal.fire({
+                    title: 'Role Switched!',
+                    text: `You are now in ${newRole} mode`,
+                    icon: 'success',
+                    confirmButtonText: 'Continue',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    // Reload dashboard content with new role
+                    this.loadDashboardContent();
+                });
+            }
+        }
+
+        // Initialize role manager when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            window.homeRoleManager = new HomeRoleManager();
+        });
+
+        // Function to add role switcher
+        function addRoleSwitcher() {
+            const container = document.getElementById('role-switcher-container');
+            if (!container) return;
+
+            const currentRole = localStorage.getItem('phluowise_role') || 'branch';
+
+            container.innerHTML = `
+                <div class="flex items-center justify-between bg-zinc-900  glassmorphism p-4 rounded-xl">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-lg font-semibold">Dashboard Mode:</span>
+                        <span class="bg-blue-500 text-white text-sm px-3 py-1 rounded-full">
+                            ${currentRole === 'admin' ? 'Admin' : 'Branch'}
+                        </span>
+                    </div>
+                    <button 
+                        onclick="window.homeRoleManager.switchRole()"
+                        class="role-switcher bg-zinc-900 flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 p-3 rounded-lg cursor-pointer transition-all duration-300"
+                    >
+                        <i class="fas fa-exchange-alt  text-blue-400"></i>
+                        <span class="text-sm text-white">Switch to ${currentRole === 'admin' ? 'Branch' : 'Admin'}</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Help Dialog Function
+        function showHelpDialog(section, message) {
+            Swal.fire({
+                title: 'Help & Information',
+                html: `
+                    <div class="text-left">
+                        <p class="text-gray-700 mb-4">${message}</p>
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <p class="text-sm text-blue-800">
+                                <strong>Tip:</strong> Click on any question mark icon (?) to get help about that specific section.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Got it!',
+                confirmButtonColor: '#3b82f6',
+                width: '500px'
+            });
+        }
+    </script>
+</body>
+
+</html>
