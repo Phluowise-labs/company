@@ -178,26 +178,26 @@
                             </div>
                             <!-- Help Tooltip -->
                             <div class="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
-                                 onclick="showHelpDialog('deliveries', 'This shows the total number of deliveries completed today across all branches. Compare with previous days to track performance trends.')">
+                                 onclick="showHelpDialog('deliveries', 'Today\'s Deliveries: This shows the total number of deliveries completed today across all branches. Compare with previous days to track performance trends. Delivery Performance Metrics: Track completion rates, delivery times, and customer satisfaction scores. Performance Indicators: Monitor daily targets, identify peak delivery hours, and optimize operational efficiency.')">
                                 <i class="fas fa-question text-white text-sm"></i>
                             </div>
                         </div>
 
-                        <!-- Active Drivers -->
+                        <!-- Active Orders -->
                         <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl card-hover relative group">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-green-200 text-sm">Active Drivers</p>
+                                    <p class="text-green-200 text-sm">Active Orders</p>
                                     <p class="text-2xl font-bold text-white">23</p>
-                                    <p class="text-green-200 text-sm">3 on break, 2 offline</p>
+                                    <p class="text-green-200 text-sm">15 in progress, 8 pending</p>
                                 </div>
                                 <div class="bg-green-500/30 p-3 rounded-lg">
-                                    <i class="fas fa-user-tie text-2xl text-white"></i>
+                                    <i class="fas fa-box text-2xl text-white"></i>
                                 </div>
                             </div>
                             <!-- Help Tooltip -->
                             <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center cursor-help" 
-                                 onclick="showHelpDialog('drivers', 'Shows drivers currently on duty, on break, or offline. Monitor driver availability and workload distribution.')">
+                                 onclick="showHelpDialog('orders', 'Active Orders: Shows orders currently being processed, in transit, or pending pickup. Monitor order flow and processing status. Order Status Breakdown: In Progress (15 orders): Orders being prepared, packaged, or processed. Pending (8 orders): Orders waiting for pickup assignment or driver availability. Order Flow Management: Track order progression from creation to delivery completion.')">
                                 <i class="fas fa-question text-white text-sm"></i>
                             </div>
                         </div>
@@ -216,7 +216,7 @@
                             </div>
                             <!-- Help Tooltip -->
                             <div class="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center cursor-help" 
-                                 onclick="showHelpDialog('pickups', 'Orders waiting to be picked up by drivers. Urgent pickups are highlighted for immediate attention.')">
+                                 onclick="showHelpDialog('pickups', 'Pending Pickups: Orders waiting to be picked up by drivers. Urgent pickups are highlighted for immediate attention. Pickup Priority System: Urgent (5 orders): Must be picked up within 2 hours. Standard (13 orders): Regular pickup schedule. Pickup Management: Organize pickup routes, assign drivers, and ensure timely collection.')">
                                 <i class="fas fa-question text-white text-sm"></i>
                             </div>
                         </div>
@@ -235,7 +235,7 @@
                             </div>
                             <!-- Help Tooltip -->
                             <div class="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center cursor-help" 
-                                 onclick="showHelpDialog('rating', 'Average customer rating from delivery feedback. Monitor service quality and identify areas for improvement.')">
+                                 onclick="showHelpDialog('rating', 'Customer Rating: Average customer rating from delivery feedback. Monitor service quality and identify areas for improvement. Rating System: 5-Star Scale: Excellent (5★), Good (4★), Average (3★), Poor (2★), Very Poor (1★). Feedback Analysis: Review customer comments, identify common issues, and implement service improvements. Quality Metrics: Track rating trends, response rates, and customer satisfaction scores.')">
                                 <i class="fas fa-question text-white text-sm"></i>
                             </div>
                         </div>
@@ -255,7 +255,7 @@
                                     </select>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('delivery-chart', 'Track delivery completion rates over time. Identify peak delivery hours and optimize driver scheduling.')">
+                                         onclick="showHelpDialog('delivery-chart', 'Daily Delivery Performance: Track delivery completion rates over time. Identify peak delivery hours and optimize order processing scheduling. Chart Features: Time Period Selection: Last 7 days, 30 days, or 3 months. Performance Metrics: Delivery completion rates, peak hours, and efficiency trends. Data Analysis: Identify bottlenecks, optimize routes, and improve delivery times.')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
@@ -273,7 +273,7 @@
                                     <i class="fas fa-ellipsis-h text-gray-400 cursor-pointer"></i>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('branch-chart', 'Compare delivery performance across different branches. Identify top-performing locations and areas needing support.')">
+                                         onclick="showHelpDialog('branch-chart', 'Branch Performance: Compare delivery performance across different branches. To measure the number of deliveries completed in a branch. Performance Metrics: Delivery Volume: Total deliveries per branch. Efficiency Rates: Completion rates and processing times. Branch Comparison: Identify top-performing branches and areas for improvement. Data Visualization: Interactive charts showing branch performance trends.')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
@@ -294,7 +294,7 @@
                                     <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('recent-deliveries', 'Monitor the latest completed deliveries. Track delivery times, customer feedback, and driver performance.')">
+                                         onclick="showHelpDialog('recent-deliveries', 'Recent Deliveries: Monitor the latest completed deliveries. Track delivery times, customer feedback, and order processing performance. Delivery Status Breakdown: Completed (Green): Successfully delivered orders with customer confirmation. Pending (Blue): Orders in transit or awaiting delivery completion. Denied (Yellow): Orders that could not be delivered or were rejected. Performance Tracking: Monitor delivery times, customer satisfaction, and processing efficiency.')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
@@ -315,36 +315,36 @@
                                     <div>
                                         <p class="font-medium">Order #DL-002</p>
                                         <p class="text-sm text-gray-400">Sarah Wilson - East Legon</p>
-                                        <p class="text-xs text-blue-400">In Transit - 15 mins</p>
+                                        <p class="text-xs text-blue-400">Pending - 15 mins</p>
                                     </div>
                                     <div class="text-right">
                                         <p class="font-medium">₵78</p>
-                                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">In Transit</span>
+                                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Pending</span>
                                     </div>
                                 </div>
                                 <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                                     <div>
                                         <p class="font-medium">Order #DL-003</p>
                                         <p class="text-sm text-gray-400">Mike Johnson - Airport</p>
-                                        <p class="text-xs text-yellow-400">Out for Delivery</p>
+                                        
                                     </div>
                                     <div class="text-right">
                                         <p class="font-medium">₵120</p>
-                                        <span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">Out for Delivery</span>
+                                        <span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">Denied</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Driver Alerts -->
+                        <!-- Order Alerts -->
                         <div class="bg-zinc-900 p-6 rounded-xl relative group">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold">Driver Alerts</h3>
+                                <h3 class="text-lg font-semibold">Order Alerts</h3>
                                 <div class="flex items-center space-x-2">
                                     <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">3 New</span>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('driver-alerts', 'Critical alerts about drivers, vehicles, or delivery issues that require immediate attention.')">
+                                         onclick="showHelpDialog('order-alerts', 'Order Alerts: Critical alerts about orders, delivery issues, or customer concerns that require immediate attention. Alert Categories: Urgent Order Alert (Red): Orders that are significantly overdue or require immediate attention. High Priority Order (Yellow): VIP customer orders or special handling requirements. Route Delay (Blue): Information about delivery route issues or delays. Alert Management: Prioritize alerts, assign resources, and track resolution status.')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
@@ -353,22 +353,22 @@
                                 <div class="flex items-start space-x-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
                                     <i class="fas fa-exclamation-triangle text-red-400 mt-1"></i>
                                     <div>
-                                        <p class="text-sm font-medium">Driver Overdue Break</p>
-                                        <p class="text-xs text-gray-400">Driver #12 - 2 hours overdue</p>
+                                        <p class="text-sm font-medium">Urgent Order Alert</p>
+                                        <p class="text-xs text-gray-400">Order #DL-015 - 2 hours overdue</p>
                                     </div>
                                 </div>
                                 <div class="flex items-start space-x-3 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
                                     <i class="fas fa-clock text-yellow-400 mt-1"></i>
                                     <div>
-                                        <p class="text-sm font-medium">Low Fuel Alert</p>
-                                        <p class="text-xs text-gray-400">Vehicle #5 - 15% fuel remaining</p>
+                                        <p class="text-sm font-medium">High Priority Order</p>
+                                        <p class="text-xs text-gray-400">Order #DL-020 - VIP customer</p>
                                     </div>
                                 </div>
                                 <div class="flex items-start space-x-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
                                     <i class="fas fa-info-circle text-blue-400 mt-1"></i>
                                     <div>
-                                        <p class="text-sm font-medium">Traffic Delay</p>
-                                        <p class="text-xs text-gray-400">Route to Airport - 20 min delay</p>
+                                        <p class="text-sm font-medium">Route Delay</p>
+                                        <p class="text-xs text-gray-400">Airport route - 20 min delay</p>
                                     </div>
                                 </div>
                             </div>
@@ -382,7 +382,7 @@
                                     <a href="#" class="text-blue-400 text-sm hover:underline">Manage</a>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('branch-status', 'Real-time status of all branches. Monitor operational capacity, staff availability, and order processing status.')">
+                                         onclick="showHelpDialog('branch-status', 'Branch Operations: Real-time status of all branches. Monitor operational capacity, staff availability, and order processing status. Branch Status Indicators: Online (Green): Branch operating at full capacity with normal order volume. Limited (Yellow): Branch operating with reduced capacity or high order volume. Offline (Red): Branch temporarily unavailable or experiencing issues. Performance Metrics: Track daily order volumes, processing efficiency, and operational status.')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
@@ -395,7 +395,7 @@
                                     </div>
                                     <div class="text-right">
                                         <span class="text-green-400 text-sm">Online</span>
-                                        <p class="text-xs text-gray-400">12 drivers active</p>
+                                        <p class="text-xs text-gray-400">45 orders today</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
@@ -405,7 +405,7 @@
                                     </div>
                                     <div class="text-right">
                                         <span class="text-green-400 text-sm">Online</span>
-                                        <p class="text-xs text-gray-400">8 drivers active</p>
+                                        <p class="text-xs text-gray-400">32 orders today</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
@@ -415,7 +415,7 @@
                                     </div>
                                     <div class="text-right">
                                         <span class="text-yellow-400 text-sm">Limited</span>
-                                        <p class="text-xs text-gray-400">3 drivers active</p>
+                                        <p class="text-xs text-gray-400">18 orders today</p>
                                     </div>
                                 </div>
                             </div>
@@ -430,7 +430,7 @@
                                 <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
                                 <!-- Help Tooltip -->
                                 <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
-                                     onclick="showHelpDialog('activity-feed', 'Real-time updates on all delivery operations, driver activities, and system events. Monitor operational flow and identify bottlenecks.')">
+                                     onclick="showHelpDialog('activity-feed', 'Live Operations Feed: Real-time updates on all delivery operations, order activities, and system events. Monitor operational flow and identify bottlenecks. Activity Types: Order Pickup (Blue): Orders being collected from branches. Delivery Completion (Green): Successful order deliveries. System Alerts (Yellow): Important notifications and warnings. Real-time Monitoring: Track operational flow, identify bottlenecks, and optimize processes.')">
                                     <i class="fas fa-question text-white text-xs"></i>
                                 </div>
                             </div>
@@ -438,10 +438,10 @@
                         <div class="space-y-4">
                             <div class="flex items-start space-x-4 p-4 bg-gray-800 rounded-lg">
                                 <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-truck text-white"></i>
+                                    <i class="fas fa-box text-white"></i>
                                 </div>
                                 <div class="flex-1">
-                                    <p class="text-sm"><span class="font-medium">Driver #8</span> picked up order #DL-004 from North Branch</p>
+                                    <p class="text-sm"><span class="font-medium">Order #DL-004</span> picked up from North Branch</p>
                                     <p class="text-xs text-gray-400">2 minutes ago</p>
                                 </div>
                                 <span class="text-blue-400 text-sm">₵89</span>
@@ -501,26 +501,26 @@
                             </div>
                             <!-- Help Tooltip -->
                             <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center cursor-help" 
-                                 onclick="showHelpDialog('local-deliveries', 'Total deliveries completed from this branch today. Track daily performance and compare with previous days.')">
+                                 onclick="showHelpDialog('local-deliveries', 'Today\'s Local Deliveries: Total deliveries completed from this branch today. Track daily performance and compare with previous days. Performance Metrics: Daily Targets: Compare with branch goals and previous day performance. Delivery Efficiency: Track completion rates and processing times. Branch Performance: Monitor local operational efficiency and customer satisfaction.')">
                                 <i class="fas fa-question text-white text-sm"></i>
                             </div>
                         </div>
 
-                        <!-- Available Drivers -->
+                        <!-- Available Orders -->
                         <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl card-hover relative group">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-blue-200 text-sm">Available Drivers</p>
+                                    <p class="text-blue-200 text-sm">Available Orders</p>
                                     <p class="text-2xl font-bold text-white">8</p>
-                                    <p class="text-blue-200 text-sm">2 on delivery, 1 on break</p>
+                                    <p class="text-blue-200 text-sm">5 ready for pickup, 3 preparing</p>
                                 </div>
                                 <div class="bg-blue-500/30 p-3 rounded-lg">
-                                    <i class="fas fa-user-tie text-2xl text-white"></i>
+                                    <i class="fas fa-box text-2xl text-white"></i>
                                 </div>
                             </div>
                             <!-- Help Tooltip -->
                             <div class="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
-                                 onclick="showHelpDialog('available-drivers', 'Drivers currently available for new assignments. Monitor driver workload and availability for optimal scheduling.')">
+                                 onclick="showHelpDialog('available-orders', 'Available Orders: Orders currently ready for pickup or being prepared. Monitor order status and processing flow. Order Status Breakdown: Ready for Pickup (5 orders): Fully processed and packaged orders awaiting collection. Preparing (3 orders): Orders currently being processed or packaged. Order Management: Track processing status, prioritize orders, and manage pickup schedules.')">
                                 <i class="fas fa-question text-white text-sm"></i>
                             </div>
                         </div>
@@ -539,7 +539,7 @@
                             </div>
                             <!-- Help Tooltip -->
                             <div class="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center cursor-help" 
-                                 onclick="showHelpDialog('ready-pickups', 'Orders packaged and ready for driver pickup. Urgent orders are highlighted for immediate attention.')">
+                                 onclick="showHelpDialog('ready-pickups', 'Ready for Pickup: Orders packaged and ready for driver pickup. Urgent orders are highlighted for immediate attention. Pickup Priority System: Urgent (3 orders): Must be picked up within 1 hour to avoid delays. Standard (9 orders): Regular pickup schedule with normal priority. Pickup Management: Organize pickup routes, ensure timely collection, and maintain order flow.')">
                                 <i class="fas fa-question text-white text-sm"></i>
                             </div>
                         </div>
@@ -558,7 +558,7 @@
                             </div>
                             <!-- Help Tooltip -->
                             <div class="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center cursor-help" 
-                                 onclick="showHelpDialog('branch-rating', 'Customer satisfaction rating for this specific branch. Monitor service quality and identify improvement areas.')">
+                                 onclick="showHelpDialog('branch-rating', 'Branch Rating: Customer satisfaction rating for this specific branch. Monitor service quality and identify improvement areas. Rating System: 5-Star Scale: Excellent (5★), Good (4★), Average (3★), Poor (2★), Very Poor (1★). Branch Performance: Track local customer satisfaction, identify service issues, and implement improvements. Quality Metrics: Monitor rating trends, response rates, and local customer feedback.')">
                                 <i class="fas fa-question text-white text-sm"></i>
                             </div>
                         </div>
@@ -572,41 +572,48 @@
                                 <h3 class="text-lg font-semibold">Pickup Schedule</h3>
                                 <div class="flex items-center space-x-2">
                                     <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">12 Orders</span>
+                                    <a href="requests.html" class="text-blue-400 text-sm hover:underline">View All</a>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('pickup-schedule', 'Scheduled pickup times for today. Organize driver routes efficiently and ensure timely pickups.')">
+                                         onclick="showHelpDialog('pickup-schedule', 'Pickup Scheduling & Order Status: Pickup times for today are scheduled and routes will be organized efficiently to ensure timely pickups. Order Timing & Status Rules: Within 12 hours: Orders are marked as "Ready" and the system will send an alert. Example: An order placed at 8:00 AM will be marked as "Ready" by 8:00 PM the same day. After 12 hours (but before 24 hours): Orders are marked as "Preparing – At Risk of Overdue" and an alert is sent. Example: If the order placed at 8:00 AM is still not picked up by 8:01 PM, it will be flagged as "At Risk of Overdue." After 24 hours: Orders are marked as "Overdue." Example: If the same order from 8:00 AM is not picked up by 8:00 AM the next day, it will be marked as "Overdue."')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div class="flex items-center justify-between p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                                <div class="flex items-center justify-between p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg cursor-pointer hover:bg-blue-500/30 transition-colors" 
+                                     onclick="window.open('requests.html', '_blank')">
                                     <div>
                                         <p class="font-medium text-sm">Order #B001</p>
                                         <p class="text-xs text-gray-400">Sarah Wilson - East Legon</p>
                                         <p class="text-xs text-blue-400">Pickup: 2:00 PM</p>
+                                        <p class="text-xs text-green-400">Status: Ready for Pickup</p>
                                     </div>
                                     <div class="text-right">
                                         <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Ready</span>
                                         <p class="text-xs text-gray-400">₵89</p>
                                     </div>
                                 </div>
-                                <div class="flex items-center justify-between p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                                <div class="flex items-center justify-between p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg cursor-pointer hover:bg-yellow-500/30 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
                                     <div>
                                         <p class="font-medium text-sm">Order #B002</p>
                                         <p class="text-xs text-gray-400">Mike Johnson - Airport</p>
                                         <p class="text-xs text-yellow-400">Pickup: 2:30 PM</p>
+                                        <p class="text-xs text-orange-400">Status: Preparing</p>
                                     </div>
                                     <div class="text-right">
                                         <span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">Preparing</span>
                                         <p class="text-xs text-gray-400">₵156</p>
                                     </div>
                                 </div>
-                                <div class="flex items-center justify-between p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                                <div class="flex items-center justify-between p-3 bg-red-500/20 border border-red-500/30 rounded-lg cursor-pointer hover:bg-red-500/30 transition-colors"
+                                     onclick="window.open('get_return_pickups.html', '_blank')">
                                     <div>
-                                        <p class="font-medium text-sm">Order #B003</p>
+                                        <p class="font-medium text-sm">Return #R001</p>
                                         <p class="text-xs text-gray-400">Lisa Brown - Accra Mall</p>
                                         <p class="text-xs text-red-400">Pickup: 1:00 PM (URGENT)</p>
+                                        <p class="text-xs text-red-400">Status: Overdue</p>
                                     </div>
                                     <div class="text-right">
                                         <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">Overdue</span>
@@ -616,48 +623,54 @@
                             </div>
                         </div>
 
-                        <!-- Driver Status -->
+                        <!-- Order Status -->
                         <div class="bg-zinc-900 p-6 rounded-xl relative group">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold">Driver Status</h3>
+                                <h3 class="text-lg font-semibold">Order Status</h3>
                                 <div class="flex items-center space-x-2">
-                                    <a href="#" class="text-blue-400 text-sm hover:underline">Manage</a>
+                                    <a href="requests.html" class="text-blue-400 text-sm hover:underline">View All</a>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('driver-status', 'Real-time status of all drivers assigned to this branch. Monitor availability, current assignments, and performance.')">
+                                         onclick="showHelpDialog('order-status', 'Order Status: Real-time status of all orders from requests page. Monitor processing, pickup status, and delivery progress. Status Breakdown: In Transit (Green): Orders currently being delivered with ETA tracking. Ready for Pickup (Blue): Orders fully processed and awaiting collection. Processing (Yellow): High-priority orders being expedited. Order Management: Track order progression, manage priorities, and ensure timely processing.')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+                                <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
                                     <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                                         <i class="fas fa-truck text-white text-xs"></i>
                                     </div>
                                     <div class="flex-1">
-                                        <p class="text-sm font-medium">Driver #5 - John Smith</p>
-                                        <p class="text-xs text-gray-400">On delivery - Order #B004</p>
+                                        <p class="text-sm font-medium">Order #B004 - John Smith</p>
+                                        <p class="text-xs text-gray-400">In transit - Accra Central</p>
                                         <p class="text-xs text-green-400">ETA: 15 minutes</p>
+                                        <p class="text-xs text-blue-400">From: Requests Page</p>
                                     </div>
                                 </div>
-                                <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
+                                <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
                                     <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                                         <i class="fas fa-clock text-white text-xs"></i>
                                     </div>
                                     <div class="flex-1">
-                                        <p class="text-sm font-medium">Driver #8 - Sarah Davis</p>
-                                        <p class="text-xs text-gray-400">On break - 20 min remaining</p>
-                                        <p class="text-xs text-blue-400">Next pickup: 3:00 PM</p>
+                                        <p class="text-sm font-medium">Order #B005 - Sarah Davis</p>
+                                        <p class="text-xs text-gray-400">Ready for pickup</p>
+                                        <p class="text-xs text-blue-400">Pickup time: 3:00 PM</p>
+                                        <p class="text-xs text-blue-400">From: Requests Page</p>
                                     </div>
                                 </div>
-                                <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg">
-                                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-check text-white text-xs"></i>
+                                <div class="flex items-center space-x-3 p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
+                                    <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-exclamation text-white text-xs"></i>
                                     </div>
                                     <div class="flex-1">
-                                        <p class="text-sm font-medium">Driver #12 - Mike Wilson</p>
-                                        <p class="text-xs text-gray-400">Available for assignment</p>
-                                        <p class="text-xs text-green-400">Last delivery: 1 hour ago</p>
+                                        <p class="text-sm font-medium">Order #B006 - Mike Wilson</p>
+                                        <p class="text-xs text-gray-400">Processing - High Priority</p>
+                                        <p class="text-xs text-yellow-400">Ready in: 10 minutes</p>
+                                        <p class="text-xs text-blue-400">From: Requests Page</p>
                                     </div>
                                 </div>
                             </div>
@@ -671,39 +684,58 @@
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-lg font-semibold">Incoming Orders</h3>
                                 <div class="flex items-center space-x-2">
-                                    <a href="#" class="text-blue-400 text-sm hover:underline">View All</a>
+                                    <a href="requests.html" class="text-blue-400 text-sm hover:underline">View All</a>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('incoming-orders', 'New orders assigned to this branch. Review details, prepare packages, and assign to available drivers.')">
+                                         onclick="showHelpDialog('incoming-orders', 'New orders received and pending processing. Review details, prepare packages, and update status. Residential areas like Airport are marked as VIP, while less critical areas are marked as Priority.')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
                                     <div>
                                         <p class="font-medium text-sm">Order #B005</p>
                                         <p class="text-xs text-gray-400">New customer - West Hills</p>
-                                        <p class="text-xs text-blue-400">Just received</p>
+                                        <p class="text-xs text-blue-400">Just received - Pending</p>
+                                        <p class="text-xs text-yellow-400">Processing time: 2 hours</p>
                                     </div>
                                     <div class="text-right">
                                         <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">New</span>
+                                        <p class="text-xs text-gray-400">₵120</p>
                                     </div>
                                 </div>
-                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
                                     <div>
                                         <p class="font-medium text-sm">Order #B006</p>
                                         <p class="text-xs text-gray-400">Return customer - Labone</p>
-                                        <p class="text-xs text-green-400">Priority order</p>
+                                        <p class="text-xs text-green-400">Priority order - Pending</p>
+                                        <p class="text-xs text-orange-400">Processing time: 1 hour</p>
                                     </div>
                                     <div class="text-right">
                                         <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Priority</span>
+                                        <p class="text-xs text-gray-400">₵89</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
+                                    <div>
+                                        <p class="font-medium text-sm">Order #B007</p>
+                                        <p class="text-xs text-gray-400">VIP customer - Airport</p>
+                                        <p class="text-xs text-purple-400">Express order - Pending</p>
+                                        <p class="text-xs text-red-400">Processing time: 30 min</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">VIP</span>
+                                        <p class="text-xs text-gray-400">₵200</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Local Alerts -->
+                        <!-- Branch Alerts -->
                         <div class="bg-zinc-900 p-6 rounded-xl relative group">
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-lg font-semibold">Branch Alerts</h3>
@@ -711,31 +743,46 @@
                                     <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">4 New</span>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('branch-alerts', 'Important notifications about branch operations, driver issues, or customer concerns that need attention.')">
+                                         onclick="showHelpDialog('branch-alerts', 'Branch Alerts: Time-based alerts for orders. Orders within 12hrs marked as ready, after 12hrs as preparing to overdue, after 24hrs as overdue. Alert System: Overdue (Red): Orders 24+ hours old requiring immediate attention. Preparing to Overdue (Orange): Orders 12-24 hours old at risk of becoming overdue. Return Pickup Ready (Green): Return orders 12+ hours old ready for collection. High Priority (Blue): VIP and special handling orders. Click any alert to navigate to the relevant order management page.')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <div class="flex items-start space-x-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                                <div class="flex items-start space-x-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg cursor-pointer hover:bg-red-500/30 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
                                     <i class="fas fa-exclamation-triangle text-red-400 mt-1"></i>
                                     <div>
-                                        <p class="text-sm font-medium">Driver Late Return</p>
-                                        <p class="text-xs text-gray-400">Driver #5 - 30 min overdue</p>
+                                        <p class="text-sm font-medium">Order Overdue (24+ hours)</p>
+                                        <p class="text-xs text-gray-400">Order #B003 - 26 hours old</p>
+                                        <p class="text-xs text-red-400">Click to view on Requests page</p>
                                     </div>
                                 </div>
-                                <div class="flex items-start space-x-3 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-                                    <i class="fas fa-clock text-yellow-400 mt-1"></i>
+                                <div class="flex items-start space-x-3 p-3 bg-orange-500/20 border border-orange-500/30 rounded-lg cursor-pointer hover:bg-orange-500/30 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
+                                    <i class="fas fa-clock text-orange-400 mt-1"></i>
                                     <div>
-                                        <p class="text-sm font-medium">High Order Volume</p>
-                                        <p class="text-xs text-gray-400">15 orders pending pickup</p>
+                                        <p class="text-sm font-medium">Preparing to Overdue (12-24 hours)</p>
+                                        <p class="text-xs text-gray-400">Order #B008 - 18 hours old</p>
+                                        <p class="text-xs text-orange-400">Click to view on Requests page</p>
                                     </div>
                                 </div>
-                                <div class="flex items-start space-x-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                                <div class="flex items-start space-x-3 p-3 bg-green-500/20 border border-green-500/30 rounded-lg cursor-pointer hover:bg-green-500/30 transition-colors"
+                                     onclick="window.open('get_return_pickups.html', '_blank')">
+                                    <i class="fas fa-check-circle text-green-400 mt-1"></i>
+                                    <div>
+                                        <p class="text-sm font-medium">Return Pickup Ready (12+ hours)</p>
+                                        <p class="text-xs text-gray-400">Return #R002 - 14 hours old</p>
+                                        <p class="text-xs text-green-400">Click to view on Return Pickups page</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg cursor-pointer hover:bg-blue-500/30 transition-colors"
+                                     onclick="window.open('requests.html', '_blank')">
                                     <i class="fas fa-info-circle text-blue-400 mt-1"></i>
                                     <div>
-                                        <p class="text-sm font-medium">Weather Alert</p>
-                                        <p class="text-xs text-gray-400">Heavy rain expected - plan routes</p>
+                                        <p class="text-sm font-medium">High Priority Orders</p>
+                                        <p class="text-xs text-gray-400">3 VIP orders pending processing</p>
+                                        <p class="text-xs text-blue-400">Click to view on Requests page</p>
                                     </div>
                                 </div>
                             </div>
@@ -749,7 +796,7 @@
                                     <a href="#" class="text-blue-400 text-sm hover:underline">Details</a>
                                     <!-- Help Tooltip -->
                                     <div class="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center cursor-help" 
-                                         onclick="showHelpDialog('performance-metrics', 'Key performance indicators for today. Track delivery times, customer satisfaction, and operational efficiency.')">
+                                         onclick="showHelpDialog('performance-metrics', 'Today\'s Performance: Key performance indicators for today. Track delivery times, customer satisfaction, and operational efficiency. Performance Metrics: Average Delivery Time: From pickup to delivery completion with target comparison. Customer Rating: Today\'s average rating based on delivery feedback. On-Time Rate: Percentage of deliveries completed within estimated time. Performance Targets: Monitor against daily goals and identify improvement areas.')">
                                         <i class="fas fa-question text-white text-xs"></i>
                                     </div>
                                 </div>
@@ -801,7 +848,7 @@
                                 </select>
                                 <!-- Help Tooltip -->
                                 <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help" 
-                                     onclick="showHelpDialog('operations-timeline', 'Visual representation of daily operations. Track delivery patterns, peak hours, and optimize driver scheduling.')">
+                                     onclick="showHelpDialog('operations-timeline', 'Today\'s Operations Timeline: Visual representation of daily operations. Track delivery patterns, peak hours, and optimize order processing scheduling. Timeline Features: Hourly Breakdown: Track operations from 8 AM to 7 PM. Delivery Patterns: Identify peak hours and operational bottlenecks. Performance Tracking: Monitor daily progress and compare with targets. Optimization: Use data to improve scheduling and resource allocation.')">
                                     <i class="fas fa-question text-white text-xs"></i>
                                 </div>
                             </div>
@@ -921,6 +968,12 @@
             }
 
             switchRole() {
+                // Prevent role switching for branch users
+                const isBranchUser = !!localStorage.getItem('loggedInBranch');
+                if (isBranchUser) {
+                    return;
+                }
+
                 const newRole = this.currentRole === 'admin' ? 'branch' : 'admin';
 
                 // Clear only role-specific data, keep authentication token
@@ -954,14 +1007,22 @@
             const container = document.getElementById('role-switcher-container');
             if (!container) return;
 
-            const currentRole = localStorage.getItem('phluowise_role') || 'branch';
+            const currentRole = RoleUtils.getCurrentRole();
+
+            // Only show switcher for admins
+            if (currentRole !== 'admin') {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block'; // Ensure it's visible for admins
 
             container.innerHTML = `
                 <div class="flex items-center justify-between bg-zinc-900  glassmorphism p-4 rounded-xl">
                     <div class="flex items-center space-x-3">
                         <span class="text-lg font-semibold">Dashboard Mode:</span>
                         <span class="bg-blue-500 text-white text-sm px-3 py-1 rounded-full">
-                            ${currentRole === 'admin' ? 'Admin' : 'Branch'}
+                            Admin
                         </span>
                     </div>
                     <button 
@@ -969,7 +1030,7 @@
                         class="role-switcher bg-zinc-900 flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 p-3 rounded-lg cursor-pointer transition-all duration-300"
                     >
                         <i class="fas fa-exchange-alt  text-blue-400"></i>
-                        <span class="text-sm text-white">Switch to ${currentRole === 'admin' ? 'Branch' : 'Admin'}</span>
+                        <span class="text-sm text-white">Switch to Branch View</span>
                     </button>
                 </div>
             `;

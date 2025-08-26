@@ -12,6 +12,10 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Subscription and Access Control Scripts -->
+    <script src="subscription-manager.js"></script>
+    <script src="access-control.js"></script>
 </head>
 
 <body class="bg-black text-white">
@@ -34,6 +38,11 @@
 
         .text-increase {
             color: #10b981;
+        }
+
+        .countdown-timer {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
         }
 
         .toggle-switch {
@@ -517,18 +526,19 @@
                                     <div class="mb-4">
                                         <div class="flex justify-between">
                                             <span class="text-gray-300">Amount Owing</span>
-                                            <span class="text-red-400" id="amount-owing">GHS200.</span>
+                                            <span class="text-red-400" id="amount-owing">GH₵ 0.00</span>
                                         </div>
                                         <div class="text-gray-400">Account will be disabled within <span
-                                                class="text-blue-400">24hrs</span></div>
+                                                class="text-blue-400" id="payment-warning">--</span></div>
                                     </div>
 
                                     <div class="text-center text-xl font-medium mb-6" id="countdown">
-                                        12hrs : 24min : 29s
+                                        <span class="countdown-timer">--:--:--</span>
                                     </div>
 
                                     <button id="pay-button"
-                                        class="w-full py-3 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-center transition">
+                                        class="w-full py-3 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-center transition"
+                                        onclick="handlePayment()">
                                         Pay
                                     </button>
                                 </div>
@@ -1070,6 +1080,128 @@
 
             // Initialize user cards (from existing code)
             createUserCards(users);
+        });
+    </script>
+
+    <!-- Subscription Integration Script -->
+    <script>
+        // Wait for subscription manager to be available
+        let subscriptionManager = null;
+        let countdownInterval = null;
+
+        function waitForSubscriptionManager() {
+            return new Promise((resolve) => {
+                const checkManager = setInterval(() => {
+                    if (window.subscriptionManager) {
+                        clearInterval(checkManager);
+                        subscriptionManager = window.subscriptionManager;
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+
+        async function initializeSubscriptionIntegration() {
+            try {
+                await waitForSubscriptionManager();
+                updateSubscriptionDisplay();
+                startSubscriptionCountdown();
+            } catch (error) {
+                console.error('Failed to initialize subscription integration:', error);
+            }
+        }
+
+        function updateSubscriptionDisplay() {
+            if (!subscriptionManager || !subscriptionManager.subscriptionData) return;
+
+            const data = subscriptionManager.subscriptionData;
+
+            // Update amount owing
+            const amountOwingElement = document.getElementById('amount-owing');
+            if (amountOwingElement) {
+                amountOwingElement.textContent = `GH₵ ${data.amountOwing.toFixed(2)}`;
+            }
+
+            // Update payment warning
+            const paymentWarningElement = document.getElementById('payment-warning');
+            if (paymentWarningElement && data.paymentDueDate) {
+                const now = new Date();
+                const dueDate = new Date(data.paymentDueDate);
+                const timeLeft = dueDate - now;
+
+                if (timeLeft > 0) {
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    paymentWarningElement.textContent = `${hours}hrs`;
+                } else {
+                    paymentWarningElement.textContent = 'OVERDUE';
+                }
+            }
+        }
+
+        function startSubscriptionCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+
+            countdownInterval = setInterval(() => {
+                if (!subscriptionManager || !subscriptionManager.subscriptionData) return;
+
+                const data = subscriptionManager.subscriptionData;
+
+                if (data.paymentDueDate) {
+                    const now = new Date();
+                    const dueDate = new Date(data.paymentDueDate);
+                    const timeLeft = dueDate - now;
+
+                    if (timeLeft <= 0) {
+                        // Payment overdue - show overdue message
+                        const countdownElement = document.getElementById('countdown');
+                        if (countdownElement) {
+                            countdownElement.innerHTML = '<span class="text-red-500 font-bold">PAYMENT OVERDUE</span>';
+                        }
+                        return;
+                    }
+
+                    // Calculate time remaining
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    // Update countdown display
+                    const countdownElement = document.getElementById('countdown');
+                    if (countdownElement) {
+                        countdownElement.innerHTML = `<span class="countdown-timer">${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</span>`;
+                    }
+                }
+            }, 1000);
+        }
+
+        async function handlePayment() {
+            if (subscriptionManager) {
+                await subscriptionManager.makePayment();
+            } else {
+                // Fallback payment flow
+                Swal.fire({
+                    title: 'Payment Required',
+                    text: 'Please visit the subscription page to make payment.',
+                    icon: 'info',
+                    confirmButtonText: 'Go to Subscription',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'subscription.html';
+                    }
+                });
+            }
+        }
+
+        // Initialize subscription integration when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait a bit for other scripts to load
+            setTimeout(() => {
+                initializeSubscriptionIntegration();
+            }, 1000);
         });
     </script>
 

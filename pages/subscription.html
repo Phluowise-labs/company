@@ -13,23 +13,78 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <script>
+        // Check if user is logged in
+        const isLoggedIn = localStorage.getItem("isLoggedIn");
 
- 
-     <script>
-    //    const isLoggedIn = localStorage.getItem("isLoggedIn");
-     
-    //    if (!isLoggedIn) {
-    //      window.location.href = "user-signin.html"; // Redirect to login if not authenticated
-    //    }
-     </script>
-      
+        // For demo/testing purposes, set login status if not present
+        if (!isLoggedIn) {
+            // Set a demo login status to prevent redirect loop
+            localStorage.setItem("isLoggedIn", "true");
+            console.log("Demo login status set for testing");
+        }
+
+        // Uncomment the line below when you have real authentication
+        // if (!isLoggedIn) {
+        //     window.location.href = "user-signin.html";
+        // }
+    </script>
+
 </head>
+
 <body class="bg-black text-white">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        .active-plan {
+            border: 2px solid #3B82F6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .plan-card {
+            transition: all 0.3s ease;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .countdown-timer {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .subscription-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-free-trial {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+
+        .status-expired {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            color: white;
+        }
+
+        .status-trial-expired {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white;
+        }
     </style>
+
     <div class="flex">
         <!-- Sidebar -->
         <div id="sidebar">
@@ -54,59 +109,81 @@
                 }
             </script>
         </div>
+
         <!-- Main Content -->
         <div class="ml-64 p-5 w-full text-white">
-       <!-- Top Bar -->
-<div id="topbar"></div>
+            <!-- Top Bar -->
+            <div id="topbar"></div>
 
-<script>
-  fetch("topbar.html")
-    .then((r) => r.text())
-    .then((html) => {
-      const container = document.getElementById("topbar");
-      container.innerHTML = html;
+            <script>
+                fetch("topbar.html")
+                    .then((r) => r.text())
+                    .then((html) => {
+                        const container = document.getElementById("topbar");
+                        container.innerHTML = html;
 
-      // Execute scripts found in the injected markup
-      container.querySelectorAll("script").forEach((oldScript) => {
-        const s = document.createElement("script");
-        if (oldScript.src) {
-          s.src = oldScript.src;
-          // ✅ ensure predictable execution
-          s.async = false;
-        } else {
-          s.textContent = oldScript.textContent;
-        }
-        document.body.appendChild(s);
-      });
-    });
-</script>
+                        // Execute scripts found in the injected markup
+                        container.querySelectorAll("script").forEach((oldScript) => {
+                            const s = document.createElement("script");
+                            if (oldScript.src) {
+                                s.src = oldScript.src;
+                                s.async = false;
+                            } else {
+                                s.textContent = oldScript.textContent;
+                            }
+                            document.body.appendChild(s);
+                        });
+                    });
+            </script>
 
-  
-            <!-- Main Content Area -->
-            <div class="flex flex-col mt-10 md:flex-row items-start justify-center space-y-8 md:space-y-10 md:space-x-8">
-                <!-- Free Plan Card -->
-                <div class="bg-zinc-800 mt-10 rounded-3xl p-6 text-center  w-68">
-                    <div class="bg-zinc-900 rounded-3xl p-6 text-center   space-y-4 w-64">
-                        <div class="bg-blue-500 text-gray-100 rounded-full px-9 py-2 font-[800] inline-block">Free Plan
-                        </div>
-                        <div class="text-2xl font-[800]  text-[#F5F5F5F5]  whitespace-nowrap">12hrs : 24min : 29s</div>
-                        <div class="">Expires in <span class="text-[#F85D5D]"> 20 days </span></div>
+            <!-- Subscription Status Header -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-3xl font-bold">Subscription Management</h1>
+                    <div class="subscription-status" id="subscription-status-display">
+                        Loading...
                     </div>
                 </div>
+                <p class="text-gray-400 mt-2">Manage your subscription and payment plans</p>
+            </div>
+
+            <!-- Main Content Area -->
+            <div
+                class="flex flex-col mt-10 md:flex-row items-start justify-center space-y-8 md:space-y-10 md:space-x-8">
+                <!-- Free Plan Card -->
+                <div class="plan-card bg-zinc-800 mt-10 rounded-3xl p-6 text-center w-68" data-plan="free">
+                    <div class="bg-zinc-900 rounded-3xl p-6 text-center space-y-4 w-64">
+                        <div class="bg-blue-500 text-gray-100 rounded-full px-9 py-2 font-[800] inline-block">Free Plan
+                        </div>
+                        <div class="text-2xl font-[800] text-[#F5F5F5F5] countdown-timer" id="trial-countdown">
+                            Loading...</div>
+                        <div class="">Expires in <span class="text-[#F85D5D]" id="trial-days">--</span> days</div>
+                        <div class="text-sm text-gray-400">20-day free trial</div>
+                    </div>
+                </div>
+
                 <!-- Basic Pack Card -->
-                <div class="bg-[#1F2B47] rounded-3xl p-6 mt-4 space-y-6 ">
+                <div class="plan-card bg-[#1F2B47] rounded-3xl p-6 mt-4 space-y-6 w-68" data-plan="basic">
                     <div class="bg-zinc-800 rounded-3xl p-6 text-center space-y-6 w-64">
                         <div class="text-gray-100">Subscription Plan</div>
                         <div class="bg-[#292B2F] text-gray-100 rounded-full px-4 py-2 inline-block">Basic Pack</div>
-                        <div class="flex  items-center justify-center mt-4 text-3xl font-bold">
+                        <div class="flex items-center justify-center mt-4 text-3xl font-bold">
                             <span>0.3+</span>
                             <div
-                                class="bg-red-400 absolute-right ml-2 mb-5  text-white text-xs font-semibold px-2  py-0.5  rounded-full">
+                                class="bg-red-400 absolute-right ml-2 mb-5 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                                 83.5% off (1 month)
                             </div>
                         </div>
                         <div class="text-gray-100">per sales</div>
                         <div class="text-gray-100">Manage logistics easily with Phluowise</div>
+
+                        <!-- Plan Status Display -->
+                        <div id="basic-plan-status" class="hidden">
+                            <div class="text-sm text-gray-400 mb-2">Current Plan</div>
+                            <div class="countdown-timer text-lg text-blue-400" id="plan-countdown">Loading...</div>
+                            <div class="text-xs text-gray-500">Expires in</div>
+                        </div>
+
                         <div class="space-y-2 bg-[#808080] p-4 rounded-lg">
                             <div class="bg-[#40444B] text-gray-100 rounded-lg p-2">GH₵ 0.05 / Sachets Transaction</div>
                             <div class="bg-[#40444B] text-gray-100 rounded-lg p-2">GH₵ 0.07 / Bottle pack Transaction
@@ -114,50 +191,199 @@
                             <div class="bg-[#40444B] text-gray-100 rounded-lg p-2">GH₵ 0.08 / Dispenser Transaction
                             </div>
                         </div>
-
                     </div>
-                    
-                    <div class="space-y-7  text-center">
-                        <button class="bg-blue-500 absolute-right   text-white rounded-full px-4 py-2">Activate Plan</button>
+
+                    <div class="space-y-7 text-center">
+                        <button
+                            class="activate-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full px-4 py-2 transition-colors"
+                            onclick="subscriptionManager.activateBasicPlan()">
+                            Activate Plan
+                        </button>
                         <div><i class="fas fa-check-circle mr-1 text-blue-500"></i> Transactions fees</div>
                         <div><i class="fas fa-check-circle mr-1 text-blue-500"></i> Access to all initial <br>version
                             updates</div>
                         <div><i class="fas fa-check-circle mr-1 text-blue-500"></i> Customer Service</div>
                     </div>
                 </div>
+
                 <!-- Premium Pack Card -->
-                <div class="bg-[#1F2B47] rounded-3xl p-6 space-y-6 w-68">
+                <div class="plan-card bg-[#1F2B47] rounded-3xl p-6 space-y-6 w-68" data-plan="premium">
                     <div class="bg-zinc-800 rounded-3xl p-6 text-center space-y-6 w-64">
                         <div class="bg-green-600 text-white rounded-full px-4 py-1 inline-block">coming soon</div>
                         <div class="text-gray-100">Subscription Plan</div>
                         <div class="bg-gray-800 text-white rounded-full px-4 py-2 inline-block">Premium Pack</div>
-                        <div class="flex  items-center justify-center mt-4 ml-2 text-3xl font-bold">
+                        <div class="flex items-center justify-center mt-4 ml-2 text-3xl font-bold">
                             <span>GH₵ 60
-                                <p class="text-[#F9A24B] font-semibold  text-xl ">month</p>
+                                <p class="text-[#F9A24B] font-semibold text-xl">month</p>
                             </span>
-
                         </div>
                         <div
-                            class="bg-red-400    mb-8 inline-block text-white text-xs font-semibold px-2  py-0.5  rounded-full">
+                            class="bg-red-400 mb-8 inline-block text-white text-xs font-semibold px-2 py-0.5 rounded-full">
                             50% off
                         </div>
-
                         <div class="text-gray-100">Manage logistics easily with Phluowise</div>
-
                     </div>
-                    
-                    <div class="space-y-6  text-center">
-                        <button class="bg-[#808080]   text-white rounded-full px-4 py-2">Choose Plan</button>
+
+                    <div class="space-y-6 text-center">
+                        <button class="bg-[#808080] text-white rounded-full px-4 py-2 cursor-not-allowed" disabled>
+                            Coming Soon
+                        </button>
                         <div><i class="fas fa-check-circle mr-1 text-gray-500"></i> Access to all future updates</div>
                     </div>
                 </div>
-
             </div>
-            <!-- end of content -->
-        </div>
 
+            <!-- Payment Information Section -->
+            <div class="mt-12 max-w-4xl mx-auto">
+                <div class="bg-zinc-800 rounded-3xl p-6">
+                    <h2 class="text-2xl font-bold mb-6">Payment Information</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Current Plan Details -->
+                        <div class="bg-zinc-900 rounded-2xl p-4">
+                            <h3 class="text-lg font-semibold mb-3">Current Plan Details</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Status:</span>
+                                    <span class="font-medium" id="current-status">Loading...</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Plan:</span>
+                                    <span class="font-medium" id="current-plan">Loading...</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Started:</span>
+                                    <span class="font-medium" id="plan-start-date">Loading...</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Expires:</span>
+                                    <span class="font-medium" id="plan-end-date">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Status -->
+                        <div class="bg-zinc-900 rounded-2xl p-4">
+                            <h3 class="text-lg font-semibold mb-3">Payment Status</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Amount Owing:</span>
+                                    <span class="font-medium text-red-400" id="amount-owing-display">GH₵ 0.00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Last Payment:</span>
+                                    <span class="font-medium" id="last-payment-date">Loading...</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Next Due:</span>
+                                    <span class="font-medium" id="next-payment-due">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <button onclick="subscriptionManager.makePayment()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                            <i class="fas fa-credit-card mr-2"></i>Make Payment
+                        </button>
+                        <button onclick="subscriptionManager.checkPaymentStatus()"
+                            class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                            <i class="fas fa-sync-alt mr-2"></i>Check Payment Status
+                        </button>
+                        <button onclick="subscriptionManager.logout()"
+                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+
+                        <!-- Demo Login Button (Development Only) -->
+                        <button onclick="subscriptionManager.simulateLogin()"
+                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                            <i class="fas fa-user-check mr-2"></i>Simulate Login
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    </div>
+
+    <!-- Load Subscription Manager -->
+    <script src="subscription-manager.js"></script>
+
+    <!-- Demo Script (Development Only) -->
+    <script src="subscription-demo.js"></script>
+
+    <script>
+        // Update UI when subscription manager is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for subscription manager to initialize
+            const checkManager = setInterval(() => {
+                if (window.subscriptionManager) {
+                    clearInterval(checkManager);
+                    updateSubscriptionDisplay();
+                }
+            }, 100);
+        });
+
+        function updateSubscriptionDisplay() {
+            const manager = window.subscriptionManager;
+            if (!manager) return;
+
+            const data = manager.subscriptionData;
+
+            // Update status display
+            const statusDisplay = document.getElementById('subscription-status-display');
+            if (statusDisplay) {
+                statusDisplay.textContent = data.status.replace('_', ' ').toUpperCase();
+                statusDisplay.className = `subscription-status status-${data.status}`;
+            }
+
+            // Update current plan details
+            document.getElementById('current-status').textContent = data.status.replace('_', ' ').toUpperCase();
+            document.getElementById('current-plan').textContent = data.plan.charAt(0).toUpperCase() + data.plan.slice(1);
+
+            if (data.planStart) {
+                document.getElementById('plan-start-date').textContent = new Date(data.planStart).toLocaleDateString();
+            }
+
+            if (data.planEnd) {
+                document.getElementById('plan-end-date').textContent = new Date(data.planEnd).toLocaleDateString();
+            }
+
+            // Update payment information
+            document.getElementById('amount-owing-display').textContent = `GH₵ ${data.amountOwing.toFixed(2)}`;
+
+            if (data.paymentHistory.length > 0) {
+                const lastPayment = data.paymentHistory[data.paymentHistory.length - 1];
+                document.getElementById('last-payment-date').textContent = new Date(lastPayment.date).toLocaleDateString();
+            } else {
+                document.getElementById('last-payment-date').textContent = 'No payments yet';
+            }
+
+            if (data.paymentDueDate) {
+                document.getElementById('next-payment-due').textContent = new Date(data.paymentDueDate).toLocaleDateString();
+            } else {
+                document.getElementById('next-payment-due').textContent = 'No payment due';
+            }
+
+            // Show/hide basic plan status
+            const basicPlanStatus = document.getElementById('basic-plan-status');
+            if (data.plan === 'basic' && data.status === 'active') {
+                basicPlanStatus.classList.remove('hidden');
+            } else {
+                basicPlanStatus.classList.add('hidden');
+            }
+
+            // Update trial days
+            if (data.status === 'free_trial') {
+                const trialEnd = new Date(data.trialEnd);
+                const now = new Date();
+                const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+                document.getElementById('trial-days').textContent = daysLeft;
+            }
+        }
+    </script>
 </body>
 
 </html>
