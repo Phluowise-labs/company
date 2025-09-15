@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Account Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Subscription and Access Control Scripts -->
+    <script src="subscription-manager.js"></script>
+    <script src="access-control.js"></script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glassmorphism {
+            background: #212121;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .bg-gradient {
+            background: linear-gradient(135deg, #1a1a1a 0%, #121212 100%);
+        }
+
+        .text-increase {
+            color: #10b981;
+        }
+
+        .countdown-timer {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #10b981;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                        // Append branch context to sidebar links if impersonating
+                        (function applyBranchContextToSidebar() {
+                            try {
+                                const params = new URLSearchParams(window.location.search);
+                                const branchId = params.get("branchId") || localStorage.getItem("impersonateBranchId");
+                                const as = params.get("as") || localStorage.getItem("impersonateMode");
+                                if (!branchId) return;
+                                // Persist for subsequent pages
+                                localStorage.setItem("impersonateBranchId", String(branchId));
+                                if (as) localStorage.setItem("impersonateMode", String(as));
+                                document.querySelectorAll('#sidebar a[href$=".html"]').forEach(a => {
+                                    const href = a.getAttribute('href');
+                                    if (!href || href.startsWith('http')) return;
+                                    const parts = href.split('?');
+                                    const base = parts[0];
+                                    const sp = new URLSearchParams(parts[1] || "");
+                                    sp.set('branchId', branchId);
+                                    if (as) sp.set('as', as);
+                                    a.setAttribute('href', `${base}?${sp.toString()}`);
+                                });
+                            } catch (e) {
+                                console.error('Failed to apply branch context to links', e);
+                            }
+                        })();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+        <!-- Main Content -->
+        <div class="ml-64  p-5 w-full text-white">
+            <!-- Top Bar -->
+            <div id="topbar"></div>
+
+            <script>
+                fetch("topbar.html")
+                    .then((r) => r.text())
+                    .then((html) => {
+                        const container = document.getElementById("topbar");
+                        container.innerHTML = html;
+
+                        // Execute scripts found in the injected markup
+                        container.querySelectorAll("script").forEach((oldScript) => {
+                            const s = document.createElement("script");
+                            if (oldScript.src) {
+                                s.src = oldScript.src;
+                                // Important: ensure predictable execution
+                                s.async = false;
+                            } else {
+                                s.textContent = oldScript.textContent;
+                            }
+                            document.body.appendChild(s);
+                        });
+                    });
+            </script>
+
+
+            <!-- Main Content Area -->
+            <div class="container mt-10 z-0 mx-auto p-4">
+                <!-- write the content of the page here -->
+                <div class="min-h-screen p-4">
+                    <div class="max-w-6xl mx-auto space-y-6">
+                        <!-- Top cards row -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Total Transaction -->
+                            <div class="glassmorphism p-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h2 class="text-gray-300 font-medium">Total Transaction</h2>
+                                    <div class="bg-green-800/40 px-3 py-1 rounded-full flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-400"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                        </svg>
+                                        <span class="text-green-400 text-sm ml-1" id="transaction-growth">10.0%</span>
+                                    </div>
+                                </div>
+                                <div class="text-3xl font-bold" id="total-amount">GH₵ 930.00</div>
+                            </div>
+
+                            <!-- Booked Orders -->
+                            <div class="glassmorphism p-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h2 class="text-gray-300 font-medium">Booked Orders</h2>
+                                    <div class="bg-green-800/40 px-3 py-1 rounded-full flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-400"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                        </svg>
+                                        <span class="text-green-400 text-sm ml-1" id="orders-growth">20%</span>
+                                    </div>
+                                </div>
+                                <div class="text-3xl font-bold" id="orders-count">50 orders</div>
+                            </div>
+
+                            <!-- Total Requests -->
+                            <div class="glassmorphism p-6">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h2 class="text-gray-300 font-medium">Total Requests</h2>
+                                </div>
+                                <div class="text-3xl font-bold" id="requests-count">500 orders</div>
+                            </div>
+                        </div>
+
+                        <!-- Chart section -->
+
+                        <!-- Chart section -->
+                        <div class="glassmorphism p-6">
+                            <div class="flex justify-between items-center mb-8">
+                                <h2 class="text-xl font-medium">Transaction analysis (GH₵)</h2>
+                                <div class="flex items-center">
+                                    <div>
+                                        <p>Total Amount : <span class="bg-blue-800/70 px-3 py-1 rounded-lg text-white"
+                                                id="highlight-value">0</span></p>
+                                    </div>
+                                    <div class="relative ml-6">
+                                        <select id="year-selector"
+                                            class="appearance-none bg-gray-700 border border-gray-600 rounded-md px-3 py-1 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <!-- Years will be populated dynamically -->
+                                        </select>
+                                        <div
+                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Canvas for Chart.js -->
+                            <div class="h-64">
+                                <canvas id="transactionChart"></canvas>
+                            </div>
+
+                            <!-- Legend -->
+                            <div class="mt-4 flex items-center">
+                                <div class="w-4 h-4 bg-blue-700 rounded mr-2"></div>
+                                <span>Transaction</span>
+                            </div>
+                        </div>
+
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                        <script>
+                            // Global chart reference
+                            let transactionChart;
+
+                            // First, let's create a function to load the transaction data from account.json
+                            async function loadTransactionData() {
+                                try {
+                                    // In a real application, you would fetch this from your API:
+                                    // const response = await fetch('/api/transactions');
+                                    // const data = await response.json();
+
+                                    // For this example, we'll use the account.json file
+                                    const response = await fetch('account.json');
+                                    if (!response.ok) {
+                                        throw new Error('Failed to load account data');
+                                    }
+                                    const data = await response.json();
+
+                                    // No need to process the data - it's already in the correct format
+                                    const transactionData = data.transactions;
+
+                                    // Populate year selector
+                                    populateYearSelector(transactionData);
+
+                                    // Initialize chart with the most recent year's data
+                                    const years = Object.keys(transactionData).sort((a, b) => b - a);
+                                    if (years.length > 0) {
+                                        updateChart(transactionData[years[0]], years[0]);
+                                    }
+                                } catch (error) {
+                                    console.error('Error loading transaction data:', error);
+                                    // Fallback to sample data if JSON file can't be loaded
+                                    const sampleData = {
+                                        "2023": [
+                                            { month: 'Jan', amount: 360 },
+                                            { month: 'Feb', amount: 400 },
+                                            { month: 'Mar', amount: 480 },
+                                            { month: 'Apr', amount: 380 },
+                                            { month: 'May', amount: 300 },
+                                            { month: 'Jun', amount: 380 },
+                                            { month: 'Jul', amount: 400 },
+                                            { month: 'Aug', amount: 640 },
+                                            { month: 'Sep', amount: 440 },
+                                            { month: 'Oct', amount: 420 },
+                                            { month: 'Nov', amount: 340 },
+                                            { month: 'Dec', amount: 460 }
+                                        ],
+                                        "2022": [
+                                            { month: 'Jan', amount: 300 },
+                                            { month: 'Feb', amount: 350 },
+                                            { month: 'Mar', amount: 420 },
+                                            { month: 'Apr', amount: 320 },
+                                            { month: 'May', amount: 280 },
+                                            { month: 'Jun', amount: 350 },
+                                            { month: 'Jul', amount: 380 },
+                                            { month: 'Aug', amount: 500 },
+                                            { month: 'Sep', amount: 400 },
+                                            { month: 'Oct', amount: 380 },
+                                            { month: 'Nov', amount: 300 },
+                                            { month: 'Dec', amount: 420 }
+                                        ]
+                                    };
+                                    populateYearSelector(sampleData);
+                                    updateChart(sampleData["2023"], "2023");
+                                }
+                            }
+
+
+
+                            // Process transaction data to group by year and month
+                            function processTransactionData(transactions) {
+                                const result = {};
+
+                                // Sample processing - adjust according to your actual data structure
+                                // This assumes transactions have date and amount properties
+                                transactions.forEach(transaction => {
+                                    const date = new Date(transaction.date); // Adjust based on your date field
+                                    const year = date.getFullYear();
+                                    const month = date.getMonth(); // 0-11
+
+                                    if (!result[year]) {
+                                        result[year] = Array(12).fill().map((_, i) => ({
+                                            month: getMonthName(i),
+                                            amount: 0
+                                        }));
+                                    }
+
+                                    result[year][month].amount += transaction.amount;
+                                });
+
+                                return result;
+                            }
+
+                            // Helper function to get month name from index
+                            function getMonthName(monthIndex) {
+                                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                return months[monthIndex];
+                            }
+
+                            // Populate the year selector dropdown
+                            function populateYearSelector(data) {
+                                const yearSelector = document.getElementById('year-selector');
+                                yearSelector.innerHTML = '';
+
+                                const years = Object.keys(data).sort((a, b) => b - a);
+                                years.forEach(year => {
+                                    const option = document.createElement('option');
+                                    option.value = year;
+                                    option.textContent = year;
+                                    yearSelector.appendChild(option);
+                                });
+
+                                // Add event listener for year changes
+                                yearSelector.addEventListener('change', (e) => {
+                                    const selectedYear = e.target.value;
+                                    updateChart(data[selectedYear], selectedYear);
+                                });
+                            }
+
+                            // Update the chart with new data
+                            function updateChart(monthlyData, year) {
+                                const ctx = document.getElementById('transactionChart').getContext('2d');
+
+                                // Extract data for chart
+                                const labels = monthlyData.map(item => item.month);
+                                const amounts = monthlyData.map(item => item.amount);
+
+                                // Calculate total for the highlight value
+                                const total = amounts.reduce((sum, amount) => sum + amount, 0);
+                                document.getElementById('highlight-value').textContent = total.toLocaleString();
+
+                                // Destroy previous chart if it exists
+                                if (transactionChart) {
+                                    transactionChart.destroy();
+                                }
+
+                                // Create new chart
+                                transactionChart = new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            label: `Transactions (${year})`,
+                                            data: amounts,
+                                            backgroundColor: labels.map((_, i) =>
+                                                i === new Date().getMonth() && year === new Date().getFullYear().toString()
+                                                    ? '#40444B' // Highlight current month with hover color
+                                                    : '#40444B' // Default color for other bars
+                                            ),
+                                            borderColor: labels.map((_, i) =>
+                                                i === new Date().getMonth() && year === new Date().getFullYear().toString()
+                                                    ? '#3B74FF'
+                                                    : '#E0E0E0' // Light gray border
+                                            ),
+                                            borderWidth: 1,
+                                            borderRadius: 6,
+                                            hoverBackgroundColor: '#3B74FF', // Hover color
+                                            hoverBorderColor: '#3B74FF',
+                                            hoverBorderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        animation: {
+                                            duration: 1000,
+                                            easing: 'easeOutQuart'
+                                        },
+                                        plugins: {
+                                            legend: {
+                                                display: false
+                                            },
+                                            tooltip: {
+                                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                                titleColor: '#f8fafc',
+                                                bodyColor: '#e2e8f0',
+                                                borderColor: 'rgba(71, 85, 105, 0.5)',
+                                                borderWidth: 1,
+                                                padding: 12,
+                                                callbacks: {
+                                                    label: function (context) {
+                                                        return `GH₵${context.raw.toLocaleString()}`;
+                                                    },
+                                                    title: function (context) {
+                                                        return `${context[0].label} ${year}`;
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                grid: {
+                                                    color: 'rgba(71, 85, 105, 0.2)',
+                                                    drawBorder: false
+                                                },
+                                                ticks: {
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    callback: function (value) {
+                                                        return 'GH₵' + value.toLocaleString();
+                                                    },
+                                                    font: {
+                                                        weight: '500'
+                                                    }
+                                                },
+                                                title: {
+                                                    display: true,
+                                                    text: 'Amount (GH₵)',
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    font: {
+                                                        size: 14,
+                                                        weight: '600'
+                                                    }
+                                                }
+                                            },
+                                            x: {
+                                                grid: {
+                                                    display: false,
+                                                    drawBorder: false
+                                                },
+                                                ticks: {
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    font: {
+                                                        weight: '500'
+                                                    }
+                                                },
+                                                title: {
+                                                    display: true,
+                                                    text: 'Months',
+                                                    color: 'rgba(148, 163, 184, 1)',
+                                                    font: {
+                                                        size: 14,
+                                                        weight: '600'
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        // Custom hover effects
+                                        interaction: {
+                                            intersect: false,
+                                            mode: 'index'
+                                        },
+                                        // Custom bar appearance
+                                        elements: {
+                                            bar: {
+                                                backgroundColor: '#F5F5F5', // Default color
+                                                borderColor: '#E0E0E0',     // Default border
+                                                borderWidth: 1,
+                                                borderRadius: 6,
+                                                hoverBackgroundColor: '#3B74FF', // Hover color
+                                                hoverBorderColor: '#3B74FF'
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            // Initialize the chart when the page loads
+                            document.addEventListener('DOMContentLoaded', loadTransactionData);
+                        </script>
+                        <!-- End of chart section -->
+
+                        <!-- Bottom section -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Left column -->
+                            <div class="space-y-4">
+                                <!-- Payment warning -->
+                                <div class="glassmorphism p-6">
+                                    <div class="mb-4">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-300">Amount Owing</span>
+                                            <span class="text-red-400" id="amount-owing">GH₵ 0.00</span>
+                                        </div>
+                                        <div class="text-gray-400">Account will be disabled within <span
+                                                class="text-blue-400" id="payment-warning">--</span></div>
+                                    </div>
+
+                                    <div class="text-center text-xl font-medium mb-6" id="countdown">
+                                        <span class="countdown-timer">--:--:--</span>
+                                    </div>
+
+                                    <button id="pay-button"
+                                        class="w-full py-3 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-center transition"
+                                        onclick="handlePayment()">
+                                        Pay
+                                    </button>
+                                </div>
+
+                                <!-- Total Payments -->
+                                <div class="glassmorphism">
+                                    <div class="grid grid-cols-2">
+                                        <div class="p-6 flex flex-col justify-center items-center">
+                                            <span class="text-gray-300 text-center">Total Payments to Phluowise</span>
+                                        </div>
+                                        <a href="transactions.html">
+                                            <div class="p-6 flex justify-between items-center bg-black/20 cursor-pointer"
+                                                id="payment-details">
+
+                                                <span class="font-bold" id="total-payments">GH₵ 50.00</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right column -->
+                            <div class="space-y-4">
+                                <!-- Account Withdrawal -->
+                                <div class="glassmorphism  p-6 flex justify-between items-center">
+                                    <span class="text-gray-300">Set Account Withdrawal Method</span>
+                                    <!-- <label class="toggle-switch">
+                                        <input type="checkbox" id="withdrawal-toggle" checked>
+                                        <span class="slider"></span>
+                                    </label> -->
+                                </div>
+
+                                <!-- Automatically -->
+                                <div class="glassmorphism p-6 flex justify-between items-center">
+                                    <span class="text-gray-300">Set Automatically</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="auto-toggle" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <!-- Manually -->
+                                <div class="glassmorphism p-6 flex justify-between items-center">
+                                    <span class="text-gray-300">Set Manually</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="manual-toggle">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <!-- Account Payment -->
+                                <div class="glassmorphism p-6 flex justify-between items-center cursor-pointer"
+                                    id="payment-method">
+                                    <span class="text-gray-300">Set Account Payment Method</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <hr>
+                <br>
+                <!-- Search Bar -->
+                <div class="relative mx-auto max-w-full mb-6">
+                    <input type="text" id="searchInput" placeholder="Search"
+                        class="w-full rounded-full bg-[#212121] px-4 py-3 text-white placeholder-gray-400 focus:outline-none">
+                    <button class="absolute right-4 top-1/2 -translate-y-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="text-white">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- User Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="userGrid">
+                    <!-- User Card Template (will be duplicated by JS) -->
+                    <div class="user-card bg-zinc-900 rounded-lg p-4 flex">
+                        <div class="w-24 h-24 bg-zinc-800 rounded-md flex-shrink-0"></div>
+                        <div class="ml-4 flex-grow">
+                            <h3 class="text-white text-lg">Name of User / ID</h3>
+                            <p class="text-white mb-1">location</p>
+                            <div class="flex items-center text-gray-400 text-sm mb-4">
+                                <span>12:30am</span>
+                                <span class="ml-2">July 20, 2023</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="bg-zinc-800 rounded-full px-4 py-1 text-white text-sm">
+                                    Accepted
+                                </div>
+                                <div class="text-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                        <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path>
+                                    </svg>
+                                    <span class="text-xs block text-center">Screeshot</span>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button class="w-full bg-zinc-800 text-white py-2 rounded-md">
+                                    Broadcasted
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- end of page -->
+            </div>
+            <!-- end of content -->
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // Base URL for API calls
+        const baseUrl = 'https://phluowise.azurewebsites.net';
+
+        // Sample user data
+        const users = [
+            { id: '1234', name: 'John Doe', location: 'New York' },
+            { id: '2345', name: 'Jane Smith', location: 'Los Angeles' },
+            { id: '3456', name: 'Robert Johnson', location: 'Chicago' },
+            { id: '4567', name: 'Emily Davis', location: 'Miami' },
+            { id: '5678', name: 'Michael Wilson', location: 'Seattle' },
+            { id: '6789', name: 'Sarah Brown', location: 'Boston' }
+        ];
+
+        // Function to create user cards
+        function createUserCards(usersToDisplay) {
+            const userGrid = document.getElementById('userGrid');
+            userGrid.innerHTML = '';
+
+            usersToDisplay.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card bg-[#212121] rounded-lg p-4 flex';
+                userCard.innerHTML = `
+                    <div class="w-24 h-24 bg-zinc-800 rounded-md flex justify-center items-center"> Image</div>
+                    <div class="ml-4 flex-grow gap-3  relative">
+                        <h3 class="text-white text-lg">${user.name} / ${user.id}</h3>
+                        <p class="text-white mb-1">${user.location}</p>
+                        <div class="flex items-center text-gray-400 text-sm mb-4">
+                            <span>12:30am</span>
+                            <span class="ml-2">July 20, 2023</span>
+                        </div>
+                        <div class="absolute top-4 right-4 flex flex-col items-center ">
+                                <div class="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
+                                    <img src="../images/location.svg" alt="">
+                                </div>
+                                <p class="text-white text-xs mt-1">Visit</p>
+                            </div>
+                        <div class="flex justify-between items-center">
+                            <div class="bg-gray-500 rounded-full px-4 py-1 text-white text-sm">
+                                Accepted
+                            </div>
+                           
+                        </div>
+                    </div>
+
+                    
+                `;
+                userGrid.appendChild(userCard);
+            });
+        }
+
+        // Initialize with all users
+        createUserCards(users);
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.trim() === '') {
+                createUserCards(users);
+            } else {
+                const filteredUsers = users.filter(user =>
+                    user.name.toLowerCase().includes(searchTerm) ||
+                    user.id.includes(searchTerm)
+                );
+                createUserCards(filteredUsers);
+            }
+        });
+    </script>
+
+    <script>
+        // Function to update countdown timer
+        function updateCountdown(time) {
+            document.getElementById('countdown').textContent =
+                `${time.hours}hrs : ${time.minutes}min : ${time.seconds}s`;
+
+            // Start countdown
+            if (!window.countdownInterval) {
+                window.countdownInterval = setInterval(() => {
+                    if (time.seconds > 0) {
+                        time.seconds--;
+                    } else {
+                        if (time.minutes > 0) {
+                            time.minutes--;
+                            time.seconds = 59;
+                        } else {
+                            if (time.hours > 0) {
+                                time.hours--;
+                                time.minutes = 59;
+                                time.seconds = 59;
+                            } else {
+                                clearInterval(window.countdownInterval);
+                                alert('Account will be disabled now!');
+                            }
+                        }
+                    }
+
+                    document.getElementById('countdown').textContent =
+                        `${time.hours}hrs : ${time.minutes}min : ${time.seconds}s`;
+                }, 1000);
+            }
+        }
+
+        // Event listeners for interactive elements
+        document.getElementById('pay-button').addEventListener('click', function () {
+            alert('Payment process initiated!');
+        });
+
+        // document.getElementById('payment-details').addEventListener('click', function () {
+        //     alert('Payment details will be shown here!');
+        // });
+
+        document.getElementById('payment-method').addEventListener('click', function () {
+            alert('Set your payment method here!');
+            window.location.href = 'payment_methods.html';
+        });
+
+        // Toggle switches - make them mutually exclusive for manual and auto
+        document.getElementById('auto-toggle').addEventListener('change', function () {
+            if (this.checked) {
+                document.getElementById('manual-toggle').checked = false;
+            }
+        });
+
+        document.getElementById('manual-toggle').addEventListener('change', function () {
+            if (this.checked) {
+                document.getElementById('auto-toggle').checked = false;
+            }
+        });        
+    </script>
+    <script>
+
+
+        // Add the withdrawal method indicator with payment details
+        async function setupWithdrawalMethodIndicator() {
+            // Get the withdrawal method element
+            const withdrawalMethodEl = document.querySelector('.glassmorphism.p-6.flex.justify-between.items-center:first-of-type');
+            if (!withdrawalMethodEl) return;
+
+            // Create the indicator container
+            const indicatorContainer = document.createElement('div');
+            indicatorContainer.className = 'flex items-center';
+
+            // Add loading state
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'h-3 w-3 bg-gray-500 rounded-full mr-2';
+            indicatorContainer.appendChild(loadingIndicator);
+
+            try {
+                // Get auth token
+                const authToken = localStorage.getItem('authToken');
+                if (!authToken) return;
+
+                // Fetch payment methods from backend
+                const response = await fetch(`${baseUrl}/api/payment-methods`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch payment methods');
+
+                const data = await response.json();
+                const paymentMethods = data.data || [];
+                const activeMethod = paymentMethods[0]; // Get the default/active payment method
+
+                if (!activeMethod) return; // No active payment method
+
+                // Remove loading indicator
+                indicatorContainer.removeChild(loadingIndicator);
+
+                // Create the blinking indicator element with animation
+                const indicator = document.createElement('div');
+                indicator.className = 'h-3 w-3 bg-green-500 rounded-full mr-2 animate-pulse';
+                indicator.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite';
+                indicatorContainer.appendChild(indicator);
+
+                // Create details container that will show on hover
+                const detailsContainer = document.createElement('div');
+                detailsContainer.className = 'payment-details hidden absolute bg-gray-800 p-3 rounded-lg shadow-lg z-10 text-sm mt-2 border border-gray-700';
+
+                // Add payment method details
+                let detailsHTML = '<div class="font-medium mb-1">Active Payment Method:</div>';
+
+                if (activeMethod.type === 'mobileMoney') {
+                    detailsHTML += `
+                        <div class="flex items-center mb-1">
+                            <span class="text-gray-400 mr-2">Type:</span>
+                            <span>Mobile Money (${activeMethod.network || 'N/A'})</span>
+                        </div>
+                        <div class="flex items-center mb-1">
+                            <span class="text-gray-400 mr-2">Name:</span>
+                            <span>${activeMethod.name || 'N/A'}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-400 mr-2">Number:</span>
+                            <span>${activeMethod.number || 'N/A'}</span>
+                        </div>`;
+                } else if (activeMethod.type === 'creditCard') {
+                    const lastFour = activeMethod.cardNumber ? activeMethod.cardNumber.slice(-4) : '••••';
+                    detailsHTML += `
+                        <div class="flex items-center mb-1">
+                            <span class="text-gray-400 mr-2">Type:</span>
+                            <span>${activeMethod.cardType || 'Credit'} Card</span>
+                        </div>
+                        <div class="flex items-center mb-1">
+                            <span class="text-gray-400 mr-2">Name:</span>
+                            <span>${activeMethod.name || 'N/A'}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-gray-400 mr-2">Card:</span>
+                            <span>•••• ${lastFour}</span>
+                        </div>`;
+                }
+
+                detailsContainer.innerHTML = detailsHTML;
+                indicatorContainer.appendChild(detailsContainer);
+
+                // Update the text to show active status
+                const textSpan = withdrawalMethodEl.querySelector('span');
+                if (textSpan) {
+                    textSpan.textContent = 'Withdrawal Method (Active)';
+                    textSpan.style.cursor = 'help';
+                }
+
+                // Add hover effects
+                indicatorContainer.addEventListener('mouseenter', () => {
+                    detailsContainer.classList.remove('hidden');
+                });
+
+                indicatorContainer.addEventListener('mouseleave', () => {
+                    detailsContainer.classList.add('hidden');
+                });
+
+                // Add animation styles if not already added
+                if (!document.getElementById('payment-indicator-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'payment-indicator-styles';
+                    style.textContent = `
+                        @keyframes pulse {
+                            0%, 100% { opacity: 1; }
+                            50% { opacity: 0.5; }
+                        }
+                        .payment-details {
+                            min-width: 200px;
+                        }
+                        .payment-details div {
+                            padding: 2px 0;
+                        }`;
+                    document.head.appendChild(style);
+                }
+            } catch (error) {
+                console.error('Error fetching payment methods:', error);
+                // Remove loading indicator on error
+                if (loadingIndicator.parentNode === indicatorContainer) {
+                    indicatorContainer.removeChild(loadingIndicator);
+                }
+                return;
+            }
+
+            // Create a details container that will show on hover
+            const detailsContainer = document.createElement('div');
+            detailsContainer.className = 'payment-details hidden absolute bg-gray-800 p-3 rounded-lg shadow-lg z-10 text-sm mt-2 border border-gray-700';
+
+            // Add payment method details
+            let detailsHTML = '<div class="font-medium mb-1">Active Payment Method:</div>';
+
+            if (activeMethod.type === 'mobileMoney') {
+                detailsHTML += `
+                    <div class="flex items-center mb-1">
+                        <span class="text-gray-400 mr-2">Type:</span>
+                        <span>Mobile Money (${activeMethod.network})</span>
+                    </div>
+                    <div class="flex items-center mb-1">
+                        <span class="text-gray-400 mr-2">Name:</span>
+                        <span>${activeMethod.name}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-400 mr-2">Number:</span>
+                        <span>${activeMethod.number}</span>
+                    </div>`;
+            } else if (activeMethod.type === 'creditCard') {
+                detailsHTML += `
+                    <div class="flex items-center mb-1">
+                        <span class="text-gray-400 mr-2">Type:</span>
+                        <span>${activeMethod.cardType} Card</span>
+                    </div>
+                    <div class="flex items-center mb-1">
+                        <span class="text-gray-400 mr-2">Name:</span>
+                        <span>${activeMethod.name}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-400 mr-2">Card:</span>
+                        <span>•••• ${activeMethod.cardNumber.slice(-4)}</span>
+                    </div>`;
+            }
+
+            detailsContainer.innerHTML = detailsHTML;
+            indicatorContainer.appendChild(indicator);
+            indicatorContainer.appendChild(detailsContainer);
+
+            // Insert before the toggle switch
+            const toggleSwitch = withdrawalMethodEl.querySelector('.toggle-switch');
+            withdrawalMethodEl.insertBefore(indicatorContainer, toggleSwitch);
+
+            // Update the text to include the indicator
+            const textSpan = withdrawalMethodEl.querySelector('span');
+            textSpan.textContent = 'Withdrawal Method (Active)';
+            textSpan.style.cursor = 'help';
+
+            // Add hover effects
+            indicatorContainer.addEventListener('mouseenter', () => {
+                detailsContainer.classList.remove('hidden');
+            });
+
+            indicatorContainer.addEventListener('mouseleave', () => {
+                detailsContainer.classList.add('hidden');
+            });
+
+            // Add animation styles
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                }
+                .payment-details {
+                    min-width: 200px;
+                }
+                .payment-details div {
+                    padding: 2px 0;
+                }`;
+            document.head.appendChild(style);
+        }
+
+        // Create a modal component
+        function createModal(title, message) {
+            // Create modal backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+
+            // Create modal content
+            const modal = document.createElement('div');
+            modal.className = 'glassmorphism p-6 rounded-lg max-w-md w-full';
+
+            modal.innerHTML = `
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-medium text-white">${title}</h3>
+      <button class="modal-close text-gray-400 hover:text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="text-gray-300">
+      ${message}
+    </div>
+    <div class="mt-6 flex justify-end">
+      <button class="modal-close bg-blue-700 hover:bg-blue-800 text-white py-2 px-4 rounded-md transition">
+        OK
+      </button>
+    </div>
+  `;
+
+            backdrop.appendChild(modal);
+            document.body.appendChild(backdrop);
+
+            // Add event listeners to close buttons
+            const closeButtons = backdrop.querySelectorAll('.modal-close');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    backdrop.remove();
+                });
+            });
+
+            return backdrop;
+        }
+
+        // Setup the toggle event listeners for withdrawal methods
+        function setupWithdrawalMethodToggles() {
+            // Auto toggle
+            document.getElementById('auto-toggle').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('manual-toggle').checked = false;
+                    createModal('Automatic Withdrawal', 'Withdrawal will automatically be processed.');
+                }
+            });
+
+            // Manual toggle
+            document.getElementById('manual-toggle').addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('auto-toggle').checked = false;
+                    createModal('Manual Withdrawal', 'By setting account to manual. You will have to confirm each transaction before withdrawal.');
+                }
+            });
+        }
+
+        // Initialize all new features
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load transaction data from JSON
+            loadTransactionData();
+
+            // Setup the withdrawal indicator
+            setupWithdrawalMethodIndicator();
+
+            // Setup withdrawal method toggles with modals
+            setupWithdrawalMethodToggles();
+
+            // Initialize the countdown (from existing code)
+            updateCountdown({ hours: 12, minutes: 24, seconds: 29 });
+
+            // Initialize user cards (from existing code)
+            createUserCards(users);
+        });
+    </script>
+
+    <!-- Subscription Integration Script -->
+    <script>
+        // Wait for subscription manager to be available
+        let subscriptionManager = null;
+        let countdownInterval = null;
+
+        function waitForSubscriptionManager() {
+            return new Promise((resolve) => {
+                const checkManager = setInterval(() => {
+                    if (window.subscriptionManager) {
+                        clearInterval(checkManager);
+                        subscriptionManager = window.subscriptionManager;
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+
+        async function initializeSubscriptionIntegration() {
+            try {
+                await waitForSubscriptionManager();
+                updateSubscriptionDisplay();
+                startSubscriptionCountdown();
+            } catch (error) {
+                console.error('Failed to initialize subscription integration:', error);
+            }
+        }
+
+        function updateSubscriptionDisplay() {
+            if (!subscriptionManager || !subscriptionManager.subscriptionData) return;
+
+            const data = subscriptionManager.subscriptionData;
+
+            // Update amount owing
+            const amountOwingElement = document.getElementById('amount-owing');
+            if (amountOwingElement) {
+                amountOwingElement.textContent = `GH₵ ${data.amountOwing.toFixed(2)}`;
+            }
+
+            // Update payment warning
+            const paymentWarningElement = document.getElementById('payment-warning');
+            if (paymentWarningElement && data.paymentDueDate) {
+                const now = new Date();
+                const dueDate = new Date(data.paymentDueDate);
+                const timeLeft = dueDate - now;
+
+                if (timeLeft > 0) {
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    paymentWarningElement.textContent = `${hours}hrs`;
+                } else {
+                    paymentWarningElement.textContent = 'OVERDUE';
+                }
+            }
+        }
+
+        function startSubscriptionCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+
+            countdownInterval = setInterval(() => {
+                if (!subscriptionManager || !subscriptionManager.subscriptionData) return;
+
+                const data = subscriptionManager.subscriptionData;
+
+                if (data.paymentDueDate) {
+                    const now = new Date();
+                    const dueDate = new Date(data.paymentDueDate);
+                    const timeLeft = dueDate - now;
+
+                    if (timeLeft <= 0) {
+                        // Payment overdue - show overdue message
+                        const countdownElement = document.getElementById('countdown');
+                        if (countdownElement) {
+                            countdownElement.innerHTML = '<span class="text-red-500 font-bold">PAYMENT OVERDUE</span>';
+                        }
+                        return;
+                    }
+
+                    // Calculate time remaining
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    // Update countdown display
+                    const countdownElement = document.getElementById('countdown');
+                    if (countdownElement) {
+                        countdownElement.innerHTML = `<span class="countdown-timer">${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</span>`;
+                    }
+                }
+            }, 1000);
+        }
+
+        async function handlePayment() {
+            if (subscriptionManager) {
+                await subscriptionManager.makePayment();
+            } else {
+                // Fallback payment flow
+                Swal.fire({
+                    title: 'Payment Required',
+                    text: 'Please visit the subscription page to make payment.',
+                    icon: 'info',
+                    confirmButtonText: 'Go to Subscription',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'subscription.html';
+                    }
+                });
+            }
+        }
+
+        // Initialize subscription integration when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait a bit for other scripts to load
+            setTimeout(() => {
+                initializeSubscriptionIntegration();
+            }, 1000);
+        });
+    </script>
+
+</body>
+
+</html>

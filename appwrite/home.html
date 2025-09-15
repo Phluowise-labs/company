@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon" />
+  <title>Home - Phluowise</title>
+
+  <!-- Tailwind + Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+    }
+
+    .glassmorphism {
+      background: #212121;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+
+<body class="bg-black text-white">
+  <div class="flex">
+    <!-- Sidebar -->
+    <div id="sidebar"></div>
+    <script>
+      fetch("sidebar.html")
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById("sidebar").innerHTML = html;
+          highlightActivePage();
+        });
+      function highlightActivePage() {
+        const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+        document.querySelectorAll(".menu-item").forEach(item => {
+          if (item.getAttribute("data-page") === currentPage) {
+            item.classList.add("text-blue-400", "font-bold");
+            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+          }
+        });
+      }
+    </script>
+
+    <!-- Main -->
+    <div class="ml-64 p-5 w-full text-white">
+      <div id="topbar"></div>
+      <script>
+        fetch("topbar.html")
+          .then(r => r.text())
+          .then(html => {
+            const container = document.getElementById("topbar");
+            container.innerHTML = html;
+            container.querySelectorAll("script").forEach(oldScript => {
+              const s = document.createElement("script");
+              if (oldScript.src) { s.src = oldScript.src; s.async = false; }
+              else { s.textContent = oldScript.textContent; }
+              document.body.appendChild(s);
+            });
+          });
+      </script>
+
+      <div class="container mx-auto p-4 pt-20">
+        <div id="dashboard-content" class="glassmorphism p-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/authManager.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
+
+
+
+</body>
+
+</html>

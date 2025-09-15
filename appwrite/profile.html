@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon" />
+  <title>Profile Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Add Alpine.js (if not already included) -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Appwrite SDK -->
+  <script type="module" src="profile.js"></script>
+
+  <script>
+    // const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+    // if (!isLoggedIn) {
+    //   window.location.href = "user-signin.html"; // Redirect to login if not authenticated
+    // }
+  </script>
+</head>
+
+<body class="bg-black text-white">
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+    }
+  </style>
+  <div class="flex">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <script>
+        fetch("sidebar.html")
+          .then((response) => response.text())
+          .then((data) => {
+            document.getElementById("sidebar").innerHTML = data;
+            highlightActivePage();
+          });
+
+        function highlightActivePage() {
+          const currentPage = window.location.pathname
+            .split("/")
+            .pop()
+            .replace(".html", "")
+            .toLowerCase();
+
+          document.querySelectorAll(".menu-item").forEach((item) => {
+            const page = item.getAttribute("data-page");
+            if (page === currentPage) {
+              item.classList.add("text-blue-400", "font-bold");
+              item
+                .querySelector(".selection-indicator")
+                ?.classList.remove("hidden");
+            }
+          });
+        }
+      </script>
+    </div>
+    <!-- Main Content -->
+    <div class="ml-64 p-5 w-full text-white">
+      <!-- Top Bar -->
+      <div id="topbar"></div>
+
+      <script>
+        fetch("topbar.html")
+          .then((r) => r.text())
+          .then((html) => {
+            const container = document.getElementById("topbar");
+            container.innerHTML = html;
+
+            // Execute scripts found in the injected markup
+            container.querySelectorAll("script").forEach((oldScript) => {
+              const s = document.createElement("script");
+              if (oldScript.src) {
+                s.src = oldScript.src;
+                // ✅ ensure predictable execution
+                s.async = false;
+              } else {
+                s.textContent = oldScript.textContent;
+              }
+              document.body.appendChild(s);
+            });
+          });
+      </script>
+
+
+      <!-- Content -->
+      <form class="space-y-4 mt-10 w-full">
+        <div class="mx-auto">
+          <div class="p-6" x-data="{ headerPreview: '', profilePreview: '', previewImage(event, type) { 
+                                const file = event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => {
+                                        this[type] = e.target.result;
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            } 
+                        }">
+            <div class="flex items-center justify-between w-full max-w-6xl p-4">
+              <!-- Profile Container -->
+              <div class="relative flex-grow bg-[#212121] rounded-2xl h-48 border border-gray-600 pb-12">
+                <!-- Header Image Upload -->
+                <label for="header-upload" class="absolute inset-0 cursor-pointer">
+                  <input type="file" id="header-upload" class="hidden"
+                    @change="previewImage($event, 'headerPreview')" />
+                  <div class="w-full h-full">
+                    <template x-if="headerPreview">
+                      <img :src="headerPreview" class="w-full h-full object-cover" />
+                    </template>
+                    <div x-show="!headerPreview"
+                      class="w-full h-full flex items-center justify-center text-gray-400 bg-gray-800 bg-opacity-50 hover:bg-opacity-30 transition">
+                      Click to Upload Header
+                    </div>
+                  </div>
+                </label>
+
+                <!-- Profile Image (Overlapping Box) -->
+                <div
+                  class="absolute left-6 bottom-[-20px] w-24 h-24 border-4 border-gray-600 bg-[#1D1D1D80] rounded-lg shadow-lg overflow-hidden">
+                  <label for="profile-upload" class="absolute inset-0 cursor-pointer">
+                    <input type="file" id="profile-upload" class="hidden"
+                      @change="previewImage($event, 'profilePreview')" />
+                    <template x-if="profilePreview">
+                      <img :src="profilePreview" class="w-full h-full object-cover" />
+                    </template>
+                    <div x-show="!profilePreview"
+                      class="w-full h-full flex items-center justify-center text-gray-400 bg-gray-800 bg-opacity-50 hover:bg-opacity-30 transition">
+                      Logo
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Buttons -->
+              <div class="flex flex-col space-y-2 ml-4">
+                <!-- <button class="bg-[#007ACC66] text-white py-2 px-4 rounded-lg w-20">Edit</button> -->
+                <button type="submit" class="bg-[#007ACC66] text-white py-2 px-4 rounded-lg w-20">
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Fields -->
+
+          <div class="mb-6">
+            <label class="block text-md font-bold mb-2" for="company-name">Name of your Company</label>
+            <input
+              class="w-full p-3 bg-[#F5F5F51A] border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="text" id="company-name" name="company-name" />
+          </div>
+          <div class="mb-6">
+            <label class="block text-md font-bold mb-2" for="description">Description</label>
+            <textarea
+              class="w-full p-3 bg-[#F5F5F51A] border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="description" rows="4" name="description"></textarea>
+          </div>
+          <div class="mb-6">
+            <label class="block text-md font-bold mb-2" for="location">Location</label>
+            <input
+              class="w-full p-3 bg-[#F5F5F51A] border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="text" id="location" name="location" />
+          </div>
+          <div class="mb-6">
+            <label class="block text-md font-bold mb-2" for="email">Email</label>
+            <input
+              class="w-full p-3 bg-[#F5F5F51A] border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="text" id="email" name="email" />
+          </div>
+          <div class="mb-6">
+            <label class="block text-md font-bold mb-2" for="phone">
+              Phone Number
+            </label>
+            <input
+              class="w-full p-3 bg-[#F5F5F51A] border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="tel" id="phone" name="phone" inputmode="numeric" pattern="[0-9]+" title="Please enter numbers only"
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')" 0 />
+          </div>
+          <div class="mb-6">
+            <label class="block text-md font-medium mb-2" for="website">Website</label>
+            <input
+              class="w-full p-3 bg-[#F5F5F51A] border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="text" id="website" name="website" />
+          </div>
+
+          <!-- Social Media Form -->
+
+          <div class="max-w-3/4 p-4" x-data="{ showForm: false }">
+            <!-- Header with Toggle -->
+            <div class="flex items-center justify-between mb-4">
+              <h1 class="text-md font-semibold">Social Media</h1>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" @change="showForm = !showForm" class="sr-only peer" />
+                <div
+                  class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+                </div>
+              </label>
+            </div>
+
+            <div x-show="showForm" x-transition.duration.300ms
+              class="mb-6 bg-black p-4 rounded-lg border border-gray-700">
+              <div>
+                <label class="block mb-1 text-white">Whatsapp</label>
+                <input type="text" name="Whatsapp"
+                  class="w-full  p-2 bg-[#F5F5F51A] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block mb-1 text-white">Twitter / X </label>
+                <input type="text" name="Twitter"
+                  class="w-full p-2 bg-[#F5F5F51A] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block mb-1 text-white">Facebook</label>
+                <input type="text" name="Facebook"
+                  class="w-full p-2 bg-[#F5F5F51A] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block mb-1 text-white">LinkedIn</label>
+                <input type="text" name="LinkedIn"
+                  class="w-full p-2 bg-[#F5F5F51A] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block mb-1 text-white">Instagram</label>
+                <input type="text" name="Instagram"
+                  class="w-full p-2 bg-[#F5F5F51A] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label class="block mb-1 text-white">Discord</label>
+                <input type="text" name="Discord"
+                  class="w-full p-2 bg-[#F5F5F51A] border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Include Alpine.js -->
+          <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+          <div class="mb-6 bg-[#40444B80] rounded-xl p-6" x-data="{ 
+                selectedDay: '', 
+                workingDays: [], 
+                globalOpen: '', 
+                globalClose: '', 
+                addDay() {
+                    if (this.selectedDay && !this.workingDays.find(d => d.day === this.selectedDay)) {
+                        this.workingDays.push({ day: this.selectedDay, open: '', close: '' });
+                        this.selectedDay = '';
+                    }
+                },
+                setAllTimes() {
+                    this.workingDays.forEach(d => {
+                        d.open = this.globalOpen;
+                        d.close = this.globalClose;
+                    });
+                }
+              }" x-init="workingDays = []">
+            <!-- Select Day + Add Button -->
+            <div class="flex items-center mb-4 text-gray-300 space-x-2">
+              <select x-model="selectedDay" class="w-3/4 bg-gray-800 border border-gray-700 rounded px-4 py-2">
+                <option value="">Select working days with time</option>
+                <option>Sunday</option>
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+                <option>Saturday</option>
+              </select>
+
+              <button class="bg-[#007ACC99] text-white px-4 py-2 rounded hover:bg-[#007accbb] transition"
+                @click.prevent="addDay()">
+                Add
+              </button>
+            </div>
+
+            <!-- Global Time Set -->
+            <div class="flex items-center gap-4 mb-6 text-gray-200">
+              <label class="flex items-center gap-2">
+                <span class="text-sm">Open All:</span>
+                <input type="time" x-model="globalOpen"
+                  class="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600" />
+              </label>
+              <label class="flex items-center gap-2">
+                <span class="text-sm">Close All:</span>
+                <input type="time" x-model="globalClose"
+                  class="bg-gray-700 text-white px-2 py-1 rounded border border-gray-600" />
+              </label>
+              <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
+                @click.prevent="setAllTimes()">
+                Set for All Days
+              </button>
+            </div>
+
+            <!-- Working Days List -->
+            <div class="flex flex-col gap-4">
+              <template x-for="(entry, index) in workingDays" :key="entry.day">
+                <div class="flex flex-wrap items-center bg-[#007ACC33] text-white p-4 rounded justify-between gap-4">
+                  <!-- Day Label + Remove -->
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold" x-text="entry.day"></span>
+                    <button @click.prevent="workingDays.splice(index, 1)" class="text-white hover:text-red-400">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+
+                  <!-- Per-Day Time Inputs -->
+                  <div class="flex items-center gap-4">
+                    <label class="flex items-center gap-2">
+                      <span class="text-sm">Open:</span>
+                      <input type="time" x-model="entry.open"
+                        class="bg-[#007ACC99] text-white px-2 py-1 rounded border border-gray-600" />
+                    </label>
+                    <label class="flex items-center gap-2">
+                      <span class="text-sm">Close:</span>
+                      <input type="time" x-model="entry.close"
+                        class="bg-[#007ACC99] text-white px-2 py-1 rounded border border-gray-600" />
+                    </label>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex flex-col space-y-2 ">
+          <!-- <button class="bg-[#007ACC66] text-white py-2 px-4 rounded-lg w-20">Edit</button> -->
+          <button type="submit" class="bg-[#007ACC66] text-white py-2 px-4 rounded-lg ">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    // Pre-populate all profile fields and images if data exists in localStorage
+    document.addEventListener('DOMContentLoaded', function () {
+      const data = JSON.parse(localStorage.getItem('companyProfile')) || {};
+      if (data.companyName) document.getElementById('company-name').value = data.companyName;
+      if (data.description) document.getElementById('description').value = data.description;
+      if (data.location) document.getElementById('location').value = data.location;
+      if (data.website) document.getElementById('website').value = data.website;
+      // Social handles (assume input fields with ids like social-facebook, social-twitter, etc)
+      if (data.socialMedia && typeof data.socialMedia === 'object') {
+        Object.entries(data.socialMedia).forEach(([key, value]) => {
+          const el = document.getElementById('social-' + key.toLowerCase());
+          if (el) el.value = value;
+        });
+      }
+      // Working days (assume UI with checkboxes/inputs for each day)
+      if (Array.isArray(data.workingDays)) {
+        data.workingDays.forEach(dayObj => {
+          if (dayObj.day) {
+            // Checkbox for day
+            const dayCheckbox = document.getElementById('workday-' + dayObj.day.toLowerCase());
+            if (dayCheckbox) dayCheckbox.checked = true;
+            // Open/close time inputs
+            const openInput = document.getElementById('open-' + dayObj.day.toLowerCase());
+            const closeInput = document.getElementById('close-' + dayObj.day.toLowerCase());
+            if (openInput) openInput.value = dayObj.open;
+            if (closeInput) closeInput.value = dayObj.close;
+          }
+        });
+      }
+      // Show image previews if available
+      if (data.headerImage) {
+        // Try to trigger Alpine.js preview if present
+        if (window.Alpine && Alpine.store && typeof Alpine.store === 'function') {
+          try { Alpine.store('headerPreview', data.headerImage); } catch (e) { }
+        }
+        // Fallback: set preview image src if found
+        const headerImg = document.querySelector('[x-data] [x-if=headerPreview] img, [x-data] img[alt="Header Preview"]');
+        if (headerImg) headerImg.src = data.headerImage;
+        // Fallback: set background if preview uses background-image
+      }
+      if (data.profileImage) {
+        if (window.Alpine && Alpine.store && typeof Alpine.store === 'function') {
+          try { Alpine.store('profilePreview', data.profileImage); } catch (e) { }
+        }
+        const profileImg = document.querySelector('[x-data] [x-if=profilePreview] img, [x-data] img[alt="Profile Preview"]');
+        if (profileImg) profileImg.src = data.profileImage;
+      }
+    });
+  </script>
+
+</body>
+
+</html>

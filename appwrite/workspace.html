@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon" />
+  <title>Workspace Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Optional: if you have a separate workspace.js, keep this. The page also works without it. -->
+  <!-- <script src="workspace.js"></script> -->
+
+  <style>
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    /* Card hover effects */
+    .card-hover {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+  </style>
+
+  <script>
+    // // Auth gate
+    // const isLoggedIn = localStorage.getItem("authToken");
+    // const loggedInCompany = localStorage.getItem("loggedInCompany");
+    // if (!isLoggedIn || !loggedInCompany) {
+    //   window.location.href = "user-signin.html";
+    // }
+  </script>
+</head>
+
+<body class="bg-black text-white" style="font-family: 'Inter', sans-serif;">
+  <div class="flex">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="w-64 h-screen p-4 pr-0 flex-col bg-[#212121] flex fixed">
+        <div class="text-center mb-8">
+          <img src="../images/phluowise_logo.svg" alt="Phluowise Logo" />
+        </div>
+        <div class="space-y-8 text-white">
+          <div>
+            <h2 class="text-gray-500 text-xs mb-2">OVERVIEW</h2>
+            <ul class="space-y-4">
+              <li>
+                <a href="account.html" class="flex items-center space-x-2 text-white hover:text-blue-400">
+                  <img src="../images/home.svg" alt="Home" />
+                  <span>Home</span>
+                </a>
+              </li>
+              <li class="relative">
+                <a href="#" class="menu-item flex items-center space-x-2 text-blue-500 hover:text-blue-400">
+                  <img src="../images/carbon_workspace.svg" alt="Workspace" />
+                  <span>Workspace</span>
+                </a>
+                <div
+                  class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm">
+                </div>
+              </li>
+              <li>
+                <a href="#" class="flex items-center space-x-2 text-gray-400 hover:text-blue-400">
+                  <img src="../images/arcticons_game-plugins.svg" alt="Plugins" />
+                  <span>Plugins</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="flex items-center space-x-2 text-gray-400 hover:text-blue-400">
+                  <img src="../images/fluent_people-community-24-regular.svg" alt="Community" />
+                  <span>Community</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <footer class="mt-auto">
+          <div class="text-blue-600">
+            <p class="text-sm">This is a Beta version (1.0.00)</p>
+          </div>
+          <div class="mt-2">
+            <a href="#" class="text-gray-400 text-sm hover:text-blue-400 underline">
+              Learn more about Phluowise
+            </a>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 p-5 w-full text-white">
+      <!-- Top Bar -->
+      <div id="topbar"></div>
+      <script>
+        fetch("topbar.html")
+          .then(r => r.text())
+          .then(html => {
+            const container = document.getElementById("topbar");
+            container.innerHTML = html;
+            container.querySelectorAll("script").forEach(oldScript => {
+              const s = document.createElement("script");
+              if (oldScript.src) { s.src = oldScript.src; s.async = false; }
+              else { s.textContent = oldScript.textContent; }
+              document.body.appendChild(s);
+            });
+          });
+      </script>
+
+      <!-- Main Content Area -->
+      <div class="container mx-auto p-4">
+        <!-- Dashboard Header -->
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold">Dashboard Overview</h1>
+          <div class="text-sm text-gray-400">
+            <span id="lastUpdated">Last updated: Just now</span>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <!-- Total Branches Card -->
+          <div onclick="openDialog('branchesDialog')"
+            class="cursor-pointer bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-6 text-white card-hover">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm font-medium text-blue-100">Total Branches</p>
+                <h3 id="totalBranches" class="text-3xl font-bold mt-1">0</h3>
+                <p class="text-xs text-blue-200 mt-2">
+                  <span class="font-semibold" id="activeBranches">0</span> active
+                </p>
+                <p class="text-xs text-blue-200 mt-1">
+                  <span class="font-semibold" id="inactiveBranches">0</span> inactive
+                </p>
+              </div>
+              <div class="bg-blue-500/20 p-3 rounded-lg">
+                <i class="fas fa-code-branch text-xl"></i>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Active Orders Card -->
+          <div onclick="openDialog('ordersDialog')"
+            class="cursor-pointer bg-gradient-to-br from-green-600 to-green-800 rounded-xl p-6 text-white card-hover">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm font-medium text-green-100">Active Orders</p>
+                <h3 id="activeOrders" class="text-3xl font-bold mt-1">0</h3>
+                <p class="text-xs text-green-200 mt-2">
+                  <span class="font-semibold" id="ordersChange">0%</span> from yesterday
+                </p>
+              </div>
+              <div class="bg-green-500/20 p-3 rounded-lg">
+                <i class="fas fa-shopping-cart text-xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Revenue Card -->
+          <div onclick="openDialog('revenueDialog')"
+            class="cursor-pointer bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl p-6 text-white card-hover">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm font-medium text-purple-100">Total Revenue</p>
+                <h3 id="totalRevenue" class="text-3xl font-bold mt-1">₵0</h3>
+                <p class="text-xs text-purple-200 mt-2">
+                  <span class="font-semibold" id="revenueChange">0%</span> from last month
+                </p>
+              </div>
+              <div class="bg-purple-500/20 p-3 rounded-lg">
+                <i class="fas fa-chart-line text-xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer Satisfaction -->
+          <div onclick="openDialog('satisfactionDialog')"
+            class="cursor-pointer bg-gradient-to-br from-amber-600 to-amber-800 rounded-xl p-6 text-white card-hover">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm font-medium text-amber-100">Satisfaction</p>
+                <h3 id="satisfactionScore" class="text-3xl font-bold mt-1">0%</h3>
+                <p class="text-xs text-amber-200 mt-2">
+                  <span class="font-semibold" id="satisfactionChange">0%</span> from last month
+                </p>
+              </div>
+              <div class="bg-amber-500/20 p-3 rounded-lg">
+                <i class="fas fa-star text-xl"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ---------------- MODALS ---------------- -->
+        <!-- Branches Dialog -->
+        <div id="branchesDialog" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          onclick="overlayClose(event, 'branchesDialog')">
+          <div class="bg-white rounded-xl p-6 max-w-sm w-full text-black relative animate-fade-in"
+            onclick="event.stopPropagation()">
+            <button onclick="closeDialog('branchesDialog')"
+              class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">✖</button>
+            <h2 class="text-lg font-semibold mb-2">Total Branches</h2>
+            <p class="text-sm text-gray-700">This shows the total number of branches your company currently operates.
+              The count updates automatically as you add or remove branches.</p>
+          </div>
+        </div>
+
+        <!-- Orders Dialog -->
+        <div id="ordersDialog" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          onclick="overlayClose(event, 'ordersDialog')">
+          <div class="bg-white rounded-xl p-6 max-w-sm w-full text-black relative animate-fade-in"
+            onclick="event.stopPropagation()">
+            <button onclick="closeDialog('ordersDialog')"
+              class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">✖</button>
+            <h2 class="text-lg font-semibold mb-2">Active Orders</h2>
+            <p class="text-sm text-gray-700">This shows how many customer orders are being processed right now. The
+              percentage compares it with yesterday’s total.</p>
+          </div>
+        </div>
+
+        <!-- Revenue Dialog -->
+        <div id="revenueDialog" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          onclick="overlayClose(event, 'revenueDialog')">
+          <div class="bg-white rounded-xl p-6 max-w-sm w-full text-black relative animate-fade-in"
+            onclick="event.stopPropagation()">
+            <button onclick="closeDialog('revenueDialog')"
+              class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">✖</button>
+            <h2 class="text-lg font-semibold mb-2">Total Revenue</h2>
+            <p class="text-sm text-gray-700">This represents how much money your company has earned in the selected
+              period. The percentage compares this revenue with the previous month.</p>
+          </div>
+        </div>
+
+        <!-- Satisfaction Dialog -->
+        <div id="satisfactionDialog" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          onclick="overlayClose(event, 'satisfactionDialog')">
+          <div class="bg-white rounded-xl p-6 max-w-sm w-full text-black relative animate-fade-in"
+            onclick="event.stopPropagation()">
+            <button onclick="closeDialog('satisfactionDialog')"
+              class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">✖</button>
+            <h2 class="text-lg font-semibold mb-2">Customer Satisfaction</h2>
+            <p class="text-sm text-gray-700">This measures how satisfied your customers are with your services. The
+              percentage shows how it has changed compared to last month.</p>
+          </div>
+        </div>
+
+        <!-- ---------------- MODAL SCRIPT ---------------- -->
+        <script>
+          function openDialog(id) {
+            document.getElementById(id).classList.remove("hidden");
+          }
+          function closeDialog(id) {
+            document.getElementById(id).classList.add("hidden");
+          }
+          function overlayClose(e, id) {
+            // clicking the dark overlay closes the dialog
+            if (e.currentTarget === e.target) closeDialog(id);
+          }
+        </script>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+          <!-- Left Column: Company + Branches -->
+          <div class="lg:col-span-1 space-y-6">
+            <!-- Branches List -->
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium">Your Branches</h3>
+                <span class="text-gray-500 text-sm cursor-not-allowed" title="Branch management is disabled here">View
+                  All</span>
+              </div>
+              <div id="branchesList" class="space-y-2">
+                <div class="text-center py-4 text-gray-400">Loading branches...</div>
+              </div>
+            </div>
+
+
+
+
+          </div>
+
+          <!-- Right Column: Branch Performance -->
+          <div class="lg:col-span-2">
+            <div class="bg-white/10 border border-white/20 rounded-2xl p-6 shadow-lg">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="font-semibold">Branch Performance</h3>
+                <div class="flex space-x-2">
+                  <button id="refreshBtn" class="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    title="Refresh Data">
+                    <i class="fas fa-sync-alt text-sm"></i>
+                  </button>
+                  <select id="timeRange"
+                    class="bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last Quarter</option>
+                    <option value="365">Last Year</option>
+                  </select>
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <thead>
+                    <tr class="text-left text-sm text-gray-400 border-b border-white/10">
+                      <th class="pb-3 font-medium">Branch</th>
+                      <th class="pb-3 font-medium">Revenue</th>
+                      <th class="pb-3 font-medium">Rating</th>
+                      <th class="pb-3 font-medium">Change</th>
+                      <th class="pb-3 font-medium text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="branchPerformanceBody" class="divide-y divide-white/5">
+                    <tr>
+                      <td colspan="5" class="py-4 text-center text-gray-500">
+                        <i class="fas fa-spinner fa-spin mr-2"></i> Loading branch data...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====== DATA SCRIPT: Fetch + Render ====== -->
+        <script>
+          // Enable admin "view as branch" mode and navigate into branch UI
+          window.viewBranchAsAdmin = function (id, name) {
+            try {
+              if (id) {
+                localStorage.setItem("impersonateBranchId", String(id));
+              }
+              if (name) {
+                localStorage.setItem("impersonateBranchName", String(name));
+              }
+              localStorage.setItem("impersonateMode", "admin");
+              const params = new URLSearchParams();
+              if (id) params.set("branchId", String(id));
+              params.set("as", "admin");
+              window.location.href = `account.html?${params.toString()}`;
+            } catch (e) {
+              console.error("Failed to set impersonation:", e);
+              window.location.href = "account.html";
+            }
+          };
+
+          // Appwrite configuration
+          const session = {
+            async getCompany() {
+              try {
+                const { account } = await import('./js/config.js');
+                const user = await account.get();
+                return user ? { id: user.$id, name: user.name, email: user.email } : null;
+              } catch { return null; }
+            },
+            async getBranch() {
+              try {
+                const { account, databases, DB_ID, BRANCH_COLL, Appwrite } = await import('./js/config.js');
+                const user = await account.get();
+                const result = await databases.listDocuments(
+                  DB_ID,
+                  BRANCH_COLL,
+                  [Appwrite.Query.equal("company_id", user.$id)]
+                );
+                return result.documents.length > 0 ? result.documents[0] : null;
+              } catch { return null; }
+            }
+          };
+
+          const utils = {
+            getAuthHeaders() {
+              const token = localStorage.getItem("authToken");
+              return {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              };
+            },
+            fmtMoney(num) {
+              if (typeof num !== "number" || Number.isNaN(num)) return "₵0";
+              return "₵" + num.toLocaleString();
+            },
+            fmtPct(num) {
+              if (typeof num !== "number" || Number.isNaN(num)) return "0%";
+              return `${num > 0 ? "+" : ""}${num.toFixed(0)}%`;
+            },
+            safeGet(obj, ...keys) {
+              return keys.reduce((acc, k) => (acc && acc[k] != null ? acc[k] : null), obj);
+            },
+          };
+
+          // ------- API: Company Profile (APPWRITE) -------
+          async function fetchCompanyProfile() {
+            try {
+              const { account, databases, DB_ID, BRANCH_COLL, Appwrite } = await import('./js/config.js');
+              const user = await account.get();
+              const companyId = user.$id;
+
+              // Get the main branch (admin branch) for company profile
+              const result = await databases.listDocuments(
+                DB_ID,
+                BRANCH_COLL,
+                [Appwrite.Query.equal("company_id", companyId), Appwrite.Query.equal("branch_type", "admin")]
+              );
+
+              if (result.documents.length > 0) {
+                const branch = result.documents[0];
+                return {
+                  companyName: branch.branch_name || "Unknown Company",
+                  description: branch.description || "No description available",
+                  profileImage: branch.profile_image || "",
+                  email: branch.email || "",
+                  location: branch.location || "",
+                  phoneNumber: branch.phone_number || "",
+                  website: branch.website || ""
+                };
+              }
+
+              return null;
+            } catch (err) {
+              console.error("Profile error:", err);
+              return null;
+            }
+          }
+
+          // ------- API: Branches (APPWRITE) -------
+          async function fetchBranches() {
+            try {
+              const { account, databases, DB_ID, BRANCH_COLL, Appwrite } = await import('./js/config.js');
+              const user = await account.get();
+              const companyId = user.$id;
+
+              const result = await databases.listDocuments(
+                DB_ID,
+                BRANCH_COLL,
+                [Appwrite.Query.equal("company_id", companyId)]
+              );
+
+              return result.documents.map(branch => ({
+                name: branch.branch_name || "",
+                branchName: branch.branch_name || "",
+                branchLocation: branch.location || "",
+                branchCode: branch.branch_code || "",
+                status: branch.is_active ? "active" : "inactive",
+                isActive: branch.is_active || false,
+                active: branch.is_active || false,
+                branchStatus: branch.is_active ? "active" : "inactive",
+                activeStatus: branch.is_active ? "active" : "inactive"
+              }));
+            } catch (err) {
+              console.error("Fetch branches error:", err);
+              return [];
+            }
+          }
+
+          // ------- Render Helpers -------
+          function renderCompanyCard(companyData) {
+            const box = document.getElementById("companyInfo");
+            if (!box) return;
+            if (!companyData) {
+              box.innerHTML = `<p class="text-sm text-red-300">Could not load company info.</p>`;
+              return;
+            }
+            const name = companyData.companyName || "Your Company";
+            const desc = companyData.description || "No description provided yet.";
+            const location = companyData.companyLocation || "—";
+            const phone = companyData.CompanyPhoneNumber || "—";
+            const website = companyData.website || "—";
+            box.innerHTML = `
+                <div class="w-full animate-fade-in">
+                  <h4 class="text-xl font-semibold">${name}</h4>
+                  <p class="text-sm text-gray-300 mt-1">${desc}</p>
+                  <div class="grid grid-cols-2 gap-3 mt-4 text-sm">
+                    <div class="bg-white/5 rounded-lg p-3">
+                      <div class="text-gray-400">Location</div>
+                      <div class="font-medium">${location}</div>
+                    </div>
+                    <div class="bg-white/5 rounded-lg p-3">
+                      <div class="text-gray-400">Phone</div>
+                      <div class="font-medium">${phone}</div>
+                    </div>
+                    <div class="bg-white/5 rounded-lg p-3 col-span-2">
+                      <div class="text-gray-400">Website</div>
+                      <div class="font-medium break-all">${website}</div>
+                    </div>
+                  </div>
+                </div>`;
+          }
+
+          async function renderBranchesSections(branches) {
+            const list = document.getElementById("branchesList");
+            const dropdown = document.getElementById("branchesDropdownList");
+            const totalBranchesEl = document.getElementById("totalBranches");
+            const branch = await session.getBranch();
+            const isBranchRole = !!branch;
+
+            const branchCount = Array.isArray(branches) ? branches.length : 0;
+            const resolveStatus = (b) => {
+              const raw = (b?.status ?? b?.branchStatus ?? b?.activeStatus ?? "")
+                .toString()
+                .trim()
+                .toLowerCase();
+              const isInactiveBool = b?.isActive === false || b?.active === false;
+              const isActiveBool = b?.isActive === true || b?.active === true;
+              if (isInactiveBool) return "inactive";
+              if (isActiveBool) return "active";
+              if (["inactive", "disabled", "suspended", "closed"].includes(raw)) return "inactive";
+              if (["active", "enabled", "open"].includes(raw)) return "active";
+              // Default to active when status is not provided by API
+              return "active";
+            };
+
+            const activeCount = Array.isArray(branches)
+              ? branches.filter((b) => resolveStatus(b) === "active").length
+              : 0;
+            const inactiveCount = Math.max(0, branchCount - activeCount);
+
+
+            if (totalBranchesEl) {
+              totalBranchesEl.textContent = `${branchCount}`;
+            }
+
+            // Update active/inactive counters if present
+            const activeBranchesEl = document.getElementById("activeBranches");
+            if (activeBranchesEl) activeBranchesEl.textContent = String(activeCount);
+            const inactiveBranchesEl = document.getElementById("inactiveBranches");
+            if (inactiveBranchesEl) inactiveBranchesEl.textContent = String(inactiveCount);
+
+            // List
+            if (!list) return;
+            if (!branches || branches.length === 0) {
+              list.innerHTML = `<div class="text-center py-4 text-gray-500">No branches yet.</div>`;
+            } else {
+              list.innerHTML = branches
+                .map((b) => {
+                  const name = b.name || b.branchName || "Branch";
+                  const loc = b.location || b.address || b.city || "";
+                  const status = resolveStatus(b);
+                  return `
+                      <div class="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
+                        <div>
+                          <div class="font-medium">${name}</div>
+                          <div class="text-xs text-gray-400">${loc}</div>
+                        </div>
+                        <span class="text-xs px-2 py-0.5 rounded-full ${status === 'active' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                      </div>`;
+                })
+                .join("");
+            }
+
+            // Dropdown list
+            if (!dropdown) return;
+            if (!branches || branches.length === 0) {
+              dropdown.innerHTML = `<div class="text-center py-4 text-gray-500">No branches to show.</div>`;
+            } else {
+              dropdown.innerHTML = branches
+                .map((b) => {
+                  const name = b.name || b.branchName || "Branch";
+                  // Admin can see names but not click branches management; keep non-interactive here
+                  return `
+                      <div class="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2 ${isBranchRole ? '' : 'cursor-default'}">
+                        <span>${name}</span>
+                      </div>`;
+                })
+                .join("");
+            }
+          }
+
+          async function renderPerformance(branches) {
+            const tbody = document.getElementById("branchPerformanceBody");
+            if (!tbody) return;
+            const branch = await session.getBranch();
+            const isBranchRole = !!branch;
+
+            if (!branches || branches.length === 0) {
+              tbody.innerHTML = `
+                  <tr>
+                    <td colspan="5" class="py-4 text-center text-gray-500">No branch data yet.</td>
+                  </tr>`;
+              return;
+            }
+
+            // Build rows. Use branch fields when present; otherwise dummy values.
+            const rows = branches.map((b) => {
+              const name = b.name || b.branchName || "Branch";
+              const revenue = typeof b.revenue === "number" ? b.revenue : Math.floor(Math.random() * 50000) + 5000;
+              const rating = typeof b.rating === "number" ? b.rating : (Math.random() * 1.2 + 3.8).toFixed(1); // 3.8 - 5.0
+              const change = typeof b.change === "number" ? b.change : (Math.random() * 20 - 10); // -10% to +10%
+              const id = b.id || b.branchId || b.branchID || "";
+
+              return `
+                  <tr class="text-sm">
+                    <td class="py-3">${name}</td>
+                    <td class="py-3">${utils.fmtMoney(revenue)}</td>
+                    <td class="py-3">${rating}</td>
+                    <td class="py-3">
+                      <span class="${change >= 0 ? 'text-green-300' : 'text-red-300'}">
+                        ${utils.fmtPct(change)}
+                      </span>
+                    </td>
+                    <td class="py-3 text-right">
+                      ${isBranchRole ? '<span class="text-gray-500">—</span>' : `<a href="#" onclick="window.viewBranchAsAdmin('${id}','${name.replace(/'/g, "&#39;")}'); return false;" class="text-blue-400 hover:text-blue-300">View</a>`}
+                    </td>
+                  </tr>`;
+            });
+
+            tbody.innerHTML = rows.join("");
+          }
+
+          // Summary cards aggregations (best-effort from available data)
+          function updateSummaryFromBranches(branches) {
+            const ordersEl = document.getElementById("activeOrders");
+            const ordersChangeEl = document.getElementById("ordersChange");
+            const revenueEl = document.getElementById("totalRevenue");
+            const revenueChangeEl = document.getElementById("revenueChange");
+            const satisfactionEl = document.getElementById("satisfactionScore");
+            const satisfactionChangeEl = document.getElementById("satisfactionChange");
+
+            // Try to aggregate; fall back to 0
+            const totals = branches.reduce(
+              (acc, b) => {
+                acc.orders += Number(b.activeOrders || 0);
+                acc.revenue += Number(b.revenue || 0);
+                acc.ratingSum += Number(b.rating || 0);
+                acc.ratingCount += b.rating != null ? 1 : 0;
+                // optional period deltas if present
+                acc.ordersDelta += Number(b.ordersDelta || 0);
+                acc.revenueDelta += Number(b.revenueDelta || 0);
+                acc.satisfactionDelta += Number(b.satisfactionDelta || 0);
+                return acc;
+              },
+              { orders: 0, revenue: 0, ratingSum: 0, ratingCount: 0, ordersDelta: 0, revenueDelta: 0, satisfactionDelta: 0 }
+            );
+
+            if (ordersEl) ordersEl.textContent = totals.orders.toString();
+            if (ordersChangeEl) ordersChangeEl.textContent = utils.fmtPct(totals.ordersDelta);
+
+            if (revenueEl) revenueEl.textContent = utils.fmtMoney(totals.revenue);
+            if (revenueChangeEl) revenueChangeEl.textContent = utils.fmtPct(totals.revenueDelta);
+
+            const avgSatisfaction = totals.ratingCount > 0 ? (totals.ratingSum / totals.ratingCount) : 0;
+            // map 0-5 rating to 0-100% satisfaction (simple scale)
+            const satisfactionPct = Math.max(0, Math.min(100, avgSatisfaction * 20));
+            if (satisfactionEl) satisfactionEl.textContent = `${satisfactionPct.toFixed(0)}%`;
+            if (satisfactionChangeEl) satisfactionChangeEl.textContent = utils.fmtPct(totals.satisfactionDelta);
+          }
+
+          async function loadAll() {
+            // Profile
+            const company = await fetchCompanyProfile();
+            renderCompanyCard(company);
+
+            // Branches + dependent UI
+            const branches = await fetchBranches();
+            await renderBranchesSections(branches);
+            await renderPerformance(branches);
+            updateSummaryFromBranches(branches);
+
+            // timestamp
+            const now = new Date();
+            const lastUpdated = document.getElementById("lastUpdated");
+            if (lastUpdated) lastUpdated.textContent = `Last updated: ${now.toLocaleString()}`;
+          }
+
+          // Refresh + time range (timeRange is only UI right now; backend can hook into it later)
+          document.getElementById("refreshBtn")?.addEventListener("click", loadAll);
+          document.getElementById("timeRange")?.addEventListener("change", () => {
+            // In future, pass time range to API. For now, just reload to simulate.
+            loadAll();
+          });
+
+          // Kick off
+          loadAll();
+        </script>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

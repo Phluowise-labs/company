@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Get Return Pickups Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="calender.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+  <script>
+    // const isLoggedIn = localStorage.getItem("isLoggedIn");
+  
+    // if (!isLoggedIn) {
+    //   window.location.href = "user-signin.html"; // Redirect to login if not authenticated
+    // }
+  </script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                        (function applyBranchContextToSidebar() {
+                            try {
+                                const params = new URLSearchParams(window.location.search);
+                                const branchId = params.get("branchId") || localStorage.getItem("impersonateBranchId");
+                                const as = params.get("as") || localStorage.getItem("impersonateMode");
+                                if (!branchId) return;
+                                localStorage.setItem("impersonateBranchId", String(branchId));
+                                if (as) localStorage.setItem("impersonateMode", String(as));
+                                document.querySelectorAll('#sidebar a[href$=".html"]').forEach(a => {
+                                    const href = a.getAttribute('href');
+                                    if (!href || href.startsWith('http')) return;
+                                    const [base, query] = href.split('?');
+                                    const sp = new URLSearchParams(query || "");
+                                    sp.set('branchId', branchId);
+                                    if (as) sp.set('as', as);
+                                    a.setAttribute('href', `${base}?${sp.toString()}`);
+                                });
+                            } catch (e) { console.error(e); }
+                        })();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+        <!-- Main Content -->
+        <div class="ml-64 p-5 w-full text-white">
+       <!-- Top Bar -->
+<div id="topbar"></div>
+
+<script>
+  fetch("topbar.html")
+    .then((r) => r.text())
+    .then((html) => {
+      const container = document.getElementById("topbar");
+      container.innerHTML = html;
+
+      // Execute scripts found in the injected markup
+      container.querySelectorAll("script").forEach((oldScript) => {
+        const s = document.createElement("script");
+        if (oldScript.src) {
+          s.src = oldScript.src;
+          // ✅ ensure predictable execution
+          s.async = false;
+        } else {
+          s.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(s);
+      });
+    });
+</script>
+
+
+            <!-- Main Content Area -->
+            <div class="container mt-10 mx-auto p-4 max-w-7xl">
+                <!-- Tabs Navigation -->
+                <div class="flex gap-2 mt-10 mb-4">
+                    <button onclick="showTab('pending')" class="tab-button bg-blue-900 text-white px-4 py-2 rounded">Pending Pickups</button>
+                    <button onclick="showTab('accepted')" class="tab-button bg-gray-800 text-white px-4 py-2 rounded">Accepted Pickups</button>
+                </div>
+            
+                <!-- Tab Content -->
+                <div class="container mx-auto p-4 max-w-7xl">
+                    <!-- Pending -->
+                    <div id="pending" class="tab-content">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="pendingOrdersContainer"></div>
+                    </div>
+            
+                    <!-- Accepted -->
+                    <div id="accepted" class="tab-content hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="acceptedOrdersContainer"></div>
+                    </div>
+                </div>
+
+                <!-- Accept Modal -->
+                <div id="acceptModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+                    <div class="bg-[#212121]  rounded-lg p-6 w-full max-w-sm text-center">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-300">Accept this order?</h2>
+                        <p class="text-gray-200 mb-6">Are you sure you want to move this order to "Accepted Pickups"?</p>
+                        <div class="flex justify-center gap-4">
+                            <button onclick="confirmAccept()" class="bg-blue-700 text-white px-4 py-2 rounded">Yes, Accept</button>
+                            <button onclick="closeModal()" class="bg-white text-black px-4 py-2 rounded">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- Pickup Details Modal -->
+                <div id="set_pickup_date" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+                    <div class="bg-[#212121] rounded-lg p-6 w-full max-w-md mx-4">
+                        <h3 class="text-lg font-semibold mb-4 text-white">Set Pickup Details</h3>
+                        
+                        <!-- Date Picker -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Select Date:</label>
+                            <input type="text" id="datePicker" 
+                                   class="w-full bg-[#323741] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                   placeholder="Pick a date">
+                        </div>
+
+                        <!-- Time Picker -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Select Time:</label>
+                            <input type="text" id="timePicker" 
+                                   class="w-full bg-[#323741] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                   placeholder="Pick a time">
+                        </div>
+
+                        <!-- Additional Info -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Additional Information:</label>
+                            <textarea id="additionalInfo" rows="3"
+                                      class="w-full bg-[#323741] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Any special instructions..."></textarea>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="flex justify-end gap-3">
+                            <button onclick="closePickupModal()" class="bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
+                            <button onclick="savePickupDetails()" class="bg-blue-700 text-white px-4 py-2 rounded">Confirm Pickup</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="get-return-pickups.js"></script>
+</body>
+</html>

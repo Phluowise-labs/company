@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <title>Rating Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- Add Alpine.js (if not already included) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    // const isLoggedIn = localStorage.getItem("isLoggedIn");
+  
+    // if (!isLoggedIn) {
+    //   window.location.href = "user-signin.html"; // Redirect to login if not authenticated
+    // }
+  </script>
+</head>
+
+<body class="bg-black text-white">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <script>
+                fetch("sidebar.html")
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("sidebar").innerHTML = data;
+                        highlightActivePage();
+                        (function applyBranchContextToSidebar() {
+                            try {
+                                const params = new URLSearchParams(window.location.search);
+                                const branchId = params.get("branchId") || localStorage.getItem("impersonateBranchId");
+                                const as = params.get("as") || localStorage.getItem("impersonateMode");
+                                if (!branchId) return;
+                                localStorage.setItem("impersonateBranchId", String(branchId));
+                                if (as) localStorage.setItem("impersonateMode", String(as));
+                                document.querySelectorAll('#sidebar a[href$=".html"]').forEach(a => {
+                                    const href = a.getAttribute('href');
+                                    if (!href || href.startsWith('http')) return;
+                                    const [base, query] = href.split('?');
+                                    const sp = new URLSearchParams(query || "");
+                                    sp.set('branchId', branchId);
+                                    if (as) sp.set('as', as);
+                                    a.setAttribute('href', `${base}?${sp.toString()}`);
+                                });
+                            } catch (e) { console.error(e); }
+                        })();
+                    });
+
+                function highlightActivePage() {
+                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+                    document.querySelectorAll(".menu-item").forEach(item => {
+                        const page = item.getAttribute("data-page");
+                        if (page === currentPage) {
+                            item.classList.add("text-blue-400", "font-bold");
+                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                        }
+                    });
+                }
+            </script>
+        </div>
+        <!-- Main Content -->
+        <div class="ml-64 mt-10 p-5 w-full text-white">
+          <!-- Top Bar -->
+<div id="topbar"></div>
+
+<script>
+  fetch("topbar.html")
+    .then((r) => r.text())
+    .then((html) => {
+      const container = document.getElementById("topbar");
+      container.innerHTML = html;
+
+      // Execute scripts found in the injected markup
+      container.querySelectorAll("script").forEach((oldScript) => {
+        const s = document.createElement("script");
+        if (oldScript.src) {
+          s.src = oldScript.src;
+          // ✅ ensure predictable execution
+          s.async = false;
+        } else {
+          s.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(s);
+      });
+    });
+</script>
+
+            <!-- Main Content Area -->
+            <div class="container mx-auto p-4">
+                <div class="w-full mx-auto p-6 bg-black rounded-lg">
+                    <!-- Filters -->
+                    <div class="flex justify-center space-x-4  mb-6">
+                        <button class="filter-tab active-tab bg-[#1E1E1E]" data-filter="all">All</button>
+                        <button class="filter-tab bg-[#1E1E1E]" data-filter="5">5★</button>
+                        <button class="filter-tab bg-[#1E1E1E]" data-filter="4">4★</button>
+                        <button class="filter-tab bg-[#1E1E1E]" data-filter="3">3★</button>
+                        <button class="filter-tab bg-[#1E1E1E]" data-filter="2">2★</button>
+                        <button class="filter-tab bg-[#1E1E1E]" data-filter="1">1★</button>
+                        <button class="filter-tab bg-[#1E1E1E]" data-filter="strong">Strong (Green)</button>
+                        <button class="filter-tab bg-[#1E1E1E]" data-filter="moderate">Moderate (Yellow)</button>
+                        <button class="filter-tab bg-[#1E1E1E]" data-filter="weak">Weak (Red)</button>
+                        <button class="filter-tab bg-[#1E1E1E]" data-filter="recent">Most Recent</button>
+                    </div>
+            
+                    <!-- Rating Overview -->
+                    <div id="ratingOverview"></div>
+            
+                    <!-- Reviews Grid -->
+                    <div id="reviewsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                </div>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        fetch("reviews.json")
+                            .then(response => response.json())
+                            .then(reviews => {
+                                window.allReviews = reviews; // Store reviews globally
+                                renderReviews(reviews);
+                            })
+                            .catch(error => console.error("Error loading reviews:", error));
+                    });
+            
+                    function renderReviews(reviews) {
+                        const totalReviews = reviews.length;
+                        const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+                        let totalRating = 0;
+            
+                        reviews.forEach(review => {
+                            ratingCounts[review.rating]++;
+                            totalRating += review.rating;
+                        });
+            
+                        const averageRating = (totalRating / totalReviews).toFixed(1);
+                        document.getElementById("ratingOverview").innerHTML = `
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="text-xl font-bold">${averageRating} rating</div>
+                                <div class="text-gray-400">${totalReviews} reviews</div>
+                            </div>
+                            <div class="mb-8">${generateRatingBars(ratingCounts, totalReviews)}</div>
+                        `;
+            
+                        document.getElementById("reviewsSection").innerHTML = generateReviewsHTML(reviews);
+                    }
+            
+                    function generateRatingBars(ratingCounts, totalReviews) {
+                        return Object.keys(ratingCounts).reverse().map(i => {
+                            const percentage = ((ratingCounts[i] / totalReviews) * 100).toFixed(1);
+                            return `
+                                <div class="flex items-center mb-2">
+                                    <span class="w-4 text-right mr-2">${i}</span>
+                                    <div class="flex-1 h-4 bg-gray-800 rounded">
+                                        <div class="h-full ${getRatingColor(i)} rounded" style="width: ${percentage}%"></div>
+                                    </div>
+                                    <span class="w-6 text-right ml-2 text-gray-400">${percentage}%</span>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+            
+                    function generateReviewsHTML(reviews) {
+                        return reviews.map(review => {
+                            const formattedDate = new Date(review.date).toLocaleString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric"
+                            });
+            
+                            return `
+                                <div class="review-card bg-zinc-900 rounded-lg p-4 border border-gray-800" data-rating="${review.rating}" data-status="${getRatingStatus(review.rating)}">
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-xs text-center">
+                                            Img
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="font-semibold">${review.name}</div>
+                                            <div class="text-sm text-gray-400">${review.location}</div>
+                                            <div class="text-xs text-gray-500 mt-1">${formattedDate}</div>
+                                        </div>
+                                        <div class="ml-auto">
+                                            <div class="flex items-center">
+                                                <span class="mr-1">${review.rating}.0 Rating</span>
+                                                <span class="text-yellow-500">★</span>
+                                            </div>
+                                            <div class="text-sm ${getRatingTextColor(review.rating)}">
+                                                ${getRatingText(review.rating)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-gray-300">${review.comment}</div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+            
+                    function getRatingColor(rating) {
+                        return rating >= 4 ? "bg-green-500" : rating == 3 ? "bg-yellow-500" : "bg-red-500";
+                    }
+            
+                    function getRatingTextColor(rating) {
+                        return rating >= 4 ? "text-green-500" : rating == 3 ? "text-yellow-500" : "text-red-500";
+                    }
+            
+                    function getRatingText(rating) {
+                        if (rating >= 4.5) return "Excellent";
+                        if (rating >= 4) return "Very Good";
+                        if (rating >= 3) return "Moderate rating";
+                        if (rating >= 2) return "Needs Improvement";
+                        return "Poor rating";
+                    }
+            
+                    function getRatingStatus(rating) {
+                        return rating >= 4 ? "strong" : rating == 3 ? "moderate" : "weak";
+                    }
+            
+                    document.querySelectorAll(".filter-tab").forEach(button => {
+                        button.addEventListener("click", function () {
+                            document.querySelectorAll(".filter-tab").forEach(btn => btn.classList.remove("active-tab"));
+                            this.classList.add("active-tab");
+                            filterReviews(this.dataset.filter);
+                        });
+                    });
+            
+                    function filterReviews(filter) {
+                        let filteredReviews = [...window.allReviews];
+            
+                        if (filter === "recent") {
+                            filteredReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        } else if (filter === "strong" || filter === "moderate" || filter === "weak") {
+                            filteredReviews = filteredReviews.filter(review => getRatingStatus(review.rating) === filter);
+                        } else if (filter !== "all") {
+                            filteredReviews = filteredReviews.filter(review => review.rating == filter);
+                        }
+            
+                        renderReviews(filteredReviews);
+                    }
+                </script>
+ <style>
+    .filter-tab {
+        background-color: #1E1E1E;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .filter-tab:hover {
+        background-color: #2d3748;
+    }
+    .active-tab {
+        background-color: #4a5568;
+    }
+</style>
+
+            </div>
+            <!-- end of content -->
+        </div>
+
+    </div>
+    </div>
+</body>
+
+</html>

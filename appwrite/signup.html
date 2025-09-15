@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+    }
+
+    .btn-loading {
+      position: relative;
+      pointer-events: none;
+    }
+
+    .btn-loading::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: auto;
+      border: 3px solid transparent;
+      border-top-color: white;
+      border-radius: 50%;
+      animation: btn-loading-spinner 1s linear infinite;
+    }
+
+    @keyframes btn-loading-spinner {
+      from {
+        transform: rotate(0turn);
+      }
+
+      to {
+        transform: rotate(1turn);
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-black flex items-center justify-center min-h-screen p-4">
+  <div class="bg-[#121212] border-gray-700 p-8 rounded-lg shadow-lg w-full max-w-md border">
+    <h2 class="text-2xl font-bold text-white mb-6">
+      Welcome, Let's get you Started!
+    </h2>
+    <form id="registerForm" method="post" action="javascript:void(0);">
+      <!-- Company Name -->
+      <div class="mb-4">
+        <label class="block text-gray-400 mb-2" for="company-name">Company Name</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="fas fa-building text-gray-500"></i>
+          </span>
+          <input
+            class="bg-[#1E1E1E] text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="text" id="companyName" name="companyName" placeholder="Enter company name" required />
+        </div>
+        <p id="companyError" class="text-red-500 text-sm mt-1 hidden">
+          Company name is required.
+        </p>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-4">
+        <label class="block text-gray-400 mb-2" for="email">Company Email</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="fas fa-envelope text-gray-500"></i>
+          </span>
+          <input
+            class="bg-[#1E1E1E] text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="email" id="companyEmail" name="email" placeholder="Enter your email" required />
+        </div>
+        <p id="emailError" class="text-red-500 text-sm mt-1 hidden">
+          Invalid email format.
+        </p>
+      </div>
+
+      <!-- Password -->
+      <div class="mb-4">
+        <label class="block text-gray-400 mb-2" for="password">Password</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="fas fa-lock text-gray-500"></i>
+          </span>
+          <input
+            class="bg-[#1E1E1E] text-white border border-gray-700 rounded-lg pl-10 pr-10 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="password" id="password" name="password" placeholder="Enter Password" required />
+          <span class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+            onclick="togglePassword('password', 'togglePassword')">
+            <i class="fas fa-eye text-gray-500" id="togglePassword"></i>
+          </span>
+        </div>
+        <p id="passwordError" class="text-red-500 text-sm mt-1 hidden">
+          Password must be at least 8 characters, contain uppercase,
+          lowercase, number, and special character.
+        </p>
+      </div>
+
+      <div class="mb-6">
+        <button type="submit" id="submitButton"
+          class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          Sign Up
+        </button>
+      </div>
+
+      <div id="registerMessage" class="text-red-500"></div>
+      <div class="text-center text-gray-400">
+        or already have an account?
+        <a href="signin.html" class="text-blue-500 hover:underline">Sign in</a>
+      </div>
+    </form>
+  </div>
+
+  <script type="module">
+    import * as Appwrite from "https://cdn.jsdelivr.net/npm/appwrite@13.0.0/+esm";
+    import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/+esm";
+
+    // ==== CONFIG ====
+    const VERIFIED_URL = "http://localhost/phluowise/public/appwrite/verified.html";
+
+    // ==== INIT ====
+    // Import from centralized config
+    const { account, databases, DB_ID, COMPANY_COLL, BRANCH_COLL } = await import('./js/config.js');
+
+    const isValidPassword = (p) =>
+      p.length >= 8 &&
+      /[A-Z]/.test(p) &&
+      /[a-z]/.test(p) &&
+      /\d/.test(p) &&
+      /[!@#$%^&*(),.?":{}|<>]/.test(p) &&
+      !/\s/.test(p);
+
+    const form = document.getElementById("registerForm");
+    const submitButton = document.getElementById("submitButton");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("companyName").value.trim();
+      const email = document.getElementById("companyEmail").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      document.querySelectorAll('[id$="Error"]').forEach(el => el.classList.add("hidden"));
+      let hasError = false;
+      if (!name) { document.getElementById("companyError").classList.remove("hidden"); hasError = true; }
+      if (!email.includes("@")) { document.getElementById("emailError").classList.remove("hidden"); hasError = true; }
+      if (!isValidPassword(password)) { document.getElementById("passwordError").classList.remove("hidden"); hasError = true; }
+      if (hasError) return;
+
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<span class="btn-loading"></span> Creating account...';
+      submitButton.classList.add("opacity-75", "cursor-not-allowed");
+
+      let newUserId = null;
+
+      try {
+        // 1) Create user
+        const user = await account.create(Appwrite.ID.unique(), email, password, name);
+        newUserId = user.$id;
+
+        // 2) Login
+        await account.createEmailSession(email, password);
+
+        // 3) Create company document
+        await databases.createDocument(DB_ID, COMPANY_COLL, newUserId, {
+          company_id: newUserId,
+          email: email,
+          name: name,
+          description: "",
+          location: "",
+          phone_number: "",
+          website: ""
+        });
+
+        let created_atTime = user.$createdAt;
+
+        // 4) Also create the company's "main branch"
+        await databases.createDocument(DB_ID, BRANCH_COLL, Appwrite.ID.unique(), {
+          company_id: newUserId,
+          branch_id: newUserId,
+          email: email,
+          branch_name: `${name} (Main Branch)`,
+          branch_type: "company",
+          created_at: created_atTime,
+          is_active: true,
+          is_online: false
+        });
+
+        // 5) Send verification email
+        await account.createVerification(VERIFIED_URL);
+
+        await Swal.fire({
+          icon: "success",
+          title: "Account created!",
+          text: "We emailed you a verification link. Please verify, then log in.",
+          confirmButtonText: "Go to Login"
+        });
+        window.location.href = "signin.html";
+
+      } catch (error) {
+        console.error("❌ Signup flow error:", error);
+
+        let msg = "Something went wrong during signup.";
+        if (error.code === 409) msg = "This email is already registered. Please log in.";
+        if (error.code === 401) msg = "Unauthorized: check collection permissions & platform domains.";
+        if (error.code === 429) msg = "Too many attempts. Please wait and try again.";
+        if (error.message) msg = error.message;
+
+        Swal.fire({ icon: "error", title: "Signup Failed", text: msg });
+
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Sign Up";
+        submitButton.classList.remove("opacity-75", "cursor-not-allowed");
+      }
+    });
+  </script>
+
+
+
+
+
+  <script>
+    function togglePassword(fieldId, iconId) {
+      const passwordField = document.getElementById(fieldId);
+      const toggleIcon = document.getElementById(iconId);
+      if (passwordField.type === "password") {
+        passwordField.type = "text";
+        toggleIcon.classList.replace("fa-eye", "fa-eye-slash");
+      } else {
+        passwordField.type = "password";
+        toggleIcon.classList.replace("fa-eye-slash", "fa-eye");
+      }
+    }
+  </script>
+</body>
+
+</html>
