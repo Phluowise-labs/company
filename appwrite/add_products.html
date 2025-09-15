@@ -83,6 +83,7 @@
       // Execute scripts found in the injected markup
       container.querySelectorAll("script").forEach((oldScript) => {
         const s = document.createElement("script");
+        if (oldScript.type) s.type = oldScript.type;
         if (oldScript.src) {
           s.src = oldScript.src;
           // ✅ ensure predictable execution
