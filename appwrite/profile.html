@@ -14,8 +14,6 @@
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <!-- Appwrite SDK -->
-  <script type="module" src="profile.js"></script>
 
   <script>
     // const isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -157,6 +155,12 @@
             <input
               class="w-full p-3 bg-[#F5F5F51A] border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               type="text" id="company-name" name="company-name" />
+          </div>
+          <div class="mb-6">
+            <label class="block text-md font-bold mb-2" for="branch-code">Your Branch Code</label>
+            <input
+              class="w-full p-3 bg-[#F5F5F51A] border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="text" id="branch-code" name="branch-code" />
           </div>
           <div class="mb-6">
             <label class="block text-md font-bold mb-2" for="description">Description</label>
@@ -340,56 +344,10 @@
       </form>
     </div>
   </div>
-  <script>
-    // Pre-populate all profile fields and images if data exists in localStorage
-    document.addEventListener('DOMContentLoaded', function () {
-      const data = JSON.parse(localStorage.getItem('companyProfile')) || {};
-      if (data.companyName) document.getElementById('company-name').value = data.companyName;
-      if (data.description) document.getElementById('description').value = data.description;
-      if (data.location) document.getElementById('location').value = data.location;
-      if (data.website) document.getElementById('website').value = data.website;
-      // Social handles (assume input fields with ids like social-facebook, social-twitter, etc)
-      if (data.socialMedia && typeof data.socialMedia === 'object') {
-        Object.entries(data.socialMedia).forEach(([key, value]) => {
-          const el = document.getElementById('social-' + key.toLowerCase());
-          if (el) el.value = value;
-        });
-      }
-      // Working days (assume UI with checkboxes/inputs for each day)
-      if (Array.isArray(data.workingDays)) {
-        data.workingDays.forEach(dayObj => {
-          if (dayObj.day) {
-            // Checkbox for day
-            const dayCheckbox = document.getElementById('workday-' + dayObj.day.toLowerCase());
-            if (dayCheckbox) dayCheckbox.checked = true;
-            // Open/close time inputs
-            const openInput = document.getElementById('open-' + dayObj.day.toLowerCase());
-            const closeInput = document.getElementById('close-' + dayObj.day.toLowerCase());
-            if (openInput) openInput.value = dayObj.open;
-            if (closeInput) closeInput.value = dayObj.close;
-          }
-        });
-      }
-      // Show image previews if available
-      if (data.headerImage) {
-        // Try to trigger Alpine.js preview if present
-        if (window.Alpine && Alpine.store && typeof Alpine.store === 'function') {
-          try { Alpine.store('headerPreview', data.headerImage); } catch (e) { }
-        }
-        // Fallback: set preview image src if found
-        const headerImg = document.querySelector('[x-data] [x-if=headerPreview] img, [x-data] img[alt="Header Preview"]');
-        if (headerImg) headerImg.src = data.headerImage;
-        // Fallback: set background if preview uses background-image
-      }
-      if (data.profileImage) {
-        if (window.Alpine && Alpine.store && typeof Alpine.store === 'function') {
-          try { Alpine.store('profilePreview', data.profileImage); } catch (e) { }
-        }
-        const profileImg = document.querySelector('[x-data] [x-if=profilePreview] img, [x-data] img[alt="Profile Preview"]');
-        if (profileImg) profileImg.src = data.profileImage;
-      }
-    });
-  </script>
+  
+  <!-- Appwrite SDK -->
+  <script type="module" src="profile.js"></script>
+
 
 </body>
 

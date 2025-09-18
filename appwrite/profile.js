@@ -27,6 +27,41 @@ const storage = new Storage(client);
 // Appwrite Functions
 // =============================
 
+// Resolve current context (companyId, branchId) based on role
+async function resolveContext() {
+  const user = await account.get();
+  const activeRole = (sessionStorage.getItem('activeRole') || localStorage.getItem('activeRole') || '').toLowerCase();
+
+  if (activeRole === 'branch') {
+    // Find branch document by user email
+    const branchDocs = await databases.listDocuments(
+      DB_ID,
+      BRANCHES_COLL,
+      [Query.equal('email', user.email)]
+    );
+
+    if (branchDocs.total === 0) {
+      throw new Error('Branch record not found for the logged-in user.');
+    }
+
+    const branch = branchDocs.documents[0];
+    return { user, isBranchRole: true, companyId: branch.company_id, branchId: branch.branch_id };
+  }
+
+  // Default to admin/company context
+  const companyId = user.$id;
+
+  // Try to find the admin branch (usually branch_id === company_id)
+  const adminBranchDocs = await databases.listDocuments(
+    DB_ID,
+    BRANCHES_COLL,
+    [Query.equal('branch_id', companyId)]
+  );
+  const branchId = adminBranchDocs.total > 0 ? adminBranchDocs.documents[0].branch_id : companyId;
+
+  return { user, isBranchRole: false, companyId, branchId };
+}
+
 // Upload file to Appwrite Storage
 async function uploadFileToAppwrite(file, fileType, companyId) {
   try {
@@ -69,21 +104,7 @@ async function uploadFileToAppwrite(file, fileType, companyId) {
 // Load branch profile from Appwrite
 async function loadBranchProfileFromAppwrite() {
   try {
-    const user = await account.get();
-    const companyId = user.$id;
-
-    // First get the branch_id for this company
-    const branchResult = await databases.listDocuments(
-      DB_ID,
-      BRANCHES_COLL,
-      [Query.equal("company_id", companyId)]
-    );
-
-    if (branchResult.documents.length === 0) {
-      return null;
-    }
-
-    const branchId = branchResult.documents[0].branch_id;
+    const { branchId } = await resolveContext();
 
     // Load branch profile using branch_id
     const result = await databases.listDocuments(
@@ -122,25 +143,8 @@ async function loadBranchProfileFromAppwrite() {
 // Save branch profile to Appwrite
 async function saveBranchProfileToAppwrite(branchData) {
   try {
-    const user = await account.get();
-    const companyId = user.$id;
-
-    // Check if branch document exists to determine if this is admin or branch type
-    const existingDocs = await databases.listDocuments(
-      DB_ID,
-      BRANCHES_COLL,
-      [Query.equal("company_id", companyId)]
-    );
-
-    let branchId, branchType;
-    
-    if (existingDocs.documents.length > 0) {
-      // Use existing branch_id
-      branchId = existingDocs.documents[0].branch_id;
-    } else {
-      // Generate unique branch_id for new branch
-      branchId = ID.unique();
-    }
+    const { companyId, branchId } = await resolveContext();
+    let branchType;
 
     // Determine branch type based on branch_id == company_id
     // If branch_id equals company_id, it's admin type, otherwise it's branch type
@@ -162,33 +166,22 @@ async function saveBranchProfileToAppwrite(branchData) {
       branch_id: branchId
     };
 
+    // Update existing document if present, otherwise create
+    const branchDoc = await databases.listDocuments(
+      DB_ID,
+      BRANCHES_COLL,
+      [Query.equal("branch_id", branchId)]
+    );
+
     let result;
-    if (existingDocs.documents.length > 0) {
-      // Update existing document using branch_id
-      const branchDoc = await databases.listDocuments(
+    if (branchDoc.documents.length > 0) {
+      result = await databases.updateDocument(
         DB_ID,
         BRANCHES_COLL,
-        [Query.equal("branch_id", branchId)]
+        branchDoc.documents[0].$id,
+        documentData
       );
-      
-      if (branchDoc.documents.length > 0) {
-        result = await databases.updateDocument(
-          DB_ID,
-          BRANCHES_COLL,
-          branchDoc.documents[0].$id,
-          documentData
-        );
-      } else {
-        // Create new document if not found by branch_id
-        result = await databases.createDocument(
-          DB_ID,
-          BRANCHES_COLL,
-          ID.unique(),
-          documentData
-        );
-      }
     } else {
-      // Create new document
       result = await databases.createDocument(
         DB_ID,
         BRANCHES_COLL,
@@ -207,21 +200,7 @@ async function saveBranchProfileToAppwrite(branchData) {
 // Load working days from Appwrite
 async function loadWorkingDaysFromAppwrite() {
   try {
-    const user = await account.get();
-    const companyId = user.$id;
-
-    // First get the branch_id for this company
-    const branchResult = await databases.listDocuments(
-      DB_ID,
-      BRANCHES_COLL,
-      [Query.equal("company_id", companyId)]
-    );
-
-    if (branchResult.documents.length === 0) {
-      return [];
-    }
-
-    const branchId = branchResult.documents[0].branch_id;
+    const { branchId, companyId } = await resolveContext();
 
     // Load working days using branch_id
     const result = await databases.listDocuments(
@@ -290,21 +269,7 @@ async function saveWorkingDaysToAppwrite(workingDaysData, branchId, companyId) {
 // Load social media from Appwrite
 async function loadSocialMediaFromAppwrite() {
   try {
-    const user = await account.get();
-    const companyId = user.$id;
-
-    // First get the branch_id for this company
-    const branchResult = await databases.listDocuments(
-      DB_ID,
-      BRANCHES_COLL,
-      [Query.equal("company_id", companyId)]
-    );
-
-    if (branchResult.documents.length === 0) {
-      return null;
-    }
-
-    const branchId = branchResult.documents[0].branch_id;
+    const { branchId } = await resolveContext();
 
     // Load social media using branch_id
     const result = await databases.listDocuments(
@@ -489,13 +454,12 @@ function validateBranchData(data) {
   if (!data.branchName) errors.push("Branch name is required.");
   else if (data.branchName.length > 30)
     errors.push("Branch name must be less than 30 characters.");
-
+  if (!data.branchCode) errors.push("Branch code is required.");
+  else if (data.branchCode.length > 30)
+    errors.push("Branch code must be less than 30 characters.");
   if (!data.email) errors.push("Email is required.");
   else if (!emailPattern.test(data.email))
     errors.push("Please enter a valid email address.");
-
-  if (data.branchCode && data.branchCode.length > 30)
-    errors.push("Branch code must be less than 30 characters.");
 
   if (data.description && data.description.length > 200)
     errors.push("Description must be less than 200 characters.");
@@ -588,6 +552,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (branchData) {
       // Populate form fields - mapping branches table data to original form fields
       document.getElementById("company-name").value = branchData.branchName || "";
+      document.getElementById("branch-code").value = branchData.branchCode || "";
       document.getElementById("description").value = branchData.description || "";
       document.getElementById("location").value = branchData.location || "";
       document.getElementById("email").value = branchData.email || "";
@@ -671,7 +636,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Get form data - mapping original form fields to branches table schema
       const branchData = {
         branchName: getValue("company-name"), // Map company name to branch name
-        branchCode: "", // No branch code field in original form
+        branchCode: getValue("branch-code"),
         // branchType is auto-determined based on branch_id == company_id logic
         description: getValue("description"),
         location: getValue("location"),
@@ -679,7 +644,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         phoneNumber: getValue("phone"),
         website: getValue("website"),
         isActive: true, // Default to active
-        isOnline: false, // Default to offline
+        isOnline: true, // Default to offline
       };
 
       // Validate data
@@ -696,7 +661,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Show loading
       Swal.fire({
-        title: "Saving branch...",
+        title: "Saving Branch Details...",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });

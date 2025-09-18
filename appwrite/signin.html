@@ -265,7 +265,21 @@
       }
     });
   </script>
-  
+  <script>  
+      function selectRole(role) {
+      // Update the role value and button styles
+      document.getElementById('role').value = role;
+      document.getElementById('adminBtn').classList.toggle('bg-blue-900', role === 'admin');
+      document.getElementById('adminBtn').classList.toggle('bg-gray-600', role !== 'admin');
+      document.getElementById('branchBtn').classList.toggle('bg-blue-900', role === 'branch');
+      document.getElementById('branchBtn').classList.toggle('bg-gray-600', role !== 'branch');
+
+      // Redirect based on selected role
+      if (role === 'branch') {
+        window.location.href = 'branch-signin.html';
+      }
+    }
+  </script>
   
 
 </body>

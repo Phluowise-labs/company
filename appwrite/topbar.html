@@ -65,4 +65,54 @@
     </div>
 </div>
 
+<script>
+    // Hide branches access for branch role when canSwitchRole is false
+    (function () {
+        function shouldRestrictBranches() {
+            try {
+                const role = (sessionStorage.getItem('activeRole') || localStorage.getItem('activeRole') || '').toLowerCase();
+                const canSwitchRaw = localStorage.getItem('canSwitchRole');
+                const canSwitch = !(canSwitchRaw === 'false' || canSwitchRaw === '0' || canSwitchRaw === null);
+                return role === 'branch' && !canSwitch;
+            } catch (_) { return false; }
+        }
+
+        function hideBranchesUI() {
+            try {
+                // Icon + badge
+                const iconLink = document.querySelector('a[href="branches.html"]');
+                if (iconLink) {
+                    const container = iconLink.closest('.relative') || iconLink;
+                    if (container) container.style.display = 'none';
+                }
+                const badge = document.getElementById('branchCount');
+                if (badge) badge.style.display = 'none';
+
+                // Dropdown item
+                document.querySelectorAll('a[href="branches.html"]').forEach(a => {
+                    const item = a.closest('a, li, .block');
+                    (item || a).style.display = 'none';
+                });
+
+                // Defensive: block navigation if any remaining link is clicked
+                document.addEventListener('click', function (e) {
+                    const link = e.target.closest('a[href="branches.html"]');
+                    if (link) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                }, true);
+            } catch (_) { }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                if (shouldRestrictBranches()) hideBranchesUI();
+            });
+        } else {
+            if (shouldRestrictBranches()) hideBranchesUI();
+        }
+    })();
+</script>
 <script src="topbar.js" defer type="module"></script>

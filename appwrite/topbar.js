@@ -28,24 +28,41 @@ if (!window.__TOPBAR_INIT__) {
         }
       });
 
-    doConfirm().then((ok) => {
+    doConfirm().then(async (ok) => {
       if (!ok) return;
 
-      // Clear all sessions using RoleUtils if available
-      if (window.RoleUtils) {
-        RoleUtils.clearAllSessions();
-      } else {
-        // Fallback to manual clearing - Updated with new localStorage structure
-        localStorage.removeItem("activeRole");
-        localStorage.removeItem("branchTransactionsRange");
-        localStorage.removeItem("canSwitchRole");
-        localStorage.removeItem("companyId");
-        localStorage.removeItem("cookieFallback");
-        localStorage.removeItem("subscriptionData");
-        localStorage.removeItem("transactionsRange");
-        localStorage.removeItem("user");
-        
-      }
+      // Unified logout cleanup
+      await (async function clearAuthState() {
+        // End Appwrite session (non-fatal if none)
+        try { await account.deleteSessions(); } catch (e) { console.warn("deleteSessions:", e?.message || e); }
+
+        // Clear localStorage keys
+        try {
+          const localKeys = [
+            "activeRole",
+            "branchTransactionsRange",
+            "canSwitchRole",
+            "companyId",
+            "cookieFallback",
+            "subscriptionData",
+            "transactionsRange",
+            "user",
+            // impersonation/workspace context
+            "loggedInCompany",
+            "loggedInBranch",
+            "impersonateBranchId",
+            "impersonateBranchName",
+            "impersonateMode"
+          ];
+          localKeys.forEach((k) => localStorage.removeItem(k));
+        } catch (_) {}
+
+        // Clear sessionStorage keys
+        try {
+          const sessionKeys = ["activeRole", "companyId", "userName", "homePage"];
+          sessionKeys.forEach((k) => sessionStorage.removeItem(k));
+        } catch (_) {}
+      })();
 
       // Redirect
       window.location.href = "signin.html";

@@ -77,16 +77,140 @@
                 </button>
             </div>
 
-            <div class="text-center text-gray-400">
+            <!-- <div class="text-center text-gray-400">
                 or don't have an account? <a href="signup.html" class="text-blue-500 hover:underline">Sign up</a>
-            </div>
+            </div> -->
         </form>
     </div>
+    <script type="module">
+        import { account, databases, Appwrite, DB_ID, BRANCH_COLL } from './js/config.js';
+
+        // Expose for inline call earlier in the page
+        window.checkExistingSession = async function () {
+            try {
+                const user = await account.get();
+                const activeRole = sessionStorage.getItem('activeRole');
+
+                if (activeRole === 'admin') {
+                    // Admins should use the admin sign-in page
+                    window.location.href = 'signin.html';
+                    return;
+                }
+
+                // If logged in but role not set, try to infer branch role
+                if (!activeRole) {
+                    const branchDocs = await databases.listDocuments(
+                        DB_ID,
+                        BRANCH_COLL,
+                        [Appwrite.Query.equal('email', user.email)]
+                    );
+
+                    if (branchDocs.total > 0) {
+                        const branch = branchDocs.documents[0];
+                        if (branch.is_active) {
+                            sessionStorage.setItem('activeRole', 'branch');
+                            sessionStorage.setItem('companyId', branch.company_id);
+                            sessionStorage.setItem('userName', user.name || '');
+                            window.location.href = 'home.html';
+                            return;
+                        }
+                    }
+                }
+            } catch (_) {
+                // No active session; do nothing
+            }
+        };
+
+        // Attach login handler
+        const loginBtn = document.getElementById('loginBtn');
+        loginBtn.addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            const branchInput = document.getElementById('branch').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!email || !branchInput || !password) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing fields',
+                    text: 'Please enter email, branch code and password.'
+                });
+                return;
+            }
+
+            const originalText = loginBtn.textContent;
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in...';
+
+            try {
+                try { await account.deleteSessions(); } catch (_) { }
+
+                await account.createEmailSession(email, password);
+
+                const user = await account.get();
+
+                // Validate branch membership and branch code (matches branch_id)
+                const branchDocs = await databases.listDocuments(
+                    DB_ID,
+                    BRANCH_COLL,
+                    [
+                        Appwrite.Query.equal('email', user.email),
+                        Appwrite.Query.equal('branch_id', branchInput)
+                    ]
+                );
+
+                if (branchDocs.total === 0) {
+                    throw new Error('No matching branch account found for this email and code.');
+                }
+
+                const branch = branchDocs.documents[0];
+                if (!branch.is_active) {
+                    throw new Error('This branch account is inactive. Contact your company admin.');
+                }
+
+                // Mark branch as online
+                try {
+                    await databases.updateDocument(
+                        DB_ID,
+                        BRANCH_COLL,
+                        branch.$id,
+                        { is_online: true }
+                    );
+                } catch (updateErr) {
+                    console.warn('Failed to mark branch online:', updateErr);
+                }
+
+                // Store role + context
+                sessionStorage.setItem('activeRole', 'branch');
+                sessionStorage.setItem('companyId', branch.company_id);
+                sessionStorage.setItem('userName', user.name || '');
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Login Successful',
+                    text: `Welcome, ${user.name || 'User'}!`,
+                    confirmButtonText: 'Continue'
+                });
+
+                window.location.href = 'home.html';
+            } catch (error) {
+                let message = error?.message || 'Unable to login. Please try again.';
+                if (error?.code === 401) message = 'Invalid email or password.';
+                if (error?.code === 429) message = 'Too many attempts. Please try again shortly.';
+
+                Swal.fire({ icon: 'error', title: 'Login Failed', text: message });
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = originalText;
+            }
+        });
+    </script>
     <script>
-
-
-        // Run check when page loads
-        checkExistingSession();
+        // Run check after page fully loads so the module script is initialized
+        window.addEventListener('load', () => {
+            if (window.checkExistingSession) {
+                window.checkExistingSession();
+            }
+        });
 
         function togglePassword() {
             const passwordField = document.getElementById('password');
