@@ -77,9 +77,7 @@
                 </button>
             </div>
 
-            <!-- <div class="text-center text-gray-400">
-                or don't have an account? <a href="signup.html" class="text-blue-500 hover:underline">Sign up</a>
-            </div> -->
+        
         </form>
     </div>
     <script type="module">
@@ -179,7 +177,7 @@
                         await account.createEmailSession(email, password);
                         
                         // Now send verification email with proper authorization
-                        await account.createVerification("http://" + window.location.host + "/appwrite/verified.html");
+                        await account.createVerification("https://phluowise-labs.github.io/company/appwrite/verified.html");
                         
                         // Delete the temporary session since we don't want unverified users logged in
                         await account.deleteSessions();
@@ -304,5 +302,6 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
+
 
 </html>
