@@ -178,10 +178,6 @@
           company_id: newUserId,
           email: email,
           name: name,
-          description: "",
-          location: "",
-          phone_number: "",
-          website: ""
         });
 
         let created_atTime = user.$createdAt;
@@ -191,7 +187,7 @@
           company_id: newUserId,
           branch_id: newUserId,
           email: email,
-          branch_name: `${name} (Main Branch)`,
+          branch_name: `${name}`,
           branch_type: "company",
           created_at: created_atTime,
           is_active: true,
