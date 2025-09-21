@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon" />
+  <title>Login Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+</head>
+
+<body class="bg-black flex items-center justify-center min-h-screen p-4">
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+    }
+  </style>
+  <style>
+    .input-error {
+      border: 1px solid #f87171 !important;
+      /* Tailwind red-400 */
+    }
+  </style>
+  <div class="bg-[#121212] p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700">
+    <h2 class="text-2xl font-bold text-white mb-6 text-center">
+      Welcome back!
+    </h2>
+    <form id="loginForm">
+      <div class="mb-4" id="emailContainer">
+        <label class="block text-gray-400 mb-2" for="email">Email</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="fas fa-envelope text-gray-500"></i>
+          </span>
+          <input
+            class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="email" id="loginEmail" placeholder="Enter your email" />
+        </div>
+        <span id="emailError" class="error-message text-red-500 text-sm"></span>
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-400 mb-2" for="password">Password</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="fas fa-lock text-gray-500"></i>
+          </span>
+          <input
+            class="bg-[#1E1E1E] text-white rounded-lg pl-10 pr-10 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="password" id="loginPassword" placeholder="Enter password" />
+          <span class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onclick="togglePassword()">
+            <i id="toggleIcon" class="fas fa-eye text-gray-500"></i>
+          </span>
+        </div>
+        <span id="passwordError" class="error-message text-red-500 text-sm"></span>
+
+        <!-- Password Requirement Checklist -->
+        <div id="loginPasswordRequirements" class="text-sm mt-2 hidden space-y-1">
+          <div id="login-req-length" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Minimum 8 characters
+          </div>
+          <div id="login-req-lower" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Lowercase letter
+          </div>
+          <div id="login-req-upper" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Uppercase letter
+          </div>
+          <div id="login-req-number" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Number
+          </div>
+          <div id="login-req-special" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> Special character
+          </div>
+          <div id="login-req-spaces" class="text-gray-400 flex items-center gap-1">
+            <i class="fas fa-check-circle"></i> No spaces
+          </div>
+        </div>
+
+        <div class="text-right mt-2">
+          <a href="forgot_password.html" class="text-sm text-blue-500 hover:underline">Forgot Password?</a>
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-center mb-8">
+        <button type="button" id="adminBtn"
+          class="role-toggle bg-blue-900 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
+          onclick="selectRole('admin')">
+          Admin
+        </button>
+        <button type="button" id="branchBtn"
+          class="role-toggle bg-gray-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
+          onclick="selectRole('branch')">
+          Branch
+        </button>
+        <input type="hidden" id="role" name="role" value="admin" />
+      </div>
+      <div class="mb-6">
+        <button type="submit" id="loginBtn"
+          class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
+          <span id="loginBtnText">Log In</span>
+          <div id="loginSpinner" class="hidden ml-2">
+            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+          </div>
+        </button>
+      </div>
+      <div class="text-center text-gray-400">
+        or don't have an account?
+        <a href="signup.html" class="text-blue-500 hover:underline">Sign up</a>
+      </div>
+    </form>
+    <div id="loginMessage" class="message text-red-500 items-center"></div>
+  </div>
+
+  <script type="module">
+    import * as Appwrite from "https://cdn.jsdelivr.net/npm/appwrite@13.0.0/+esm";
+    import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/+esm";
+
+    const client = new Appwrite.Client()
+      .setEndpoint("https://nyc.cloud.appwrite.io/v1")
+      .setProject("68b17582003582da69c8");
+
+    const account = new Appwrite.Account(client);
+    const databases = new Appwrite.Databases(client);
+
+    const DB_ID = "68b1b7590035346a3be9";   // phluowise_db
+    const COMPANY_COLL = "company_tb";
+    const BRANCH_COLL = "branches";
+
+    // Toggle password visibility
+    window.togglePassword = function () {
+      const passwordInput = document.getElementById("loginPassword");
+      const icon = document.getElementById("toggleIcon");
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+      } else {
+        passwordInput.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+      }
+    };
+
+    // Handle login form
+    const loginForm = document.getElementById("loginForm");
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+
+      if (!email || !password) {
+        Swal.fire({
+          icon: "warning",
+          title: "Missing Fields",
+          text: "Please enter both email and password.",
+        });
+        return;
+      }
+
+      const loginBtn = document.getElementById("loginBtn");
+      const loginBtnText = document.getElementById("loginBtnText");
+      const loginSpinner = document.getElementById("loginSpinner");
+
+      loginBtn.disabled = true;
+      loginBtnText.textContent = "Signing in...";
+      loginSpinner.classList.remove("hidden");
+
+      try {
+        // Step 1: Clear existing sessions
+        try {
+          await account.deleteSessions();
+        } catch (clearErr) {
+          console.warn("No active session to clear:", clearErr.message);
+        }
+
+        // Step 2: Create new session
+        await account.createEmailSession(email, password);
+
+        // Step 3: Check email verification
+        const user = await account.get();
+        if (!user.emailVerification) {
+          // Delete the session since we're not allowing unverified users
+          await account.deleteSessions();
+
+          // Show verification prompt and handle response
+          const result = await Swal.fire({
+            icon: "warning",
+            title: "Email Not Verified",
+            text: "Please verify your email before logging in. Need a new verification link?",
+            showCancelButton: true,
+            confirmButtonText: "Send New Link",
+            cancelButtonText: "Close",
+            allowOutsideClick: false
+          });
+
+          if (result.isConfirmed) {
+            try {
+              // Create a temporary session for verification
+              await account.createEmailSession(email, password);
+
+              // Now send verification email with proper authorization
+              await account.createVerification("http://" + window.location.host + "/phluowise/public/appwrite/verified.html");
+
+              // Delete the temporary session since we don't want unverified users logged in
+              await account.deleteSessions();
+
+              await Swal.fire({
+                icon: "success",
+                title: "Verification Email Sent",
+                text: "Please check your email and click the verification link.",
+                allowOutsideClick: false
+              });
+            } catch (verifyError) {
+              console.error("Verification email error:", verifyError);
+              await Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: verifyError.message || "Could not send verification email. Please try again later.",
+                allowOutsideClick: false
+              });
+            }
+          }
+          return;
+        }
+
+        // Step 4: Query DB to determine role
+        let activeRole = null;
+        let companyId = null;
+
+        const companyDocs = await databases.listDocuments(
+          DB_ID,
+          COMPANY_COLL,
+          [Appwrite.Query.equal("company_id", user.$id)]
+        );
+        console.log("📂 Company docs:", companyDocs);
+
+        const branchDocs = await databases.listDocuments(
+          DB_ID,
+          BRANCH_COLL,
+          [Appwrite.Query.equal("email", user.email)]
+        );
+        console.log("📂 Branch docs:", branchDocs);
+
+        if (companyDocs.total > 0 && branchDocs.total > 0) {
+          activeRole = "admin";
+          companyId = companyDocs.documents[0].company_id;
+          console.log("👑 User is BOTH company & branch → defaulting to admin.");
+        } else if (companyDocs.total > 0) {
+          activeRole = "admin";
+          companyId = companyDocs.documents[0].company_id;
+          console.log("👑 User is company admin.");
+        } else if (branchDocs.total > 0) {
+          const branchDoc = branchDocs.documents[0];
+          if (branchDoc.is_active) {
+            activeRole = "branch";
+            companyId = branchDoc.company_id;
+            console.log("🏢 Branch user is active → granting access.");
+          } else {
+            throw new Error("This branch account is inactive. Contact your company admin.");
+          }
+        } else {
+          throw new Error("No role found for this account.");
+        }
+
+        // Step 5: Store role/session info
+        sessionStorage.setItem("activeRole", activeRole);
+        sessionStorage.setItem("companyId", companyId);
+        sessionStorage.setItem("userName", user.name);
+
+        // Step 6: Success + redirect
+        await Swal.fire({
+          icon: "success",
+          title: "Login Successful",
+          text: `Welcome back, ${user.name || "User"}! Role: ${activeRole}`,
+          confirmButtonText: "Continue",
+          allowOutsideClick: false
+        });
+
+        window.location.href = "home.html";
+
+      } catch (error) {
+        console.error("❌ Login error:", error);
+
+        let errorMessage = error.message || "Unable to login. Please try again.";
+        if (error.code === 401) {
+          errorMessage = "Invalid email or password.";
+        } else if (error.code === 429) {
+          errorMessage = "Too many login attempts! Please wait a moment and try again.";
+        }
+
+        await Swal.fire({
+          icon: "error",
+          title: "Login Failed",
+          text: errorMessage,
+          allowOutsideClick: false
+        });
+      } finally {
+        loginBtn.disabled = false;
+        loginBtnText.textContent = "Log In";
+        loginSpinner.classList.add("hidden");
+      }
+    }); // End of event listener
+  </script>
+  <script>
+    function selectRole(role) {
+      // Update the role value and button styles
+      document.getElementById('role').value = role;
+      document.getElementById('adminBtn').classList.toggle('bg-blue-900', role === 'admin');
+      document.getElementById('adminBtn').classList.toggle('bg-gray-600', role !== 'admin');
+      document.getElementById('branchBtn').classList.toggle('bg-blue-900', role === 'branch');
+      document.getElementById('branchBtn').classList.toggle('bg-gray-600', role !== 'branch');
+
+      // Redirect based on selected role
+      if (role === 'branch') {
+        window.location.href = 'branch-signin.html';
+      }
+    }
+  </script>
+
+
+</body>
+
+</html>

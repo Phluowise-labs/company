@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body class="bg-black flex items-center justify-center min-h-screen p-4">
+    <div
+      class="bg-[#121212] border-gray-700 p-8 rounded-lg shadow-lg w-full max-w-md border text-center"
+    >
+      <h2 class="text-2xl font-bold text-white mb-4">Email Verification</h2>
+      <p class="text-gray-400 mb-6">
+        We’re verifying your email, please wait...
+      </p>
+      <div
+        class="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"
+      ></div>
+    </div>
+
+    <script type="module">
+      import {
+        Client,
+        Account,
+      } from "https://cdn.jsdelivr.net/npm/appwrite@13.0.0/+esm";
+      import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/+esm";
+
+      // Configure Appwrite client
+      const client = new Client()
+        .setEndpoint("https://nyc.cloud.appwrite.io/v1") // Your Appwrite endpoint
+        .setProject("68b17582003582da69c8"); // Your Project ID
+
+      const account = new Account(client);
+
+      // Get params from URL (userId & secret come from the verification email)
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get("userId");
+      const secret = urlParams.get("secret");
+
+      // Detect if running inside a mobile app WebView (simple userAgent check)
+      const isMobileApp = /wv|android|iphone|ipad|ipod/i.test(
+        navigator.userAgent
+      );
+
+      if (!userId || !secret) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Verification Link",
+          text: "Missing verification details. Please use the link from your email.",
+        }).then(() => {
+          window.location.href = "signin.html";
+        });
+      } else {
+        // Confirm verification
+        account.updateVerification(userId, secret)
+          .then(() => {
+            if (isMobileApp) {
+              // ✅ Mobile app: show success but NO redirect
+              Swal.fire({
+                icon: "success",
+                title: "Email Verified!",
+                text: "Your email has been successfully verified. Please return to the app and log in.",
+                confirmButtonText: "OK",
+              });
+            } else {
+              // ✅ Website: success + redirect to login page
+              Swal.fire({
+                icon: "success",
+                title: "Email Verified!",
+                text: "Your email has been successfully verified. You can now log in.",
+                confirmButtonText: "Go to Login",
+              }).then(() => {
+                window.location.href = "signin.html";
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Verification error:", error);
+            Swal.fire({
+              icon: "error",
+              title: "Verification Failed",
+              text: error.message || "Something went wrong. Please try again.",
+            }).then(() => {
+              window.location.href = "signin.html";
+            });
+          });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branches </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body class="bg-black flex items-center justify-center min-h-screen p-4" style="font-family: 'Inter', sans-serif;">
+    <!-- Back Button -->
+    <button onclick="navigateBack()"
+        class="fixed top-10 left-4 flex items-center text-white/70 hover:text-white transition duration-300 z-50">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="text-base font-medium">Back</span>
+    </button>
+
+    <!-- Form Container -->
+    <div class="bg-[#F5F5F51A] border-gray-700 text-white rounded-lg p-8 w-full max-w-md">
+        <form onsubmit="return validateForm(event)">
+            <!-- Hidden fields for company information -->
+            <input type="hidden" id="companyId" name="companyId" value="">
+            <input type="hidden" id="companyName" name="companyName" value="">
+
+            <h2 id="companyHeading" class="text-center text-2xl font-semibold mb-6">
+                Company Branches
+            </h2>
+            <script type="module">
+                import { databases, DB_ID, COMPANY_COLL, account } from "./js/config.js";
+
+                // Update heading with company name from database
+                document.addEventListener('DOMContentLoaded', async function () {
+                    try {
+                        // Get current user (company) from Appwrite
+                        const user = await account.get();
+                        const companyId = user.$id;
+
+                        // Get company details to get company name
+                        const companyResult = await databases.getDocument(DB_ID, COMPANY_COLL, companyId);
+                        const companyName = companyResult.name || "Company";
+
+                        const heading = document.getElementById("companyHeading");
+                        heading.textContent = `${companyName} Branches`;
+                    } catch (error) {
+                        console.error('Error getting company name:', error);
+                        const heading = document.getElementById("companyHeading");
+                        heading.textContent = "Company Branches";
+                    }
+                });
+            </script>
+
+            <!-- Branch Name (User types in the Branch Name) -->
+            <div class="mb-4">
+                <label class="block mb-2">Branch Name</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-building text-xl mr-3"></i>
+                    <input id="branchName" type="text" placeholder="Enter Branch Name"
+                        class="bg-transparent w-full focus:outline-none" oninput="generateBranchCode()" required />
+
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="mb-4">
+                <label class="block mb-2"> Branch Location</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-map-marker-alt text-xl mr-3"></i>
+                    <input id="location" type="text" placeholder="Enter Location"
+                        class="bg-transparent w-full focus:outline-none" oninput="generateBranchCode()" required />
+                </div>
+            </div>
+            <!-- Branch Manager Email -->
+            <div class="mb-4">
+                <label class="block mb-2">Branch Manager Email</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-envelope text-xl mr-3"></i>
+                    <input id="branchManagerEmail" type="email" placeholder="Enter branch manager's email"
+                        class="bg-transparent flex-1 focus:outline-none" required />
+                </div>
+            </div>
+
+            <!-- Branch Phone Number -->
+            <div class="mb-4">
+                <label class="block mb-2">Branch Phone Number</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-phone text-xl mr-3"></i>
+                    <input id="branchPhoneNumber" type="tel" placeholder="Enter branch phone number"
+                        pattern="[0-9]{10,15}" title="Please enter a valid phone number (10-15 digits)"
+                        class="bg-transparent flex-1 focus:outline-none" required />
+                </div>
+                <p class="text-xs text-gray-400 mt-1">Enter 10-15 digit phone number</p>
+            </div>
+
+            <!-- Branch Code -->
+            <div class="mb-4">
+                <label class="block mb-2">Branch Code</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-key text-xl mr-3"></i>
+                    <input id="branchCode" type="text" placeholder="Branch Code"
+                        class="bg-transparent w-full focus:outline-none" readonly />
+                    <span class="cursor-pointer ml-2 text-gray-400 hover:text-white"
+                        onclick="copyToClipboard('branchCode')" title="Copy branch code">
+                        <i class="fas fa-copy"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-4">
+                <label class="block mb-2">Create a Password</label>
+                <div class="flex items-center bg-[#060606B2] p-3 rounded-lg">
+                    <i class="fas fa-lock text-xl mr-3"></i>
+                    <input id="branchPassword" type="password" placeholder="Enter password for branch"
+                        class="bg-transparent flex-1 focus:outline-none" required />
+                    <span class="cursor-pointer ml-2 text-gray-400 hover:text-white"
+                        onclick="copyToClipboard('branchPassword')" title="Copy password">
+                        <i class="fas fa-copy"></i>
+                    </span>
+                    <span class="cursor-pointer ml-2 text-gray-400 hover:text-white" onclick="togglePassword()"
+                        title="Toggle password visibility">
+                        <i id="toggleIcon" class="fas fa-eye"></i>
+                    </span>
+                </div>
+                <button type="button" class="mt-2 bg-gray-600 hover:bg-gray-700 text-white py-1 px-3 rounded-lg text-sm"
+                    onclick="generatePassword()">
+                    Generate Password
+                </button>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submitBtn"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg mb-4 relative">
+                <span class="submit-text">Create Branch Space</span>
+                <span class="submit-loader hidden">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    Creating...
+                </span>
+            </button>
+
+            <style>
+                #submitBtn {
+                    transition: all 0.3s ease;
+                }
+
+                #submitBtn:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                }
+
+                .submit-text,
+                .submit-loader {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                }
+
+                .submit-loader {
+                    display: none;
+                }
+
+                #submitBtn.loading .submit-text {
+                    display: none;
+                }
+
+                #submitBtn.loading .submit-loader {
+                    display: inline-flex;
+                }
+            </style>
+        </form>
+    </div>
+
+    <!-- JS Section -->
+    <script type="module">
+        import { databases, DB_ID, BRANCH_COLL, COMPANY_COLL, Appwrite, account } from "./js/config.js";
+
+        function togglePassword() {
+            const passwordField = document.getElementById('branchPassword');
+            const toggleIcon = document.getElementById('toggleIcon');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        function generatePassword() {
+            // Generate a strong password with at least 1 uppercase, 1 lowercase, 1 number, and 1 special character
+            const length = 12;
+            const charset = {
+                uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                lowercase: 'abcdefghijklmnopqrstuvwxyz',
+                numbers: '0123456789',
+                // Use only safe special characters that are commonly accepted and won't cause issues
+                special: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+            };
+
+            // Ensure at least one character from each set
+            let password = '';
+            password += charset.uppercase.charAt(Math.floor(Math.random() * charset.uppercase.length));
+            password += charset.lowercase.charAt(Math.floor(Math.random() * charset.lowercase.length));
+            password += charset.numbers.charAt(Math.floor(Math.random() * charset.numbers.length));
+            password += charset.special.charAt(Math.floor(Math.random() * charset.special.length));
+
+            // Fill the rest with random characters from all sets
+            const allChars = charset.uppercase + charset.lowercase + charset.numbers + charset.special;
+            for (let i = 4; i < length; i++) {
+                password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+            }
+
+            // Shuffle the password characters
+            password = password.split('').sort(() => 0.5 - Math.random()).join('');
+
+            // Validate the generated password to ensure it meets requirements
+            const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+            if (!pattern.test(password)) {
+                // If validation fails, regenerate with a more conservative approach
+                console.warn('Generated password failed validation, regenerating...');
+                return generatePassword(); // Recursive call to regenerate
+            }
+
+            // Set the generated password to the input field
+            document.getElementById('branchPassword').value = password;
+
+            // Show the password
+            document.getElementById('branchPassword').type = 'text';
+            document.getElementById('toggleIcon').classList.remove('fa-eye');
+            document.getElementById('toggleIcon').classList.add('fa-eye-slash');
+
+            // Show a notification
+            Swal.fire({
+                icon: 'success',
+                title: 'Password Generated',
+                text: 'A strong password has been generated.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+
+        // Intelligent navigation function
+        function navigateBack() {
+            // Get the referrer (previous page)
+            const referrer = document.referrer;
+
+            // Check if we have a referrer and it's from the same domain
+            if (referrer && referrer.includes(window.location.origin)) {
+                // Extract the page name from the referrer
+                const referrerPath = new URL(referrer).pathname;
+
+                // If we came from the same page (refresh), go to home
+                if (referrerPath.includes('create_branch.html')) {
+                    const homePage = sessionStorage.getItem('homePage') || 'home.html';
+                    window.location.href = homePage;
+                    return;
+                }
+
+                // Otherwise, go back to the referrer
+                window.location.href = referrer;
+            } else {
+                // No referrer or external referrer, go to home
+                const homePage = sessionStorage.getItem('homePage') || 'home.html';
+                window.location.href = homePage;
+            }
+        }
+
+        // Store home page reference when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            // If we don't have a home page stored, try to determine it from referrer
+            if (!sessionStorage.getItem('homePage')) {
+                const referrer = document.referrer;
+                if (referrer && referrer.includes(window.location.origin)) {
+                    const referrerPath = new URL(referrer).pathname;
+                    if (referrerPath.includes('home.html') || referrerPath.includes('workspace.html')) {
+                        sessionStorage.setItem('homePage', referrerPath.split('/').pop());
+                    }
+                }
+            }
+        });
+
+        // Make all necessary functions globally accessible for HTML event handlers
+        window.generatePassword = generatePassword;
+        window.copyToClipboard = copyToClipboard;
+        window.togglePassword = togglePassword;
+        window.generateBranchCode = generateBranchCode;
+        window.validateForm = validateForm;
+        window.setLoading = setLoading;
+        window.navigateBack = navigateBack;
+
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const originalType = element.type;
+
+            // If it's a password field, temporarily change to text to copy the value
+            if (originalType === 'password') {
+                element.type = 'text';
+            }
+
+            element.select();
+            element.setSelectionRange(0, 99999); // For mobile devices
+
+            navigator.clipboard.writeText(element.value)
+                .then(() => {
+                    // Show success notification
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Copied!',
+                        text: `${elementId === 'branchCode' ? 'Branch code' : 'Password'} copied to clipboard.`,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+
+                    // Restore original type if it was a password
+                    if (originalType === 'password') {
+                        element.type = originalType;
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Copy Failed',
+                        text: 'Failed to copy to clipboard. Please try again.',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+
+                    // Restore original type if it was a password
+                    if (originalType === 'password') {
+                        element.type = originalType;
+                    }
+                });
+        }
+
+        async function generateBranchCode() {
+            try {
+                // Get current user (company) from Appwrite
+                const user = await account.get();
+                const companyId = user.$id;
+
+                // Get company details to get company name
+                const companyResult = await databases.getDocument(DB_ID, COMPANY_COLL, companyId);
+                const companyName = companyResult.name ? companyResult.name.trim().toUpperCase() : "";
+                console.log("Company Name:", companyName);
+
+                // Retrieve branch name that the user types
+                const branchName = document.getElementById('branchName').value.trim().toUpperCase();
+                console.log("Branch Name:", branchName);
+
+                // Retrieve location input value
+                const location = document.getElementById('location').value.trim().toUpperCase();
+                console.log("Location:", location);
+
+                const branchCodeField = document.getElementById('branchCode');
+
+                // Ensure we have at least 3 characters for company and branch names, and non-empty location
+                if (companyName.length >= 3 && branchName.length >= 3 && location.length > 0) {
+                    const cmpPart = companyName.substring(0, 3);
+                    const bnPart = branchName.substring(0, 3);
+                    const locPart = location.substring(0, 3);
+
+                    // Fetch existing branches from database
+                    const existingBranchesResult = await databases.listDocuments(
+                        DB_ID,
+                        BRANCH_COLL,
+                        [Appwrite.Query.equal("company_id", companyId)]
+                    );
+
+                    // Collect random numbers already used for branches with the same prefix
+                    let usedNumbers = [];
+                    if (existingBranchesResult.documents) {
+                        existingBranchesResult.documents.forEach(branch => {
+                            if (branch.branch_code && branch.branch_code.startsWith(`${cmpPart}-${bnPart}-${locPart}`)) {
+                                const parts = branch.branch_code.split("-");
+                                if (parts.length === 4) {
+                                    const num = parseInt(parts[3]);
+                                    if (!isNaN(num)) {
+                                        usedNumbers.push(num);
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // Generate a unique 4-digit random number that is not in usedNumbers
+                    let random4;
+                    do {
+                        random4 = Math.floor(1000 + Math.random() * 9000);
+                    } while (usedNumbers.includes(random4));
+
+                    // Form the final branch code: CompanyPart-BranchPart-LocationPart-Random4
+                    const branchCode = `${cmpPart}-${bnPart}-${locPart}-${random4}`;
+                    branchCodeField.value = branchCode;
+                } else {
+                    branchCodeField.value = "";
+                }
+            } catch (error) {
+                console.error('Error generating branch code:', error);
+                branchCodeField.value = "";
+            }
+        }
+
+        // Function to set loading state
+        function setLoading(loading) {
+            const submitBtn = document.getElementById('submitBtn');
+            if (loading) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('loading');
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
+        }
+
+        async function validateForm(event) {
+            event.preventDefault();
+            setLoading(true);
+
+            try {
+                // Get current user (company) from Appwrite
+                const user = await account.get();
+                const companyId = user.$id;
+
+                // Get company details
+                const companyResult = await databases.getDocument(DB_ID, COMPANY_COLL, companyId);
+                const companyName = companyResult.name ? companyResult.name.trim() : "";
+
+                const location = document.getElementById("location").value.trim();
+                const branchName = document.getElementById("branchName").value.trim();
+                const password = document.getElementById("branchPassword").value.trim();
+                const branchCode = document.getElementById("branchCode").value.trim();
+                const branchManagerEmail = document.getElementById("branchManagerEmail").value.trim();
+                const branchPhoneNumber = document.getElementById("branchPhoneNumber").value.trim();
+                const phonePattern = /^[0-9]{10,15}$/;
+
+                const passwordInput = document.getElementById("branchPassword");
+                const phoneInput = document.getElementById("branchPhoneNumber");
+                const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+                if (!pattern.test(password)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Password',
+                        text: 'Password must be at least 8 characters long and include 1 uppercase, 1 lowercase, 1 number, and 1 special character.'
+                    });
+                    passwordInput.classList.add("border", "border-red-500", "rounded");
+                    setLoading(false);
+                    return false;
+                } else {
+                    passwordInput.classList.remove("border", "border-red-500");
+                }
+
+                // Validate phone number format
+                if (!phonePattern.test(branchPhoneNumber)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Phone Number',
+                        text: 'Please enter a valid phone number (10-15 digits)'
+                    });
+                    phoneInput.classList.add("border", "border-red-500", "rounded");
+                    setLoading(false);
+                    return false;
+                } else {
+                    phoneInput.classList.remove("border", "border-red-500");
+                }
+
+                // Validate required fields
+                if (!branchName || !branchManagerEmail || !location || !password || !branchCode || !branchPhoneNumber) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Missing Information',
+                        text: 'Please fill in all required fields.'
+                    });
+                    setLoading(false);
+                    return false;
+                }
+
+                // Create new Appwrite user account for the branch manager
+                const branchUserResult = await account.create(
+                    'unique()', // Let Appwrite generate user ID
+                    branchManagerEmail,
+                    password,
+                    branchName // Use branch name as the user name
+                );
+
+                console.log('Branch user created successfully:', branchUserResult);
+
+                // Use the Appwrite-generated user ID as the branch_id (same pattern as company signup)
+                const branchId = branchUserResult.$id;
+
+                // Prepare branch data for database (password is handled by Appwrite, not stored in document)
+                const branchData = {
+                    branch_id: branchId, // Use Appwrite user ID as branch_id
+                    company_id: companyId,
+                    branch_name: branchName,
+                    location: location,
+                    branch_code: branchCode,
+                    email: branchManagerEmail, // Required field - use 'email' not 'branch_email'
+                    phone_number: branchPhoneNumber,
+                    is_active: true,
+                    branch_type: "branch",
+                    created_at: new Date().toISOString()
+                };
+
+                console.log('Branch Data Prepared:', branchData);
+
+                // Create branch document in Appwrite database using the user ID as document ID
+                const result = await databases.createDocument(
+                    DB_ID,
+                    BRANCH_COLL,
+                    branchId, // Use the Appwrite user ID as document ID
+                    branchData
+                );
+
+                console.log('Branch created successfully:', result);
+
+                setLoading(false);
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Branch Created',
+                    text: 'Branch data saved successfully!',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = "branches.html"; // Redirect after success
+                });
+
+            } catch (error) {
+                console.error('Error creating branch:', error);
+                setLoading(false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: `Failed to create branch: ${error.message}`
+                });
+            }
+        }
+    </script>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Verification | Phluowise</title>
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-black text-white font-['Inter'] min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-8">
+        <h2 class="text-2xl font-bold mb-6 text-center">Company Verification</h2>
+        <form id="companyVerificationForm" class="space-y-6">
+            <div>
+                <label class="block mb-2 text-sm font-medium" for="companyName">Company Name</label>
+                <input type="text" id="companyName" name="companyName" readonly class="w-full p-3 rounded-lg bg-white/20 border border-white/20 placeholder-gray-400 text-gray-400">
+            </div>
+            <div>
+                <label class="block mb-2 text-sm font-medium" for="companyLocation">Company Location</label>
+                <input type="text" id="companyLocation" name="companyLocation" readonly class="w-full p-3 rounded-lg bg-white/20 border border-white/20 placeholder-gray-400 text-gray-400">
+            </div>
+            <div>
+                <label class="block mb-2 text-sm font-medium" for="registrationNumber">Company Registration Number</label>
+                <input type="text" id="registrationNumber" name="registrationNumber" required placeholder="Enter GRA Registration Number" class="w-full p-3 rounded-lg bg-white/10 border border-white/20 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            </div>
+            <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-white tracking-wide transition">Submit for Verification</button>
+        </form>
+    </div>
+    <script>
+        // Load company name and location from localStorage (from 'companyProfile')
+        document.addEventListener('DOMContentLoaded', function() {
+            const companyProfile = JSON.parse(localStorage.getItem('companyProfile')) || { companyName: '', location: '' };
+            document.getElementById('companyName').value = companyProfile.companyName || '';
+            document.getElementById('companyLocation').value = companyProfile.location || '';
+        });
+
+        document.getElementById('companyVerificationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const registrationNumber = document.getElementById('registrationNumber').value.trim();
+            const companyName = document.getElementById('companyName').value;
+            const companyLocation = document.getElementById('companyLocation').value;
+
+            // Save to localStorage (you can expand this to call an API for actual GRA verification)
+            const companyVerification = {
+                companyName,
+                companyLocation,
+                registrationNumber,
+                verificationStatus: 'pending' // or 'verified' if checked against GRA
+            };
+            localStorage.setItem('companyVerification', JSON.stringify(companyVerification));
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Verification Submitted',
+                text: 'Your company verification has been submitted and is pending review.',
+                background: '#1E1E1E',
+                color: '#FFFFFF',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                window.location.href = 'account_verification.html';
+            });
+        });
+    </script>
+</body>
+</html>

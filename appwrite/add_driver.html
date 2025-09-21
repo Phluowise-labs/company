@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+  <title>Add Driver</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <!-- Add Alpine.js (if not already included) -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+  <link rel="stylesheet" href="driver.css">
+</head>
+
+<body class="bg-black text-white">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .driver-card {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .driver-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .driver-card h3 {
+      margin-top: 0;
+      color: #fff;
+      font-size: 1.2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .driver-card p {
+      margin: 0.5rem 0;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+
+    .driver-card p span {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .driver-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      justify-content: flex-end;
+    }
+
+    .btn-edit,
+    .btn-delete {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .btn-edit {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background-color: #2563eb;
+    }
+
+    .btn-delete {
+      background-color: #ef4444;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background-color: #dc2626;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn-cancel {
+      background-color: #6b7280;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background-color: #4b5563;
+    }
+
+    .no-drivers {
+      text-align: center;
+      color: #9ca3af;
+      padding: 2rem;
+      background: #1a1a1a;
+      border-radius: 8px;
+    }
+  </style>
+  <div class="flex">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <script>
+        fetch("sidebar.html")
+          .then(response => response.text())
+          .then(data => {
+            document.getElementById("sidebar").innerHTML = data;
+            highlightActivePage();
+            (function applyBranchContextToSidebar() {
+              try {
+                const params = new URLSearchParams(window.location.search);
+                const branchId = params.get("branchId") || localStorage.getItem("impersonateBranchId");
+                const as = params.get("as") || localStorage.getItem("impersonateMode");
+                if (!branchId) return;
+                localStorage.setItem("impersonateBranchId", String(branchId));
+                if (as) localStorage.setItem("impersonateMode", String(as));
+                document.querySelectorAll('#sidebar a[href$=".html"]').forEach(a => {
+                  const href = a.getAttribute('href');
+                  if (!href || href.startsWith('http')) return;
+                  const [base, query] = href.split('?');
+                  const sp = new URLSearchParams(query || "");
+                  sp.set('branchId', branchId);
+                  if (as) sp.set('as', as);
+                  a.setAttribute('href', `${base}?${sp.toString()}`);
+                });
+              } catch (e) { console.error(e); }
+            })();
+          });
+
+        function highlightActivePage() {
+          const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+
+          document.querySelectorAll(".menu-item").forEach(item => {
+            const page = item.getAttribute("data-page");
+            if (page === currentPage) {
+              item.classList.add("text-blue-400", "font-bold");
+              item.querySelector(".selection-indicator")?.classList.remove("hidden");
+            }
+          });
+        }
+      </script>
+    </div>
+    <!-- Main Content -->
+    <div class="ml-64 mt-12 p-5 w-full text-white">
+      <!-- Top Bar -->
+      <div id="topbar"></div>
+
+      <script>
+        fetch("topbar.html")
+          .then(r => r.text())
+          .then(html => {
+            const container = document.getElementById("topbar");
+            container.innerHTML = html;
+            container.querySelectorAll("script").forEach(oldScript => {
+              const s = document.createElement("script");
+              if (oldScript.type) s.type = oldScript.type;
+              if (oldScript.src) { s.src = oldScript.src; s.async = false; }
+              else { s.textContent = oldScript.textContent; }
+              document.body.appendChild(s);
+            });
+          });
+      </script>
+
+
+
+      <!-- Main Content Area -->
+      <div class="container  mx-auto p-4">
+        <!-- write the content of the page here -->
+        <div class="container mt-4" id="driverForm">
+          <div class="form-container animate__animated animate__fadeIn">
+            <input type="hidden" id="driverId">
+            <div class="upload-container">
+              <div class="image-upload animation-pulse">
+                <input type="file" accept="image/*" id="profileImage">
+                <img id="previewImage" src="" alt="Profile Image">
+                <p>Upload Profile Image</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="publicName">Public name</label>
+              <input type="text" id="publicName" class="form-control"
+                placeholder="Choose name to be made public to Consumers">
+            </div>
+
+            <div class="form-group">
+              <label for="driverName">Name of Driver</label>
+              <input type="text" id="driverName" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="phoneNumber">Phone number</label>
+              <input type="tel" id="phoneNumber" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="emailAddress">Email Address</label>
+              <input type="email" id="emailAddress" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="residence">Location of Residence</label>
+              <input type="text" id="residence" class="form-control" placeholder="Enter full address">
+            </div>
+
+            <div class="form-group">
+              <label for="vehicleNumber">Vehicle Number</label>
+              <input type="text" id="vehicleNumber" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="vehicleType">Vehicle Type</label>
+              <input type="text" id="vehicleType" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="driverID">Driver's ID Number</label>
+              <div class="password-container">
+                <input type="text" id="driverID" class="form-control">
+                <button class="generate-btn" id="generateID">Generate</button>
+              </div>
+            </div>
+
+            <h3 class="section-title">Legal Identification Document</h3>
+
+            <div class="form-group">
+              <label for="idType">Type of ID</label>
+              <div class="select-container">
+                <select id="idType" class="form-control">
+                  <option value="">Select ID Type</option>
+                  <option value="passport">Passport</option>
+                  <option value="national_id">National ID Card</option>
+                  <option value="drivers_license">Driver's License</option>
+                  <option value="residence_permit">Residence Permit</option>
+                  <option value="social_security">Social Security Card</option>
+                  <option value="voter_id">Voter ID</option>
+                </select>
+                <button class="add-option-btn" id="addIdType">+</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="idNumber">ID Number</label>
+              <input type="text" id="idNumber" class="form-control" placeholder="Enter the ID number/code">
+            </div>
+
+            <div class="form-group">
+              <label>ID Document Images</label>
+              <div class="id-documents-container">
+                <div class="id-upload" id="frontIdUpload">
+                  <input type="file" accept="image/*" id="frontIdImage">
+                  <img id="frontIdPreview" src="" alt="ID Front">
+                  <div class="upload-icon">📄</div>
+                  <p>Front Side</p>
+                </div>
+                <div class="id-upload" id="backIdUpload">
+                  <input type="file" accept="image/*" id="backIdImage">
+                  <img id="backIdPreview" src="" alt="ID Back">
+                  <div class="upload-icon">📄</div>
+                  <p>Back Side</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-block animate__animated animate__pulse animate__infinite"
+                id="addDriver">
+                Add Driver
+              </button>
+              <button type="button" class="btn btn-cancel" id="cancelEdit" style="display: none;">
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <div class="drivers-list animate__animated animate__fadeInRight">
+            <h2 class="list-title">List of Drivers</h2>
+            <!-- Driver cards will be dynamically inserted here by JavaScript -->
+          </div>
+        </div>
+
+        <!-- Add ID Type Dialog -->
+        <div class="dialog-backdrop" id="addIdTypeDialog">
+          <div class="dialog">
+            <h3>Add New ID Type</h3>
+            <div class="form-group">
+              <label for="newIdType">ID Type Name</label>
+              <input type="text" id="newIdType" class="form-control" placeholder="e.g. Work Permit, Military ID">
+            </div>
+            <div class="dialog-footer">
+              <button class="btn btn-cancel" id="cancelAddIdType">Cancel</button>
+              <button class="btn btn-success" id="saveIdType">Add</button>
+            </div>
+          </div>
+        </div>
+        <script src="driver.js"></script>
+
+        <!-- end of page -->
+      </div>
+      <!-- end of content -->
+    </div>
+  </div>
+  </div>
+</body>
+
+</html>
