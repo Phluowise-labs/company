@@ -208,7 +208,7 @@
               await account.createEmailSession(email, password);
 
               // Now send verification email with proper authorization
-              await account.createVerification("https://phluowise-labs.github.io/company/appwrite/verified.html");
+              await account.createVerification("http://" + window.location.host + "/phluowise/public/appwrite/verified.html");
 
               // Delete the temporary session since we don't want unverified users logged in
               await account.deleteSessions();

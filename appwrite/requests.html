@@ -5,15 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
-    <title>Requests Page</title>
+    <title>Requests - Phluowise</title>
+
+    <!-- Tailwind + Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
+        }
+
+        .glassmorphism {
+            background: #212121;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
         }
 
         .tab-button {
@@ -25,15 +36,16 @@
         }
 
         .order-card {
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .order-card:hover {
             transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
 
         .avatar-placeholder {
-            background-color: #3f3f46;
+            background: linear-gradient(135deg, #3f3f46, #52525b);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -79,71 +91,96 @@
             background: #4B5563;
             border-radius: 10px;
         }
+
+        .loading-spinner {
+            border: 3px solid #374151;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 
 <body class="bg-black text-white">
     <div class="flex">
         <!-- Sidebar -->
-        <div id="sidebar">
-            <script>
-                fetch("sidebar.html")
-                    .then(response => response.text())
-                    .then(data => {
-                        document.getElementById("sidebar").innerHTML = data;
-                        highlightActivePage();
-                        (function applyBranchContextToSidebar() {
-                            try {
-                                const params = new URLSearchParams(window.location.search);
-                                const branchId = params.get("branchId") || localStorage.getItem("impersonateBranchId");
-                                const as = params.get("as") || localStorage.getItem("impersonateMode");
-                                if (!branchId) return;
-                                localStorage.setItem("impersonateBranchId", String(branchId));
-                                if (as) localStorage.setItem("impersonateMode", String(as));
-                                document.querySelectorAll('#sidebar a[href$=".html"]').forEach(a => {
-                                    const href = a.getAttribute('href');
-                                    if (!href || href.startsWith('http')) return;
-                                    const [base, query] = href.split('?');
-                                    const sp = new URLSearchParams(query || "");
-                                    sp.set('branchId', branchId);
-                                    if (as) sp.set('as', as);
-                                    a.setAttribute('href', `${base}?${sp.toString()}`);
-                                });
-                            } catch (e) { console.error(e); }
-                        })();
-                    });
+        <div id="sidebar"></div>
+        <script>
+            fetch("sidebar.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("sidebar").innerHTML = data;
+                    highlightActivePage();
+                    // Apply branch context to sidebar links
+                    (function applyBranchContextToSidebar() {
+                        try {
+                            const params = new URLSearchParams(window.location.search);
+                            const branchId = params.get("branchId") || localStorage.getItem("impersonateBranchId");
+                            const as = params.get("as") || localStorage.getItem("impersonateMode");
+                            if (!branchId) return;
+                            localStorage.setItem("impersonateBranchId", String(branchId));
+                            if (as) localStorage.setItem("impersonateMode", String(as));
+                            document.querySelectorAll('#sidebar a[href$=".html"]').forEach(a => {
+                                const href = a.getAttribute('href');
+                                if (!href || href.startsWith('http')) return;
+                                const [base, query] = href.split('?');
+                                const sp = new URLSearchParams(query || "");
+                                sp.set('branchId', branchId);
+                                if (as) sp.set('as', as);
+                                a.setAttribute('href', `${base}?${sp.toString()}`);
+                            });
+                        } catch (e) { console.error(e); }
+                    })();
+                });
 
-                function highlightActivePage() {
-                    const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
-                    document.querySelectorAll(".menu-item").forEach(item => {
-                        const page = item.getAttribute("data-page");
-                        if (page === currentPage) {
-                            item.classList.add("text-blue-400", "font-bold");
-                            item.querySelector(".selection-indicator")?.classList.remove("hidden");
-                        }
-                    });
-                }
-            </script>
-        </div>
+            function highlightActivePage() {
+                const currentPage = window.location.pathname.split("/").pop().replace(".html", "").toLowerCase();
+                document.querySelectorAll(".menu-item").forEach(item => {
+                    const page = item.getAttribute("data-page");
+                    if (page === currentPage || page === "requests") {
+                        item.classList.add("text-blue-400", "font-bold");
+                        item.querySelector(".selection-indicator")?.classList.remove("hidden");
+                    }
+                });
+            }
+        </script>
 
         <!-- Main Content -->
         <div class="ml-64 p-5 w-full text-white">
             <!-- Top Bar -->
             <div id="topbar"></div>
-
             <script>
                 fetch("topbar.html")
                     .then((r) => r.text())
                     .then((html) => {
                         const container = document.getElementById("topbar");
                         container.innerHTML = html;
-
                         // Execute scripts found in the injected markup
                         container.querySelectorAll("script").forEach((oldScript) => {
                             const s = document.createElement("script");
                             if (oldScript.src) {
                                 s.src = oldScript.src;
-                                // ✅ ensure predictable execution
                                 s.async = false;
                             } else {
                                 s.textContent = oldScript.textContent;
@@ -153,162 +190,201 @@
                     });
             </script>
 
-
             <!-- Main Content Area -->
             <div class="container mx-auto mt-10 p-4">
-                <!-- Tab Navigation -->
-                <div class="flex border-b border-gray-700">
-                    <button id="orders-tab" class="tab-button active py-2 px-4 font-medium border-b-2 border-blue-500">
-                        Orders
-                    </button>
-                    <button id="accepted-tab" class="tab-button py-2 px-4 text-gray-400 font-medium">
-                        Accepted
-                    </button>
-                    <button id="pending-tab" class="tab-button py-2 px-4 text-gray-400 font-medium">
-                        Pending
-                    </button>
-                    <button id="denied-tab" class="tab-button py-2 px-4 text-gray-400 font-medium">
-                        Denied
+                <!-- Page Header -->
+                <div class="mb-8 flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">Order Requests</h1>
+                        <p class="text-gray-400">Manage and track customer order requests</p>
+                    </div>
+                    <div>
+                        <a href="test-order-creation/test-orders.html"
+                            class="border border-blue-600 hover:bg-blue-600 text-blue-600 hover:text-white px-6 py-3 rounded-lg font-medium inline-flex items-center">
+                            <i class="fas fa-flask mr-2"></i>Test Orders
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-state" class="flex justify-center items-center py-20">
+                    <div class="loading-spinner"></div>
+                    <span class="ml-4 text-gray-400">Loading orders...</span>
+                </div>
+
+                <!-- Error State -->
+                <div id="error-state" class="hidden glassmorphism p-8 text-center">
+                    <div class="text-red-400 mb-4">
+                        <i class="fas fa-exclamation-triangle text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Failed to Load Orders</h3>
+                    <p class="text-gray-400 mb-4" id="error-message">Unable to fetch order data</p>
+                    <button id="retry-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                        <i class="fas fa-redo mr-2"></i>Retry
                     </button>
                 </div>
 
-                <!-- Tab Content -->
-                <div class="tab-content mt-4">
-                    <!-- Orders Tab (Default) -->
-                    <div id="orders-content" class="tab-pane active">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-full mx-auto" id="orders-container">
-                            <!-- Orders will be dynamically populated here -->
+                <!-- Main Content -->
+                <div id="main-content" class="hidden">
+                    <!-- Tab Navigation -->
+                    <div class="flex border-b border-gray-700 mb-6">
+                        <button id="all-tab"
+                            class="tab-button active py-3 px-6 font-medium border-b-2 border-blue-500 text-white">
+                            All Orders <span id="all-count"
+                                class="ml-2 bg-gray-700 px-2 py-1 rounded-full text-xs">0</span>
+                        </button>
+                        <button id="pending-tab" class="tab-button py-3 px-6 text-gray-400 font-medium">
+                            Pending <span id="pending-count"
+                                class="ml-2 bg-gray-700 px-2 py-1 rounded-full text-xs">0</span>
+                        </button>
+                        <button id="accepted-tab" class="tab-button py-3 px-6 text-gray-400 font-medium">
+                            Accepted <span id="accepted-count"
+                                class="ml-2 bg-gray-700 px-2 py-1 rounded-full text-xs">0</span>
+                        </button>
+                        <button id="denied-tab" class="tab-button py-3 px-6 text-gray-400 font-medium">
+                            Denied <span id="denied-count"
+                                class="ml-2 bg-gray-700 px-2 py-1 rounded-full text-xs">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- All Orders Tab (Default) -->
+                        <div id="all-content" class="tab-pane active">
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="all-container">
+                                <!-- Orders will be dynamically populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Pending Tab -->
+                        <div id="pending-content" class="tab-pane hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="pending-container">
+                                <!-- Pending orders will appear here -->
+                            </div>
+                        </div>
+
+                        <!-- Accepted Tab -->
+                        <div id="accepted-content" class="tab-pane hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="accepted-container">
+                                <!-- Accepted orders will appear here -->
+                            </div>
+                        </div>
+
+                        <!-- Denied Tab -->
+                        <div id="denied-content" class="tab-pane hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="denied-container">
+                                <!-- Denied orders will appear here -->
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Accepted Tab -->
-                    <div id="accepted-content" class="tab-pane hidden">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-full mx-auto" id="accepted-container">
-                            <!-- Accepted orders will appear here -->
+                    <!-- Empty State -->
+                    <div id="empty-state" class="hidden text-center py-20">
+                        <div class="text-gray-500 mb-4">
+                            <i class="fas fa-inbox text-6xl"></i>
                         </div>
-                    </div>
-
-                    <!-- Pending Tab -->
-                    <div id="pending-content" class="tab-pane hidden">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-full mx-auto" id="pending-container">
-                            <!-- Pending orders will appear here -->
-                        </div>
-                    </div>
-
-                    <!-- Denied Tab -->
-                    <div id="denied-content" class="tab-pane hidden">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-full mx-auto" id="denied-container">
-                            <!-- Denied orders will appear here -->
-                        </div>
+                        <h3 class="text-xl font-semibold mb-2">No Orders Found</h3>
+                        <p class="text-gray-400">There are no orders to display at the moment.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Order Template (Hidden) -->
-            <template id="order-template">
-                <div class="bg-zinc-900 rounded-lg p-4 order-card" data-id="">
-                    <div class="flex gap-3">
-                        <div class="w-16 h-16 bg-zinc-800 rounded-lg avatar-placeholder">
-                            <!-- Avatar will be inserted here -->
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-white font-medium order-name">Name of User</p>
-                            <p class="text-gray-400 text-sm order-location">location</p>
-                            <div class="flex items-center mt-1">
-                                <p class="text-gray-400 text-xs order-time">12:30am</p>
-                                <p class="text-gray-400 text-xs ml-2 order-date">July 20, 2023</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <div class="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </div>
-                            <p class="text-white text-xs mt-1">Visit</p>
+            <!-- Order Details Modal -->
+            <div id="order-modal"
+                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal hidden">
+                <div
+                    class="bg-gray-800 text-gray-300 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+                    <!-- Header -->
+                    <div class="border-b border-gray-700 p-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-semibold text-white">Order Details</h2>
+                            <button id="close-modal-btn" class="text-gray-400 hover:text-white">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center mt-3">
-                        <div class="flex gap-2 action-buttons">
-                            <button
-                                class="accept-btn bg-green-600 hover:bg-green-700 text-white rounded-full text-xs py-1 px-4">Accept</button>
-                            <button
-                                class="deny-btn bg-red-800 hover:bg-red-900 text-white rounded-full text-xs py-1 px-4">Deny</button>
-                            <button
-                                class="pending-btn bg-amber-700 hover:bg-amber-800 text-white rounded-full text-xs py-1 px-4">Pending</button>
-                        </div>
-                        <button class="view-details-btn text-blue-400 hover:text-blue-300 text-xs underline">View
-                            Product Details</button>
-                    </div>
-                </div>
-            </template>
 
-            <!-- Modal Template -->
-            <template id="modal-template">
-                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center modal hidden">
-                    <div
-                        class="bg-gray-800 text-gray-300 rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] flex flex-col">
-                        <!-- Header -->
-                        <div class="border-b border-gray-700 p-4">
-                            <h2 class="text-xl font-semibold text-white">Order Details</h2>
-                        </div>
-
-                        <!-- Scrollable Content -->
-                        <div class="overflow-y-auto flex-1">
-                            <!-- Order Summary -->
-                            <div class="p-4 border-b border-gray-700">
-                                <div class="text-center mb-6">
-                                    <p class="text-gray-400">Total Price counter:</p>
-                                    <p class="text-2xl font-bold text-white total-price">GH₵ 0.00</p>
-                                </div>
-
-                                <!-- Products Slider -->
-                                <div class="products-slider">
-                                    <!-- Products will be inserted here -->
-                                </div>
-                            </div>
-
-                            <!-- Order Time and Date -->
-                            <div class="p-4 border-b border-gray-700">
-                                <h3 class="font-medium mb-3">Order Placement Details</h3>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="bg-gray-700 rounded p-3">
-                                        <p class="text-xs text-gray-400 mb-1">Date</p>
-                                        <p class="font-medium order-date-modal">April 15, 2025</p>
+                    <!-- Scrollable Content -->
+                    <div class="overflow-y-auto flex-1 p-6">
+                        <!-- Customer Info -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold mb-3 text-white">Customer Information</h3>
+                            <div class="glassmorphism p-4">
+                                <div class="flex items-center mb-3">
+                                    <div
+                                        class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                                        <span id="customer-avatar" class="text-white font-bold text-lg"></span>
                                     </div>
-                                    <div class="bg-gray-700 rounded p-3">
-                                        <p class="text-xs text-gray-400 mb-1">Time</p>
-                                        <p class="font-medium order-time-modal">14:30 PM</p>
+                                    <div>
+                                        <p class="font-semibold text-white" id="customer-name">Customer Name</p>
+                                        <p class="text-gray-400 text-sm" id="customer-location">Location</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-400">Order Date:</span>
+                                        <span class="text-white ml-2" id="order-date">-</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400">Order Time:</span>
+                                        <span class="text-white ml-2" id="order-time">-</span>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Additional Information -->
-                            <div class="p-4 border-b border-gray-700">
-                                <h3 class="font-medium mb-3">Additional Information</h3>
-                                <div class="bg-gray-700 rounded p-3">
-                                    <p class="text-sm notes">No additional notes</p>
+                        <!-- Products -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold mb-3 text-white">Products</h3>
+                            <div id="modal-products" class="space-y-3">
+                                <!-- Products will be inserted here -->
+                            </div>
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold mb-3 text-white">Order Summary</h3>
+                            <div class="glassmorphism p-4">
+                                <div class="flex justify-between items-center text-lg font-semibold">
+                                    <span>Total Amount:</span>
+                                    <span class="text-green-400" id="modal-total">GH₵ 0.00</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Footer Actions -->
-                        <div class="p-4 flex justify-end space-x-3 border-t border-gray-700">
-                            <button
-                                class="close-modal-btn px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md">Close</button>
-
+                        <!-- Additional Notes -->
+                        <div class="mb-6">
+                            <h3 class="font-semibold mb-3 text-white">Additional Notes</h3>
+                            <div class="glassmorphism p-4">
+                                <p class="text-gray-300" id="modal-notes">No additional notes</p>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Footer Actions -->
+                    <div class="p-6 flex justify-end space-x-3 border-t border-gray-700">
+                        <button id="modal-deny-btn"
+                            class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-times mr-2"></i>Deny
+                        </button>
+                        <button id="modal-accept-btn"
+                            class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-check mr-2"></i>Accept
+                        </button>
+                        <button id="modal-pending-btn"
+                            class="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-clock mr-2"></i>Mark Pending
+                        </button>
+                    </div>
                 </div>
-            </template>
+            </div>
         </div>
     </div>
 
-    <script src="request.js"></script>
+    <!-- Scripts -->
+    <script type="module" src="js/config.js"></script>
+    <script type="module" src="js/authManager.js"></script>
+    <script type="module" src="js/requests.js"></script>
 </body>
 
 </html>
