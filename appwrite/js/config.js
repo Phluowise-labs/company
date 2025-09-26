@@ -32,6 +32,7 @@ export const COMPANY_COLL = "company_tb";
 export const BRANCH_COLL = "branches";
 // Additional collections for metrics
 export const ORDERS_COLL = "orders"; // statuses: accepted, pending, denied, cancelled_by_customer
+export const ORDER_ITEMS_COLL = "order_items"; // junction table for orders and products
 export const DELIVERIES_COLL = "deliveries"; // delivery records with timestamps and outcomes
 export const TRANSACTIONS_COLL = "transactions"; // financial transactions
 export const RATINGS_COLL = "ratings"; // customer feedback per delivery/order
