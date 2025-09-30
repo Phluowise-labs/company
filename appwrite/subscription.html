@@ -15,14 +15,14 @@
 
     <script>
         // Check if user is logged in
-        const isLoggedIn = localStorage.getItem("isLoggedIn");
+        // const isLoggedIn = localStorage.getItem("isLoggedIn");
 
         // For demo/testing purposes, set login status if not present
-        if (!isLoggedIn) {
-            // Set a demo login status to prevent redirect loop
-            localStorage.setItem("isLoggedIn", "true");
-            console.log("Demo login status set for testing");
-        }
+        // if (!isLoggedIn) {
+        //     // Set a demo login status to prevent redirect loop
+        //     localStorage.setItem("isLoggedIn", "true");
+        //     console.log("Demo login status set for testing");
+        // }
 
         // Uncomment the line below when you have real authentication
         // if (!isLoggedIn) {
@@ -33,6 +33,15 @@
 </head>
 
 <body class="bg-black text-white">
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="loading-modal">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3 class="text-lg font-semibold mb-2">Loading Subscription Data</h3>
+            <p class="text-gray-300">Please wait while we fetch your subscription details...</p>
+        </div>
+    </div>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -82,6 +91,57 @@
         .status-trial-expired {
             background: linear-gradient(135deg, #F59E0B, #D97706);
             color: white;
+        }
+
+        /* Loading Modal Styles */
+        .loading-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-modal.fade-out {
+            opacity: 0;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+            background: rgba(33, 33, 33, 0.9);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(59, 130, 246, 0.3);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 
@@ -137,7 +197,7 @@
             </script>
 
             <!-- Subscription Status Header -->
-            <div class="mb-8">
+            <div class="container mt-10 z-0 mx-auto p-4">
                 <div class="flex items-center justify-between">
                     <h1 class="text-3xl font-bold">Subscription Management</h1>
                     <div class="subscription-status" id="subscription-status-display">

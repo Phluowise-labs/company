@@ -17,8 +17,10 @@ async function loadOrders() {
     // }
 
     renderOrders();
+    hideLoadingModal();
   } catch (error) {
     console.error("Error loading orders:", error);
+    hideLoadingModal();
   }
 }
 
@@ -224,7 +226,27 @@ function initPickers() {
 
 // Initialize the application
 window.onload = function () {
+  showLoadingModal();
   initPickers();
   loadOrders();
   showTab("pending");
 };
+
+// Loading modal helper functions
+function showLoadingModal() {
+  const modal = document.getElementById("loadingModal");
+  if (modal) {
+    modal.style.display = "flex";
+    modal.classList.remove("fade-out");
+  }
+}
+
+function hideLoadingModal() {
+  const modal = document.getElementById("loadingModal");
+  if (modal) {
+    modal.classList.add("fade-out");
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 500);
+  }
+}

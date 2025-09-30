@@ -72,21 +72,25 @@
                     class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition">
                     Basic Plan
                 </button>
-                <button onclick="setExpiredPlan()"
-                    class="bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-semibold transition">
+                <button onclick="setExpired()"
+                    class="bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-4 rounded-lg font-semibold transition">
                     Expired
                 </button>
-                <button onclick="setOverduePayment()"
+                <button onclick="setPaymentDue()"
                     class="bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-lg font-semibold transition">
                     Payment Due
                 </button>
                 <button onclick="setTrulyOverdue()"
-                    class="bg-red-700 hover:bg-red-800 text-white py-3 px-4 rounded-lg font-semibold transition">
+                    class="bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-semibold transition">
                     Truly Overdue
                 </button>
-                <button onclick="resetSystem()"
+                <button onclick="resetSubscription()"
                     class="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-semibold transition">
                     Reset
+                </button>
+                <button onclick="simulatePayment()"
+                    class="bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-semibold transition">
+                    💳 Simulate Payment
                 </button>
             </div>
         </div>
@@ -112,9 +116,11 @@
     </div>
 
     <!-- Load Subscription Manager -->
-    <script src="subscription-manager.js"></script>
-
-    <script>
+    <script type="module" src="subscription-manager-v2.js"></script>
+    <script type="module">
+        // Import the subscription manager
+        import { databases, DB_ID } from './js/config.js';
+        
         let subscriptionManager = null;
 
         // Wait for subscription manager to be available
@@ -150,8 +156,8 @@
 
             // Update status displays
             document.getElementById('status-display').textContent = data.status.replace('_', ' ').toUpperCase();
-            document.getElementById('plan-display').textContent = data.plan.charAt(0).toUpperCase() + data.plan.slice(1);
-            document.getElementById('amount-display').textContent = `GH₵ ${data.amountOwing.toFixed(2)}`;
+            document.getElementById('plan-display').textContent = data.plan_type ? data.plan_type.charAt(0).toUpperCase() + data.plan_type.slice(1) : 'N/A';
+            document.getElementById('amount-display').textContent = `GH₵ ${(data.amount_due || 0).toFixed(2)}`;
 
             // Update countdowns
             updateCountdowns();
@@ -165,8 +171,8 @@
 
             // Main countdown (trial or plan)
             let mainCountdown = 'No active countdown';
-            if (data.status === 'free_trial' && data.trialEnd) {
-                const timeLeft = new Date(data.trialEnd) - new Date();
+            if (data.status === 'active' && data.trial_end_date) {
+                const timeLeft = new Date(data.trial_end_date) - new Date();
                 if (timeLeft > 0) {
                     const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -174,8 +180,8 @@
                 } else {
                     mainCountdown = 'Trial Expired';
                 }
-            } else if (data.status === 'active' && data.planEnd) {
-                const timeLeft = new Date(data.planEnd) - new Date();
+            } else if (data.status === 'active' && data.end_date) {
+                const timeLeft = new Date(data.end_date) - new Date();
                 if (timeLeft > 0) {
                     const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
                     const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -189,8 +195,8 @@
 
             // Payment countdown
             let paymentCountdown = 'No payment due';
-            if (data.paymentDueDate) {
-                const timeLeft = new Date(data.paymentDueDate) - new Date();
+            if (data.payment_due_date) {
+                const timeLeft = new Date(data.payment_due_date) - new Date();
                 if (timeLeft > 0) {
                     const hours = Math.floor(timeLeft / (1000 * 60 * 60));
                     const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
@@ -210,142 +216,213 @@
             }, 1000);
         }
 
-        // Test functions
-        function setFreeTrial() {
-            if (!subscriptionManager) return;
-            subscriptionManager.subscriptionData = {
-                status: 'free_trial',
-                plan: 'free',
-                trialStart: new Date().toISOString(),
-                trialEnd: new Date(Date.now() + (20 * 24 * 60 * 60 * 1000)).toISOString(),
-                planStart: null,
-                planEnd: null,
-                amountOwing: 0,
-                lastPaymentCheck: new Date().toISOString(),
-                paymentDueDate: null,
-                isBlocked: false,
-                paymentHistory: []
-            };
-            subscriptionManager.saveSubscriptionData();
-            subscriptionManager.checkAccessControl();
-            updateDisplay();
-
-            Swal.fire({
-                title: 'Free Trial Set',
-                text: '20-day free trial activated',
-                icon: 'success'
-            });
+        // Test functions to simulate different subscription states
+        window.setFreeTrial = async function() {
+            try {
+                const now = new Date();
+                const trialEnd = new Date(now.getTime() + 20 * 24 * 60 * 60 * 1000); // 20 days
+                
+                const subscriptionData = {
+                    subscription_id: 'test_' + Math.random().toString(36).substr(2, 16),
+                    company_id: 'demo_company_001',
+                    plan_type: 'free_trial',
+                    status: 'active',
+                    start_date: now.toISOString(),
+                    end_date: trialEnd.toISOString(),
+                    trial_end_date: trialEnd.toISOString(),
+                    is_blocked: false,
+                    created_at: now.toISOString(),
+                    updated_at: now.toISOString()
+                };
+                
+                await updateTestSubscription(subscriptionData);
+                location.reload();
+            } catch (error) {
+                console.error('Error setting free trial:', error);
+                showError('Failed to set free trial');
+            }
         }
 
-        function setBasicPlan() {
-            if (!subscriptionManager) return;
-            subscriptionManager.subscriptionData = {
-                status: 'active',
-                plan: 'basic',
-                trialStart: null,
-                trialEnd: null,
-                planStart: new Date().toISOString(),
-                planEnd: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)).toISOString(),
-                amountOwing: 0,
-                lastPaymentCheck: new Date().toISOString(),
-                paymentDueDate: null,
-                isBlocked: false,
-                paymentHistory: []
-            };
-            subscriptionManager.saveSubscriptionData();
-            subscriptionManager.checkAccessControl();
-            updateDisplay();
-
-            Swal.fire({
-                title: 'Basic Plan Set',
-                text: 'Basic plan activated for 30 days',
-                icon: 'success'
-            });
+        window.setBasicPlan = async function() {
+            try {
+                const now = new Date();
+                const planEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+                
+                const subscriptionData = {
+                    subscription_id: 'test_' + Math.random().toString(36).substr(2, 16),
+                    company_id: 'demo_company_001',
+                    plan_type: 'basic',
+                    status: 'active',
+                    start_date: now.toISOString(),
+                    end_date: planEnd.toISOString(),
+                    is_blocked: false,
+                    last_payment_date: now.toISOString(),
+                    created_at: now.toISOString(),
+                    updated_at: now.toISOString()
+                };
+                
+                await updateTestSubscription(subscriptionData);
+                location.reload();
+            } catch (error) {
+                console.error('Error setting basic plan:', error);
+                showError('Failed to set basic plan');
+            }
         }
 
-        function setExpiredPlan() {
-            if (!subscriptionManager) return;
-            subscriptionManager.subscriptionData = {
-                status: 'expired',
-                plan: 'basic',
-                trialStart: null,
-                trialEnd: null,
-                planStart: new Date(Date.now() - (31 * 24 * 60 * 60 * 1000)).toISOString(),
-                planEnd: new Date(Date.now() - (1 * 24 * 60 * 60 * 1000)).toISOString(),
-                amountOwing: 0,
-                lastPaymentCheck: new Date().toISOString(),
-                paymentDueDate: null,
-                isBlocked: true,
-                blockedAt: new Date().toISOString(),
-                paymentHistory: []
-            };
-            subscriptionManager.saveSubscriptionData();
-            subscriptionManager.checkAccessControl();
-            updateDisplay();
-
-            Swal.fire({
-                title: 'Expired Plan Set',
-                text: 'Plan expired - app should be blocked',
-                icon: 'warning'
-            });
+        window.setExpiredPlan = async function() {
+            try {
+                const now = new Date();
+                const expiredDate = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000); // 1 day ago
+                const gracePeriod = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000); // 6 days from now
+                
+                const subscriptionData = {
+                    subscription_id: 'test_' + Math.random().toString(36).substr(2, 16),
+                    company_id: 'demo_company_001',
+                    plan_type: 'basic',
+                    status: 'expired',
+                    start_date: new Date(now.getTime() - 31 * 24 * 60 * 60 * 1000).toISOString(),
+                    end_date: expiredDate.toISOString(),
+                    is_blocked: true,
+                    blocked_at: now.toISOString(),
+                    payment_due_date: gracePeriod.toISOString(),
+                    grace_period_end: gracePeriod.toISOString(),
+                    amount_due: 29.99,
+                    created_at: now.toISOString(),
+                    updated_at: now.toISOString()
+                };
+                
+                await updateTestSubscription(subscriptionData);
+                location.reload();
+            } catch (error) {
+                console.error('Error setting expired:', error);
+                showError('Failed to set expired status');
+            }
         }
 
-        function setOverduePayment() {
-            if (!subscriptionManager) return;
-            subscriptionManager.subscriptionData = {
-                status: 'active',
-                plan: 'basic',
-                trialStart: null,
-                trialEnd: null,
-                planStart: new Date(Date.now() - (15 * 24 * 60 * 60 * 1000)).toISOString(),
-                planEnd: new Date(Date.now() + (15 * 24 * 60 * 60 * 1000)).toISOString(),
-                amountOwing: 150.00,
-                lastPaymentCheck: new Date().toISOString(),
-                paymentDueDate: new Date(Date.now() + (2 * 60 * 60 * 1000)).toISOString(), // 2 hours in the future
-                isBlocked: false, // Not blocked yet since payment is not overdue
-                paymentHistory: []
-            };
-            subscriptionManager.saveSubscriptionData();
-            subscriptionManager.checkAccessControl();
-            updateDisplay();
-
-            Swal.fire({
-                title: 'Payment Due Set',
-                text: 'Payment due in 2 hours - you can see the countdown',
-                icon: 'info'
-            });
+        window.setOverduePayment = async function() {
+            try {
+                const now = new Date();
+                const expiredDate = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000); // 5 days ago
+                const gracePeriod = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
+                
+                const subscriptionData = {
+                    subscription_id: 'test_' + Math.random().toString(36).substr(2, 16),
+                    company_id: 'demo_company_001',
+                    plan_type: 'basic',
+                    status: 'expired',
+                    start_date: new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000).toISOString(),
+                    end_date: expiredDate.toISOString(),
+                    is_blocked: true,
+                    blocked_at: expiredDate.toISOString(),
+                    payment_due_date: gracePeriod.toISOString(),
+                    grace_period_end: gracePeriod.toISOString(),
+                    amount_due: 29.99,
+                    created_at: now.toISOString(),
+                    updated_at: now.toISOString()
+                };
+                
+                await updateTestSubscription(subscriptionData);
+                location.reload();
+            } catch (error) {
+                console.error('Error setting payment due:', error);
+                showError('Failed to set payment due status');
+            }
         }
 
-        function setTrulyOverdue() {
-            if (!subscriptionManager) return;
-            subscriptionManager.subscriptionData = {
-                status: 'active',
-                plan: 'basic',
-                trialStart: null,
-                trialEnd: null,
-                planStart: new Date(Date.now() - (15 * 24 * 60 * 60 * 1000)).toISOString(),
-                planEnd: new Date(Date.now() + (15 * 24 * 60 * 60 * 1000)).toISOString(),
-                amountOwing: 150.00,
-                lastPaymentCheck: new Date().toISOString(),
-                paymentDueDate: new Date(Date.now() - (2 * 60 * 60 * 1000)).toISOString(), // 2 hours ago
-                isBlocked: true, // Blocked since payment is overdue
-                blockedAt: new Date().toISOString(),
-                paymentHistory: []
-            };
-            subscriptionManager.saveSubscriptionData();
-            subscriptionManager.checkAccessControl();
-            updateDisplay();
-
-            Swal.fire({
-                title: 'Truly Overdue Payment Set',
-                text: 'Payment overdue by 2 hours - app should be blocked',
-                icon: 'warning'
-            });
+        window.setTrulyOverdue = async function() {
+            try {
+                const now = new Date();
+                const expiredDate = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000); // 10 days ago
+                const paymentDue = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000); // 3 days ago
+                
+                const subscriptionData = {
+                    subscription_id: 'test_' + Math.random().toString(36).substr(2, 16),
+                    company_id: 'demo_company_001',
+                    plan_type: 'basic',
+                    status: 'payment_overdue',
+                    start_date: new Date(now.getTime() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+                    end_date: expiredDate.toISOString(),
+                    is_blocked: true,
+                    blocked_at: expiredDate.toISOString(),
+                    payment_due_date: paymentDue.toISOString(),
+                    grace_period_end: paymentDue.toISOString(),
+                    amount_due: 29.99,
+                    created_at: now.toISOString(),
+                    updated_at: now.toISOString()
+                };
+                
+                await updateTestSubscription(subscriptionData);
+                location.reload();
+            } catch (error) {
+                console.error('Error setting truly overdue:', error);
+                showError('Failed to set overdue status');
+            }
         }
 
-        function resetSystem() {
-            localStorage.removeItem('subscriptionData');
-            window.location.reload();
+        window.resetSystem = async function() {
+            try {
+                // Delete existing subscription from Appwrite
+                const response = await databases.listDocuments(
+                    DB_ID,
+                    'subscriptions',
+                    [databases.Query.equal('company_id', 'demo_company_001')]
+                );
+                
+                for (const doc of response.documents) {
+                    await databases.deleteDocument(DB_ID, 'subscriptions', doc.$id);
+                }
+                
+                // Also clear localStorage as fallback
+                localStorage.removeItem("subscriptionData");
+                location.reload();
+            } catch (error) {
+                console.error('Error resetting subscription:', error);
+                showError('Failed to reset subscription');
+            }
+        }
+
+        // Helper function to update test subscription
+        async function updateTestSubscription(subscriptionData) {
+            try {
+                // First, delete any existing subscription for this company
+                const existing = await databases.listDocuments(
+                    DB_ID,
+                    'subscriptions',
+                    [databases.Query.equal('company_id', subscriptionData.company_id)]
+                );
+                
+                for (const doc of existing.documents) {
+                    await databases.deleteDocument(DB_ID, 'subscriptions', doc.$id);
+                }
+                
+                // Create new subscription
+                await databases.createDocument(
+                    DB_ID,
+                    'subscriptions',
+                    subscriptionData.subscription_id,
+                    subscriptionData
+                );
+                
+                console.log('Test subscription updated:', subscriptionData);
+            } catch (error) {
+                console.error('Error updating test subscription:', error);
+                throw error;
+            }
+        }
+
+        // Helper function to show errors
+        function showError(message) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Error',
+                    text: message,
+                    icon: 'error',
+                    background: '#1F2937',
+                    color: '#F9FAFB'
+                });
+            } else {
+                alert(message);
+            }
         }
 
         async function makePayment() {
@@ -364,6 +441,15 @@
 
         function goToSubscription() {
             window.location.href = 'subscription.html';
+        }
+
+        // Test payment simulation
+        window.simulatePayment = async function() {
+            if (window.subscriptionManager && window.subscriptionManager.subscription) {
+                await window.subscriptionManager.paymentProcessor.showPaymentModal(window.subscriptionManager.subscription);
+            } else {
+                showError('No subscription found to process payment for');
+            }
         }
 
         // Initialize when page loads

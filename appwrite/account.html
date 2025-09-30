@@ -13,12 +13,98 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Chart.js for transaction charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Appwrite SDK (CDN version for global access) -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
+
     <!-- Subscription and Access Control Scripts -->
     <script src="subscription-manager.js"></script>
-    <script src="access-control.js"></script>
+    <!-- <script src="access-control.js"></script> -->
+
+    <!-- Modular JavaScript Files -->
+    <script src="js/account-metrics.js"></script>
+    <script src="js/account.js"></script>
+
+    <!-- Loading Modal Styles -->
+    <style>
+        .loading-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-modal.fade-out {
+            opacity: 0;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+            background: rgba(33, 33, 33, 0.9);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(59, 130, 246, 0.3);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .loading-skeleton,
+        .loading-skeleton-small {
+            color: transparent;
+        }
+    </style>
 </head>
 
 <body class="bg-black text-white">
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="loading-modal">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3 class="text-lg font-semibold text-white mb-2">Loading Account Data</h3>
+            <p class="text-white">Fetching your information from the database...</p>
+        </div>
+    </div>
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -157,6 +243,10 @@
                                 s.src = oldScript.src;
                                 // Important: ensure predictable execution
                                 s.async = false;
+                                // Copy type attribute if it exists
+                                if (oldScript.type) {
+                                    s.type = oldScript.type;
+                                }
                             } else {
                                 s.textContent = oldScript.textContent;
                             }
@@ -183,10 +273,14 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M5 10l7-7m0 0l7 7m-7-7v18" />
                                         </svg>
-                                        <span class="text-green-400 text-sm ml-1" id="transaction-growth">10.0%</span>
+                                        <span class="text-green-400 text-sm ml-1" id="transaction-growth">
+                                            --
+                                        </span>
                                     </div>
                                 </div>
-                                <div class="text-3xl font-bold" id="total-amount">GH₵ 930.00</div>
+                                <div class="text-3xl font-bold" id="total-amount">
+                                    GH₵ 0.00
+                                </div>
                             </div>
 
                             <!-- Booked Orders -->
@@ -199,10 +293,14 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M5 10l7-7m0 0l7 7m-7-7v18" />
                                         </svg>
-                                        <span class="text-green-400 text-sm ml-1" id="orders-growth">20%</span>
+                                        <span class="text-green-400 text-sm ml-1" id="orders-growth">
+                                            --
+                                        </span>
                                     </div>
                                 </div>
-                                <div class="text-3xl font-bold" id="orders-count">50 orders</div>
+                                <div class="text-3xl font-bold" id="orders-count">
+                                    0 orders
+                                </div>
                             </div>
 
                             <!-- Total Requests -->
@@ -210,7 +308,9 @@
                                 <div class="flex justify-between items-center mb-2">
                                     <h2 class="text-gray-300 font-medium">Total Requests</h2>
                                 </div>
-                                <div class="text-3xl font-bold" id="requests-count">500 orders</div>
+                                <div class="text-3xl font-bold" id="requests-count">
+                                    0 orders
+                                </div>
                             </div>
                         </div>
 
@@ -223,7 +323,9 @@
                                 <div class="flex items-center">
                                     <div>
                                         <p>Total Amount : <span class="bg-blue-800/70 px-3 py-1 rounded-lg text-white"
-                                                id="highlight-value">0</span></p>
+                                                id="highlight-value">
+                                                GH₵ 0.00
+                                            </span></p>
                                     </div>
                                     <div class="relative ml-6">
                                         <select id="year-selector"
@@ -254,269 +356,6 @@
                             </div>
                         </div>
 
-                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                        <script>
-                            // Global chart reference
-                            let transactionChart;
-
-                            // First, let's create a function to load the transaction data from account.json
-                            async function loadTransactionData() {
-                                try {
-                                    // In a real application, you would fetch this from your API:
-                                    // const response = await fetch('/api/transactions');
-                                    // const data = await response.json();
-
-                                    // For this example, we'll use the account.json file
-                                    const response = await fetch('account.json');
-                                    if (!response.ok) {
-                                        throw new Error('Failed to load account data');
-                                    }
-                                    const data = await response.json();
-
-                                    // No need to process the data - it's already in the correct format
-                                    const transactionData = data.transactions;
-
-                                    // Populate year selector
-                                    populateYearSelector(transactionData);
-
-                                    // Initialize chart with the most recent year's data
-                                    const years = Object.keys(transactionData).sort((a, b) => b - a);
-                                    if (years.length > 0) {
-                                        updateChart(transactionData[years[0]], years[0]);
-                                    }
-                                } catch (error) {
-                                    console.error('Error loading transaction data:', error);
-                                    // Fallback to sample data if JSON file can't be loaded
-                                    const sampleData = {
-                                        "2023": [
-                                            { month: 'Jan', amount: 360 },
-                                            { month: 'Feb', amount: 400 },
-                                            { month: 'Mar', amount: 480 },
-                                            { month: 'Apr', amount: 380 },
-                                            { month: 'May', amount: 300 },
-                                            { month: 'Jun', amount: 380 },
-                                            { month: 'Jul', amount: 400 },
-                                            { month: 'Aug', amount: 640 },
-                                            { month: 'Sep', amount: 440 },
-                                            { month: 'Oct', amount: 420 },
-                                            { month: 'Nov', amount: 340 },
-                                            { month: 'Dec', amount: 460 }
-                                        ],
-                                        "2022": [
-                                            { month: 'Jan', amount: 300 },
-                                            { month: 'Feb', amount: 350 },
-                                            { month: 'Mar', amount: 420 },
-                                            { month: 'Apr', amount: 320 },
-                                            { month: 'May', amount: 280 },
-                                            { month: 'Jun', amount: 350 },
-                                            { month: 'Jul', amount: 380 },
-                                            { month: 'Aug', amount: 500 },
-                                            { month: 'Sep', amount: 400 },
-                                            { month: 'Oct', amount: 380 },
-                                            { month: 'Nov', amount: 300 },
-                                            { month: 'Dec', amount: 420 }
-                                        ]
-                                    };
-                                    populateYearSelector(sampleData);
-                                    updateChart(sampleData["2023"], "2023");
-                                }
-                            }
-
-
-
-                            // Process transaction data to group by year and month
-                            function processTransactionData(transactions) {
-                                const result = {};
-
-                                // Sample processing - adjust according to your actual data structure
-                                // This assumes transactions have date and amount properties
-                                transactions.forEach(transaction => {
-                                    const date = new Date(transaction.date); // Adjust based on your date field
-                                    const year = date.getFullYear();
-                                    const month = date.getMonth(); // 0-11
-
-                                    if (!result[year]) {
-                                        result[year] = Array(12).fill().map((_, i) => ({
-                                            month: getMonthName(i),
-                                            amount: 0
-                                        }));
-                                    }
-
-                                    result[year][month].amount += transaction.amount;
-                                });
-
-                                return result;
-                            }
-
-                            // Helper function to get month name from index
-                            function getMonthName(monthIndex) {
-                                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                                return months[monthIndex];
-                            }
-
-                            // Populate the year selector dropdown
-                            function populateYearSelector(data) {
-                                const yearSelector = document.getElementById('year-selector');
-                                yearSelector.innerHTML = '';
-
-                                const years = Object.keys(data).sort((a, b) => b - a);
-                                years.forEach(year => {
-                                    const option = document.createElement('option');
-                                    option.value = year;
-                                    option.textContent = year;
-                                    yearSelector.appendChild(option);
-                                });
-
-                                // Add event listener for year changes
-                                yearSelector.addEventListener('change', (e) => {
-                                    const selectedYear = e.target.value;
-                                    updateChart(data[selectedYear], selectedYear);
-                                });
-                            }
-
-                            // Update the chart with new data
-                            function updateChart(monthlyData, year) {
-                                const ctx = document.getElementById('transactionChart').getContext('2d');
-
-                                // Extract data for chart
-                                const labels = monthlyData.map(item => item.month);
-                                const amounts = monthlyData.map(item => item.amount);
-
-                                // Calculate total for the highlight value
-                                const total = amounts.reduce((sum, amount) => sum + amount, 0);
-                                document.getElementById('highlight-value').textContent = total.toLocaleString();
-
-                                // Destroy previous chart if it exists
-                                if (transactionChart) {
-                                    transactionChart.destroy();
-                                }
-
-                                // Create new chart
-                                transactionChart = new Chart(ctx, {
-                                    type: 'bar',
-                                    data: {
-                                        labels: labels,
-                                        datasets: [{
-                                            label: `Transactions (${year})`,
-                                            data: amounts,
-                                            backgroundColor: labels.map((_, i) =>
-                                                i === new Date().getMonth() && year === new Date().getFullYear().toString()
-                                                    ? '#40444B' // Highlight current month with hover color
-                                                    : '#40444B' // Default color for other bars
-                                            ),
-                                            borderColor: labels.map((_, i) =>
-                                                i === new Date().getMonth() && year === new Date().getFullYear().toString()
-                                                    ? '#3B74FF'
-                                                    : '#E0E0E0' // Light gray border
-                                            ),
-                                            borderWidth: 1,
-                                            borderRadius: 6,
-                                            hoverBackgroundColor: '#3B74FF', // Hover color
-                                            hoverBorderColor: '#3B74FF',
-                                            hoverBorderWidth: 1
-                                        }]
-                                    },
-                                    options: {
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        animation: {
-                                            duration: 1000,
-                                            easing: 'easeOutQuart'
-                                        },
-                                        plugins: {
-                                            legend: {
-                                                display: false
-                                            },
-                                            tooltip: {
-                                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                                titleColor: '#f8fafc',
-                                                bodyColor: '#e2e8f0',
-                                                borderColor: 'rgba(71, 85, 105, 0.5)',
-                                                borderWidth: 1,
-                                                padding: 12,
-                                                callbacks: {
-                                                    label: function (context) {
-                                                        return `GH₵${context.raw.toLocaleString()}`;
-                                                    },
-                                                    title: function (context) {
-                                                        return `${context[0].label} ${year}`;
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        scales: {
-                                            y: {
-                                                beginAtZero: true,
-                                                grid: {
-                                                    color: 'rgba(71, 85, 105, 0.2)',
-                                                    drawBorder: false
-                                                },
-                                                ticks: {
-                                                    color: 'rgba(148, 163, 184, 1)',
-                                                    callback: function (value) {
-                                                        return 'GH₵' + value.toLocaleString();
-                                                    },
-                                                    font: {
-                                                        weight: '500'
-                                                    }
-                                                },
-                                                title: {
-                                                    display: true,
-                                                    text: 'Amount (GH₵)',
-                                                    color: 'rgba(148, 163, 184, 1)',
-                                                    font: {
-                                                        size: 14,
-                                                        weight: '600'
-                                                    }
-                                                }
-                                            },
-                                            x: {
-                                                grid: {
-                                                    display: false,
-                                                    drawBorder: false
-                                                },
-                                                ticks: {
-                                                    color: 'rgba(148, 163, 184, 1)',
-                                                    font: {
-                                                        weight: '500'
-                                                    }
-                                                },
-                                                title: {
-                                                    display: true,
-                                                    text: 'Months',
-                                                    color: 'rgba(148, 163, 184, 1)',
-                                                    font: {
-                                                        size: 14,
-                                                        weight: '600'
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        // Custom hover effects
-                                        interaction: {
-                                            intersect: false,
-                                            mode: 'index'
-                                        },
-                                        // Custom bar appearance
-                                        elements: {
-                                            bar: {
-                                                backgroundColor: '#F5F5F5', // Default color
-                                                borderColor: '#E0E0E0',     // Default border
-                                                borderWidth: 1,
-                                                borderRadius: 6,
-                                                hoverBackgroundColor: '#3B74FF', // Hover color
-                                                hoverBorderColor: '#3B74FF'
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-
-                            // Initialize the chart when the page loads
-                            document.addEventListener('DOMContentLoaded', loadTransactionData);
-                        </script>
-                        <!-- End of chart section -->
-
                         <!-- Bottom section -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Left column -->
@@ -526,14 +365,20 @@
                                     <div class="mb-4">
                                         <div class="flex justify-between">
                                             <span class="text-gray-300">Amount Owing</span>
-                                            <span class="text-red-400" id="amount-owing">GH₵ 0.00</span>
+                                            <span class="text-red-400" id="amount-owing">
+                                                GH₵ 0.00
+                                            </span>
                                         </div>
                                         <div class="text-gray-400">Account will be disabled within <span
-                                                class="text-blue-400" id="payment-warning">--</span></div>
+                                                class="text-blue-400" id="payment-warning">
+                                                --
+                                            </span></div>
                                     </div>
 
                                     <div class="text-center text-xl font-medium mb-6" id="countdown">
-                                        <span class="countdown-timer">--:--:--</span>
+                                        <span class="countdown-timer">
+                                            --
+                                        </span>
                                     </div>
 
                                     <button id="pay-button"
@@ -553,7 +398,9 @@
                                             <div class="p-6 flex justify-between items-center bg-black/20 cursor-pointer"
                                                 id="payment-details">
 
-                                                <span class="font-bold" id="total-payments">GH₵ 50.00</span>
+                                                <span class="font-bold" id="total-payments">
+                                                    GH₵ 0.00
+                                                </span>
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -666,74 +513,7 @@
     </div>
     </div>
 
-    <script>
-        // Base URL for API calls
-        const baseUrl = 'https://phluowise.azurewebsites.net';
 
-        // Sample user data
-        const users = [
-            { id: '1234', name: 'John Doe', location: 'New York' },
-            { id: '2345', name: 'Jane Smith', location: 'Los Angeles' },
-            { id: '3456', name: 'Robert Johnson', location: 'Chicago' },
-            { id: '4567', name: 'Emily Davis', location: 'Miami' },
-            { id: '5678', name: 'Michael Wilson', location: 'Seattle' },
-            { id: '6789', name: 'Sarah Brown', location: 'Boston' }
-        ];
-
-        // Function to create user cards
-        function createUserCards(usersToDisplay) {
-            const userGrid = document.getElementById('userGrid');
-            userGrid.innerHTML = '';
-
-            usersToDisplay.forEach(user => {
-                const userCard = document.createElement('div');
-                userCard.className = 'user-card bg-[#212121] rounded-lg p-4 flex';
-                userCard.innerHTML = `
-                    <div class="w-24 h-24 bg-zinc-800 rounded-md flex justify-center items-center"> Image</div>
-                    <div class="ml-4 flex-grow gap-3  relative">
-                        <h3 class="text-white text-lg">${user.name} / ${user.id}</h3>
-                        <p class="text-white mb-1">${user.location}</p>
-                        <div class="flex items-center text-gray-400 text-sm mb-4">
-                            <span>12:30am</span>
-                            <span class="ml-2">July 20, 2023</span>
-                        </div>
-                        <div class="absolute top-4 right-4 flex flex-col items-center ">
-                                <div class="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
-                                    <img src="../images/location.svg" alt="">
-                                </div>
-                                <p class="text-white text-xs mt-1">Visit</p>
-                            </div>
-                        <div class="flex justify-between items-center">
-                            <div class="bg-gray-500 rounded-full px-4 py-1 text-white text-sm">
-                                Accepted
-                            </div>
-                           
-                        </div>
-                    </div>
-
-                    
-                `;
-                userGrid.appendChild(userCard);
-            });
-        }
-
-        // Initialize with all users
-        createUserCards(users);
-
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function (e) {
-            const searchTerm = e.target.value.toLowerCase();
-            if (searchTerm.trim() === '') {
-                createUserCards(users);
-            } else {
-                const filteredUsers = users.filter(user =>
-                    user.name.toLowerCase().includes(searchTerm) ||
-                    user.id.includes(searchTerm)
-                );
-                createUserCards(filteredUsers);
-            }
-        });
-    </script>
 
     <script>
         // Function to update countdown timer
@@ -1066,9 +846,6 @@
 
         // Initialize all new features
         document.addEventListener('DOMContentLoaded', function () {
-            // Load transaction data from JSON
-            loadTransactionData();
-
             // Setup the withdrawal indicator
             setupWithdrawalMethodIndicator();
 
@@ -1078,8 +855,7 @@
             // Initialize the countdown (from existing code)
             updateCountdown({ hours: 12, minutes: 24, seconds: 29 });
 
-            // Initialize user cards (from existing code)
-            createUserCards(users);
+            // User cards are now handled by account.js AccountManager
         });
     </script>
 
@@ -1119,6 +895,11 @@
             // Update amount owing
             const amountOwingElement = document.getElementById('amount-owing');
             if (amountOwingElement) {
+                // Remove loading skeleton and set actual value
+                const loadingSkeleton = amountOwingElement.querySelector('.loading-skeleton, .loading-skeleton-small');
+                if (loadingSkeleton) {
+                    loadingSkeleton.remove();
+                }
                 amountOwingElement.textContent = `GH₵ ${data.amountOwing.toFixed(2)}`;
             }
 
@@ -1157,6 +938,11 @@
                         // Payment overdue - show overdue message
                         const countdownElement = document.getElementById('countdown');
                         if (countdownElement) {
+                            // Remove loading skeleton and set actual value
+                            const loadingSkeleton = countdownElement.querySelector('.loading-skeleton, .loading-skeleton-small');
+                            if (loadingSkeleton) {
+                                loadingSkeleton.remove();
+                            }
                             countdownElement.innerHTML = '<span class="text-red-500 font-bold">PAYMENT OVERDUE</span>';
                         }
                         return;
@@ -1170,6 +956,11 @@
                     // Update countdown display
                     const countdownElement = document.getElementById('countdown');
                     if (countdownElement) {
+                        // Remove loading skeleton and set actual value
+                        const loadingSkeleton = countdownElement.querySelector('.loading-skeleton, .loading-skeleton-small');
+                        if (loadingSkeleton) {
+                            loadingSkeleton.remove();
+                        }
                         countdownElement.innerHTML = `<span class="countdown-timer">${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</span>`;
                     }
                 }

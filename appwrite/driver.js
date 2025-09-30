@@ -1,20 +1,33 @@
 // Driver Management Script with Appwrite Integration
 
-// Appwrite configuration
-const APPWRITE_ENDPOINT = "https://nyc.cloud.appwrite.io/v1";
-const APPWRITE_PROJECT = "68b17582003582da69c8";
-const DB_ID = "68b1b7590035346a3be9";
+// Appwrite configuration (namespaced to avoid conflicts with topbar.js)
+const DRIVER_APPWRITE_ENDPOINT = "https://nyc.cloud.appwrite.io/v1";
+const DRIVER_APPWRITE_PROJECT = "68b17582003582da69c8";
+const DRIVER_DB_ID = "68b1b7590035346a3be9";
 const DRIVERS_COLL = "drivers";
 const BUCKET_ID = "68b1c57b001542be7fbe"; // Company assets bucket
 
 // Initialize Appwrite client (using CDN version for non-module)
-const client = new Appwrite.Client()
-  .setEndpoint(APPWRITE_ENDPOINT)
-  .setProject(APPWRITE_PROJECT);
+// Wait for Appwrite to be available before initializing
+let client, account, databases, storage;
 
-const account = new Appwrite.Account(client);
-const databases = new Appwrite.Databases(client);
-const storage = new Appwrite.Storage(client);
+function initializeAppwrite() {
+  if (typeof Appwrite === "undefined") {
+    console.error("Appwrite SDK not loaded yet");
+    return false;
+  }
+
+  client = new Appwrite.Client()
+    .setEndpoint(DRIVER_APPWRITE_ENDPOINT)
+    .setProject(DRIVER_APPWRITE_PROJECT);
+
+  account = new Appwrite.Account(client);
+  databases = new Appwrite.Databases(client);
+  storage = new Appwrite.Storage(client);
+
+  console.log("Appwrite initialized successfully for drivers");
+  return true;
+}
 
 // Global variables
 let drivers = [];
@@ -35,27 +48,31 @@ async function uploadImageToAppwrite(file, imageType, driverId, branchId) {
     if (file.size > 1024 * 1024) {
       processedFile = await compressImage(file, 0.8);
     }
-    
+
     const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop();
-    
+    const fileExtension = file.name.split(".").pop();
+
     // Generate a valid fileId that includes both driver ID and branch ID for easy identification
     const shortDriverId = driverId.substring(0, 6);
-    const shortBranchId = branchId ? branchId.substring(0, 6) : 'nobranch';
+    const shortBranchId = branchId ? branchId.substring(0, 6) : "nobranch";
     const shortTimestamp = timestamp.toString().slice(-6);
     const fileName = `driver_${imageType}_${shortDriverId}_${shortBranchId}_${shortTimestamp}.${fileExtension}`;
-    
+
     // Ensure fileName is within 36 character limit
-    const finalFileName = fileName.length > 36 ? 
-      `drv_${imageType}_${shortDriverId}_${shortBranchId}_${shortTimestamp}.${fileExtension}`.substring(0, 36) : 
-      fileName;
-    
+    const finalFileName =
+      fileName.length > 36
+        ? `drv_${imageType}_${shortDriverId}_${shortBranchId}_${shortTimestamp}.${fileExtension}`.substring(
+            0,
+            36
+          )
+        : fileName;
+
     const result = await storage.createFile(
       BUCKET_ID,
       finalFileName,
       processedFile
     );
-    
+
     // Get file URL
     const fileUrl = storage.getFileView(BUCKET_ID, result.$id);
     return fileUrl;
@@ -68,15 +85,15 @@ async function uploadImageToAppwrite(file, imageType, driverId, branchId) {
 // Compress image function
 async function compressImage(file, quality = 0.8) {
   return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     const img = new Image();
-    
+
     img.onload = () => {
       // Calculate new dimensions (max 800px width/height)
       const maxSize = 800;
       let { width, height } = img;
-      
+
       if (width > height && width > maxSize) {
         height = (height * maxSize) / width;
         width = maxSize;
@@ -84,22 +101,26 @@ async function compressImage(file, quality = 0.8) {
         width = (width * maxSize) / height;
         height = maxSize;
       }
-      
+
       canvas.width = width;
       canvas.height = height;
-      
+
       // Draw and compress
       ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob((blob) => {
-        // Convert blob to File object with proper name and type
-        const compressedFile = new File([blob], file.name, {
-          type: 'image/jpeg',
-          lastModified: Date.now()
-        });
-        resolve(compressedFile);
-      }, 'image/jpeg', quality);
+      canvas.toBlob(
+        (blob) => {
+          // Convert blob to File object with proper name and type
+          const compressedFile = new File([blob], file.name, {
+            type: "image/jpeg",
+            lastModified: Date.now(),
+          });
+          resolve(compressedFile);
+        },
+        "image/jpeg",
+        quality
+      );
     };
-    
+
     img.src = URL.createObjectURL(file);
   });
 }
@@ -108,36 +129,42 @@ async function compressImage(file, quality = 0.8) {
 async function getCurrentUserContext() {
   try {
     const user = await account.get();
-    
+
     // Simply get the branch information for the logged-in user
-    const branchDocs = await databases.listDocuments(DB_ID, "branches", [
-      Appwrite.Query.equal("email", user.email)
+    const branchDocs = await databases.listDocuments(DRIVER_DB_ID, "branches", [
+      Appwrite.Query.equal("email", user.email),
     ]);
-    
+
     if (branchDocs.documents.length > 0) {
       const branch = branchDocs.documents[0];
       currentCompanyId = branch.company_id;
       currentBranchId = branch.branch_id;
-      
+
       // Cache the values for offline use
-      localStorage.setItem('cachedCompanyId', currentCompanyId);
-      localStorage.setItem('cachedBranchId', currentBranchId);
-      
-      console.log("User context loaded successfully:", { currentCompanyId, currentBranchId });
+      localStorage.setItem("cachedCompanyId", currentCompanyId);
+      localStorage.setItem("cachedBranchId", currentBranchId);
+
+      console.log("User context loaded successfully:", {
+        currentCompanyId,
+        currentBranchId,
+      });
     } else {
       console.warn("No branch found for user email:", user.email);
     }
   } catch (error) {
     console.error("Error getting user context:", error);
-    
+
     // Use cached values as fallback
-    const cachedCompanyId = localStorage.getItem('cachedCompanyId');
-    const cachedBranchId = localStorage.getItem('cachedBranchId');
-    
+    const cachedCompanyId = localStorage.getItem("cachedCompanyId");
+    const cachedBranchId = localStorage.getItem("cachedBranchId");
+
     if (cachedCompanyId && cachedBranchId) {
       currentCompanyId = cachedCompanyId;
       currentBranchId = cachedBranchId;
-      console.log("Using cached user context:", { currentCompanyId, currentBranchId });
+      console.log("Using cached user context:", {
+        currentCompanyId,
+        currentBranchId,
+      });
     }
   }
 }
@@ -146,15 +173,15 @@ async function getCurrentUserContext() {
 async function loadDriversFromAppwrite() {
   try {
     await getCurrentUserContext();
-    
+
     if (!currentBranchId) {
       console.error("No branch ID found");
       // Try to get branch ID from URL parameters or localStorage as fallback
       const urlParams = new URLSearchParams(window.location.search);
-      const branchIdFromUrl = urlParams.get('branchId');
-      const branchIdFromStorage = localStorage.getItem('impersonateBranchId');
-      const cachedBranchId = localStorage.getItem('cachedBranchId');
-      
+      const branchIdFromUrl = urlParams.get("branchId");
+      const branchIdFromStorage = localStorage.getItem("impersonateBranchId");
+      const cachedBranchId = localStorage.getItem("cachedBranchId");
+
       if (branchIdFromUrl) {
         currentBranchId = branchIdFromUrl;
         console.log("Using branch ID from URL:", currentBranchId);
@@ -186,31 +213,42 @@ async function loadDriversFromAppwrite() {
 
     // Cache the branch ID for future use
     if (currentBranchId) {
-      localStorage.setItem('cachedBranchId', currentBranchId);
+      localStorage.setItem("cachedBranchId", currentBranchId);
     }
     if (currentCompanyId) {
-      localStorage.setItem('cachedCompanyId', currentCompanyId);
+      localStorage.setItem("cachedCompanyId", currentCompanyId);
     }
 
-    const response = await databases.listDocuments(DB_ID, DRIVERS_COLL, [
+    const response = await databases.listDocuments(DRIVER_DB_ID, DRIVERS_COLL, [
       Appwrite.Query.equal("branch_id", currentBranchId),
-      Appwrite.Query.orderDesc("$createdAt")
+      Appwrite.Query.orderDesc("$createdAt"),
     ]);
 
-    drivers = response.documents.map(driver => ({
+    drivers = response.documents.map((driver) => ({
       ...driver,
       // Convert Appwrite URLs to display URLs if they exist
-      profileImage: driver.profileImage ? 
-        (driver.profileImage.startsWith('http') ? driver.profileImage : storage.getFileView(BUCKET_ID, driver.profileImage)) : '',
-      frontIdImage: driver.frontIdImage ? 
-        (driver.frontIdImage.startsWith('http') ? driver.frontIdImage : storage.getFileView(BUCKET_ID, driver.frontIdImage)) : '',
-      backIdImage: driver.backIdImage ? 
-        (driver.backIdImage.startsWith('http') ? driver.backIdImage : storage.getFileView(BUCKET_ID, driver.backIdImage)) : ''
+      profileImage: driver.profileImage
+        ? driver.profileImage.startsWith("http")
+          ? driver.profileImage
+          : storage.getFileView(BUCKET_ID, driver.profileImage)
+        : "",
+      frontIdImage: driver.frontIdImage
+        ? driver.frontIdImage.startsWith("http")
+          ? driver.frontIdImage
+          : storage.getFileView(BUCKET_ID, driver.frontIdImage)
+        : "",
+      backIdImage: driver.backIdImage
+        ? driver.backIdImage.startsWith("http")
+          ? driver.backIdImage
+          : storage.getFileView(BUCKET_ID, driver.backIdImage)
+        : "",
     }));
 
     renderDriversList();
+    hideLoadingModal();
   } catch (error) {
     console.error("Error loading drivers:", error);
+    hideLoadingModal();
     Swal.fire({
       icon: "error",
       title: "Error",
@@ -235,43 +273,67 @@ function getDriverData() {
     status: "offline", // Default status
     company_id: currentCompanyId,
     branch_id: currentBranchId,
-    created_at: new Date().toISOString() // Add timestamp when driver record is created
+    created_at: new Date().toISOString(), // Add timestamp when driver record is created
   };
 }
 
 // Save driver to Appwrite
-async function saveDriverToAppwrite(driverData, profileImageFile, frontIdFile, backIdFile) {
+async function saveDriverToAppwrite(
+  driverData,
+  profileImageFile,
+  frontIdFile,
+  backIdFile
+) {
   try {
     let result;
-    
+
     // Upload images if provided and store URLs in proper database columns
     if (profileImageFile) {
-      driverData.profile_image = await uploadImageToAppwrite(profileImageFile, 'profile', driverData.driver_id, currentBranchId);
+      driverData.profile_image = await uploadImageToAppwrite(
+        profileImageFile,
+        "profile",
+        driverData.driver_id,
+        currentBranchId
+      );
     }
     if (frontIdFile) {
-      driverData.ID_Document_Images_Front = await uploadImageToAppwrite(frontIdFile, 'front_id', driverData.driver_id, currentBranchId);
+      driverData.ID_Document_Images_Front = await uploadImageToAppwrite(
+        frontIdFile,
+        "front_id",
+        driverData.driver_id,
+        currentBranchId
+      );
     }
     if (backIdFile) {
-      driverData.ID_Document_Images_Back = await uploadImageToAppwrite(backIdFile, 'back_id', driverData.driver_id, currentBranchId);
+      driverData.ID_Document_Images_Back = await uploadImageToAppwrite(
+        backIdFile,
+        "back_id",
+        driverData.driver_id,
+        currentBranchId
+      );
     }
 
     if (editingDriverId) {
       // Update existing driver
-      const existingDriver = drivers.find(d => d.driver_id === editingDriverId);
+      const existingDriver = drivers.find(
+        (d) => d.driver_id === editingDriverId
+      );
       if (existingDriver) {
         // Keep existing images if no new ones uploaded
         if (!profileImageFile && existingDriver.profile_image) {
           driverData.profile_image = existingDriver.profile_image;
         }
         if (!frontIdFile && existingDriver.ID_Document_Images_Front) {
-          driverData.ID_Document_Images_Front = existingDriver.ID_Document_Images_Front;
+          driverData.ID_Document_Images_Front =
+            existingDriver.ID_Document_Images_Front;
         }
         if (!backIdFile && existingDriver.ID_Document_Images_Back) {
-          driverData.ID_Document_Images_Back = existingDriver.ID_Document_Images_Back;
+          driverData.ID_Document_Images_Back =
+            existingDriver.ID_Document_Images_Back;
         }
-        
+
         result = await databases.updateDocument(
-          DB_ID,
+          DRIVER_DB_ID,
           DRIVERS_COLL,
           existingDriver.$id,
           driverData
@@ -280,7 +342,7 @@ async function saveDriverToAppwrite(driverData, profileImageFile, frontIdFile, b
     } else {
       // Create new driver
       result = await databases.createDocument(
-        DB_ID,
+        DRIVER_DB_ID,
         DRIVERS_COLL,
         Appwrite.ID.unique(),
         driverData
@@ -320,9 +382,11 @@ function resetForm() {
 
     // Reset placeholders/icons
     document.querySelector(".image-upload p").style.display = "block";
-    document.querySelector("#frontIdUpload .upload-icon").style.display = "block";
+    document.querySelector("#frontIdUpload .upload-icon").style.display =
+      "block";
     document.querySelector("#frontIdUpload p").style.display = "block";
-    document.querySelector("#backIdUpload .upload-icon").style.display = "block";
+    document.querySelector("#backIdUpload .upload-icon").style.display =
+      "block";
     document.querySelector("#backIdUpload p").style.display = "block";
 
     // Reset form state
@@ -345,7 +409,6 @@ function resetForm() {
       const input = document.getElementById(id);
       if (input) input.value = "";
     });
-
   } catch (error) {
     console.error("Error resetting form:", error);
   }
@@ -355,9 +418,13 @@ function resetForm() {
 async function saveDriver() {
   try {
     const driverData = getDriverData();
-    
+
     // Validate required fields
-    if (!driverData.name || !driverData.phoneNumber || !driverData.vehicleNumber) {
+    if (
+      !driverData.name ||
+      !driverData.phoneNumber ||
+      !driverData.vehicleNumber
+    ) {
       Swal.fire({
         icon: "error",
         title: "Validation Error",
@@ -373,15 +440,20 @@ async function saveDriver() {
 
     // Show loading
     Swal.fire({
-      title: 'Saving Driver...',
+      title: "Saving Driver...",
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
-      }
+      },
     });
 
     // Save to Appwrite
-    await saveDriverToAppwrite(driverData, profileImageFile, frontIdFile, backIdFile);
+    await saveDriverToAppwrite(
+      driverData,
+      profileImageFile,
+      frontIdFile,
+      backIdFile
+    );
 
     // Reload drivers list
     await loadDriversFromAppwrite();
@@ -412,9 +484,9 @@ async function saveDriver() {
 // Delete driver from Appwrite
 async function deleteDriverFromAppwrite(driverId) {
   try {
-    const driver = drivers.find(d => d.driver_id === driverId);
+    const driver = drivers.find((d) => d.driver_id === driverId);
     if (driver && driver.$id) {
-      await databases.deleteDocument(DB_ID, DRIVERS_COLL, driver.$id);
+      await databases.deleteDocument(DRIVER_DB_ID, DRIVERS_COLL, driver.$id);
     }
   } catch (error) {
     console.error("Error deleting driver from Appwrite:", error);
@@ -437,11 +509,11 @@ function deleteDriver(driverId) {
       try {
         // Show loading
         Swal.fire({
-          title: 'Deleting Driver...',
+          title: "Deleting Driver...",
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
-          }
+          },
         });
 
         await deleteDriverFromAppwrite(driverId);
@@ -493,7 +565,8 @@ function editDriver(driverId) {
   if (driver.ID_Document_Images_Front) {
     frontIdPreview.src = driver.ID_Document_Images_Front;
     frontIdPreview.style.display = "block";
-    document.querySelector("#frontIdUpload .upload-icon").style.display = "none";
+    document.querySelector("#frontIdUpload .upload-icon").style.display =
+      "none";
     document.querySelector("#frontIdUpload p").style.display = "none";
   }
 
@@ -512,7 +585,9 @@ function editDriver(driverId) {
   cancelButton.style.display = "block";
 
   // Scroll to form
-  document.querySelector(".form-container").scrollIntoView({ behavior: "smooth" });
+  document
+    .querySelector(".form-container")
+    .scrollIntoView({ behavior: "smooth" });
 }
 
 // Render drivers list
@@ -528,11 +603,12 @@ function renderDriversList() {
   drivers.forEach((driver) => {
     const driverCard = document.createElement("div");
     driverCard.className = "driver-card";
-    
+
     // Status indicator
-    const statusClass = driver.status === 'online' ? 'text-green-400' : 'text-gray-400';
-    const statusText = driver.status === 'online' ? 'Online' : 'Offline';
-    
+    const statusClass =
+      driver.status === "online" ? "text-green-400" : "text-gray-400";
+    const statusText = driver.status === "online" ? "Online" : "Offline";
+
     driverCard.innerHTML = `
       <div class="flex items-center justify-between mb-2">
         <h3>${driver.name || "Unnamed Driver"}</h3>
@@ -540,14 +616,18 @@ function renderDriversList() {
       </div>
       <p>Public Name: <span>${driver.publicName || "N/A"}</span></p>
       <p>Phone: <span>${driver.phoneNumber || "N/A"}</span></p>
-      <p>Vehicle: <span>${driver.vehicleNumber || "N/A"} (${driver.vehicleType || "N/A"})</span></p>
+      <p>Vehicle: <span>${driver.vehicleNumber || "N/A"} (${
+      driver.vehicleType || "N/A"
+    })</span></p>
       <p>ID: <span>${driver.driver_id || "N/A"}</span></p>
       <p>Location: <span>${driver.residence || "N/A"}</span></p>
       <div class="driver-actions">
         <button class="btn-edit" onclick="editDriver('${driver.driver_id}')">
           <i class="fas fa-edit"></i> Edit
         </button>
-        <button class="btn-delete" onclick="deleteDriver('${driver.driver_id}')">
+        <button class="btn-delete" onclick="deleteDriver('${
+          driver.driver_id
+        }')">
           <i class="fas fa-trash"></i> Delete
         </button>
       </div>
@@ -558,6 +638,15 @@ function renderDriversList() {
 
 // Initialize the application when DOM is fully loaded
 document.addEventListener("DOMContentLoaded", function () {
+  showLoadingModal();
+
+  // Initialize Appwrite first
+  if (!initializeAppwrite()) {
+    console.error("Failed to initialize Appwrite");
+    hideLoadingModal();
+    return;
+  }
+
   // Load drivers from Appwrite on page load
   loadDriversFromAppwrite();
 
@@ -570,55 +659,63 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Image preview handlers
-  document.getElementById("profileImage").addEventListener("change", function (e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const previewImage = document.getElementById("previewImage");
-        previewImage.src = e.target.result;
-        previewImage.style.display = "block";
-        document.querySelector(".image-upload p").style.display = "none";
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+  document
+    .getElementById("profileImage")
+    .addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const previewImage = document.getElementById("previewImage");
+          previewImage.src = e.target.result;
+          previewImage.style.display = "block";
+          document.querySelector(".image-upload p").style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
-  document.getElementById("frontIdImage").addEventListener("change", function (e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const previewImage = document.getElementById("frontIdPreview");
-        previewImage.src = e.target.result;
-        previewImage.style.display = "block";
-        document.querySelector("#frontIdUpload .upload-icon").style.display = "none";
-        document.querySelector("#frontIdUpload p").style.display = "none";
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+  document
+    .getElementById("frontIdImage")
+    .addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const previewImage = document.getElementById("frontIdPreview");
+          previewImage.src = e.target.result;
+          previewImage.style.display = "block";
+          document.querySelector("#frontIdUpload .upload-icon").style.display =
+            "none";
+          document.querySelector("#frontIdUpload p").style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
-  document.getElementById("backIdImage").addEventListener("change", function (e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const previewImage = document.getElementById("backIdPreview");
-        previewImage.src = e.target.result;
-        previewImage.style.display = "block";
-        document.querySelector("#backIdUpload .upload-icon").style.display = "none";
-        document.querySelector("#backIdUpload p").style.display = "none";
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+  document
+    .getElementById("backIdImage")
+    .addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const previewImage = document.getElementById("backIdPreview");
+          previewImage.src = e.target.result;
+          previewImage.style.display = "block";
+          document.querySelector("#backIdUpload .upload-icon").style.display =
+            "none";
+          document.querySelector("#backIdUpload p").style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
   // Generate ID button
   document.getElementById("generateID").addEventListener("click", function () {
     const generatedId = generateDriverId();
     document.getElementById("driverID").value = generatedId;
-    
+
     Swal.fire({
       icon: "success",
       title: "ID Generated!",
@@ -671,3 +768,22 @@ document.addEventListener("DOMContentLoaded", function () {
     saveDriver();
   });
 });
+
+// Loading modal helper functions
+function showLoadingModal() {
+  const modal = document.getElementById("loadingModal");
+  if (modal) {
+    modal.style.display = "flex";
+    modal.classList.remove("fade-out");
+  }
+}
+
+function hideLoadingModal() {
+  const modal = document.getElementById("loadingModal");
+  if (modal) {
+    modal.classList.add("fade-out");
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 500);
+  }
+}

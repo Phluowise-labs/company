@@ -1,7 +1,16 @@
 // =============================
 // Appwrite SDK Import
 // =============================
-import { Client, Account, Databases, Storage, Query, Permission, Role, ID } from "https://cdn.jsdelivr.net/npm/appwrite@13.0.0/+esm";
+import {
+  Client,
+  Account,
+  Databases,
+  Storage,
+  Query,
+  Permission,
+  Role,
+  ID,
+} from "https://cdn.jsdelivr.net/npm/appwrite@13.0.0/+esm";
 
 // =============================
 // Appwrite Configuration
@@ -30,34 +39,42 @@ const storage = new Storage(client);
 // Resolve current context (companyId, branchId) based on role
 async function resolveContext() {
   const user = await account.get();
-  const activeRole = (sessionStorage.getItem('activeRole') || localStorage.getItem('activeRole') || '').toLowerCase();
+  const activeRole = (
+    sessionStorage.getItem("activeRole") ||
+    localStorage.getItem("activeRole") ||
+    ""
+  ).toLowerCase();
 
-  if (activeRole === 'branch') {
+  if (activeRole === "branch") {
     // Find branch document by user email
-    const branchDocs = await databases.listDocuments(
-      DB_ID,
-      BRANCHES_COLL,
-      [Query.equal('email', user.email)]
-    );
+    const branchDocs = await databases.listDocuments(DB_ID, BRANCHES_COLL, [
+      Query.equal("email", user.email),
+    ]);
 
     if (branchDocs.total === 0) {
-      throw new Error('Branch record not found for the logged-in user.');
+      throw new Error("Branch record not found for the logged-in user.");
     }
 
     const branch = branchDocs.documents[0];
-    return { user, isBranchRole: true, companyId: branch.company_id, branchId: branch.branch_id };
+    return {
+      user,
+      isBranchRole: true,
+      companyId: branch.company_id,
+      branchId: branch.branch_id,
+    };
   }
 
   // Default to admin/company context
   const companyId = user.$id;
 
   // Try to find the admin branch (usually branch_id === company_id)
-  const adminBranchDocs = await databases.listDocuments(
-    DB_ID,
-    BRANCHES_COLL,
-    [Query.equal('branch_id', companyId)]
-  );
-  const branchId = adminBranchDocs.total > 0 ? adminBranchDocs.documents[0].branch_id : companyId;
+  const adminBranchDocs = await databases.listDocuments(DB_ID, BRANCHES_COLL, [
+    Query.equal("branch_id", companyId),
+  ]);
+  const branchId =
+    adminBranchDocs.total > 0
+      ? adminBranchDocs.documents[0].branch_id
+      : companyId;
 
   return { user, isBranchRole: false, companyId, branchId };
 }
@@ -66,8 +83,8 @@ async function resolveContext() {
 async function uploadFileToAppwrite(file, fileType, companyId) {
   try {
     const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop();
-    
+    const fileExtension = file.name.split(".").pop();
+
     // Generate a valid fileId that meets Appwrite requirements:
     // - Max 36 characters
     // - Only a-z, A-Z, 0-9, period, hyphen, and underscore
@@ -75,23 +92,19 @@ async function uploadFileToAppwrite(file, fileType, companyId) {
     const shortCompanyId = companyId.substring(0, 8); // Take first 8 chars of company ID
     const shortTimestamp = timestamp.toString().slice(-8); // Take last 8 digits of timestamp
     const fileName = `${fileType}_${shortCompanyId}_${shortTimestamp}.${fileExtension}`;
-    
+
     // Ensure fileName is within 36 character limit
-    const finalFileName = fileName.length > 36 ? 
-      `${fileType}_${shortTimestamp}.${fileExtension}`.substring(0, 36) : 
-      fileName;
-    
-    const result = await storage.createFile(
-      BUCKET_ID,
-      finalFileName,
-      file,
-      [
-        Permission.read(Role.any()),
-        Permission.update(Role.users()),
-        Permission.delete(Role.users())
-      ]
-    );
-    
+    const finalFileName =
+      fileName.length > 36
+        ? `${fileType}_${shortTimestamp}.${fileExtension}`.substring(0, 36)
+        : fileName;
+
+    const result = await storage.createFile(BUCKET_ID, finalFileName, file, [
+      Permission.read(Role.any()),
+      Permission.update(Role.users()),
+      Permission.delete(Role.users()),
+    ]);
+
     // Get file URL
     const fileUrl = storage.getFileView(BUCKET_ID, result.$id);
     return fileUrl;
@@ -107,11 +120,9 @@ async function loadBranchProfileFromAppwrite() {
     const { branchId } = await resolveContext();
 
     // Load branch profile using branch_id
-    const result = await databases.listDocuments(
-      DB_ID,
-      BRANCHES_COLL,
-      [Query.equal("branch_id", branchId)]
-    );
+    const result = await databases.listDocuments(DB_ID, BRANCHES_COLL, [
+      Query.equal("branch_id", branchId),
+    ]);
 
     if (result.documents.length > 0) {
       const branch = result.documents[0];
@@ -129,7 +140,7 @@ async function loadBranchProfileFromAppwrite() {
         branchId: branch.branch_id,
         companyId: branch.company_id,
         headerImage: branch.header_image || "",
-        profileImage: branch.profile_image || ""
+        profileImage: branch.profile_image || "",
       };
     }
 
@@ -161,17 +172,16 @@ async function saveBranchProfileToAppwrite(branchData) {
       phone_number: branchData.phoneNumber,
       website: branchData.website,
       is_active: branchData.isActive !== undefined ? branchData.isActive : true,
-      is_online: branchData.isOnline !== undefined ? branchData.isOnline : false,
+      is_online:
+        branchData.isOnline !== undefined ? branchData.isOnline : false,
       company_id: companyId,
-      branch_id: branchId
+      branch_id: branchId,
     };
 
     // Update existing document if present, otherwise create
-    const branchDoc = await databases.listDocuments(
-      DB_ID,
-      BRANCHES_COLL,
-      [Query.equal("branch_id", branchId)]
-    );
+    const branchDoc = await databases.listDocuments(DB_ID, BRANCHES_COLL, [
+      Query.equal("branch_id", branchId),
+    ]);
 
     let result;
     if (branchDoc.documents.length > 0) {
@@ -203,17 +213,15 @@ async function loadWorkingDaysFromAppwrite() {
     const { branchId, companyId } = await resolveContext();
 
     // Load working days using branch_id
-    const result = await databases.listDocuments(
-      DB_ID,
-      WORKING_DAYS_COLL,
-      [Query.equal("branch_id", branchId)]
-    );
+    const result = await databases.listDocuments(DB_ID, WORKING_DAYS_COLL, [
+      Query.equal("branch_id", branchId),
+    ]);
 
-    return result.documents.map(doc => ({
+    return result.documents.map((doc) => ({
       day: doc.day,
       time: doc.time,
       company_id: doc.company_id,
-      branch_id: doc.branch_id
+      branch_id: doc.branch_id,
     }));
   } catch (error) {
     console.error("Error loading working days from Appwrite:", error);
@@ -252,7 +260,7 @@ async function saveWorkingDaysToAppwrite(workingDaysData, branchId, companyId) {
             day: dayData.day,
             time: dayData.time,
             company_id: companyId,
-            branch_id: branchId
+            branch_id: branchId,
           }
         );
         results.push(result);
@@ -272,11 +280,9 @@ async function loadSocialMediaFromAppwrite() {
     const { branchId } = await resolveContext();
 
     // Load social media using branch_id
-    const result = await databases.listDocuments(
-      DB_ID,
-      SOCIAL_MEDIA_COLL,
-      [Query.equal("branch_id", branchId)]
-    );
+    const result = await databases.listDocuments(DB_ID, SOCIAL_MEDIA_COLL, [
+      Query.equal("branch_id", branchId),
+    ]);
 
     if (result.documents.length > 0) {
       const socialMedia = result.documents[0];
@@ -286,7 +292,7 @@ async function loadSocialMediaFromAppwrite() {
         facebook: socialMedia.facebook || "",
         linkedin: socialMedia.linkedIn || "",
         instagram: socialMedia.instagram || "",
-        discord: socialMedia.discord || ""
+        discord: socialMedia.discord || "",
       };
     }
 
@@ -320,7 +326,7 @@ async function saveSocialMediaToAppwrite(socialMediaData, branchId, companyId) {
       instagram: sanitizeInput(socialMediaData.instagram || ""),
       discord: sanitizeInput(socialMediaData.discord || ""),
       company_id: companyId,
-      branch_id: branchId
+      branch_id: branchId,
     };
 
     let result;
@@ -358,7 +364,6 @@ function getValue(id) {
   return el ? el.value.trim() : "";
 }
 
-
 // Removed getSocialHandles function as it's not needed for branches table
 
 // Removed getworkingDays function as it's not needed for branches table
@@ -376,19 +381,23 @@ function sanitizeInput(input) {
 function getWorkingDaysData() {
   try {
     // Access Alpine.js data from the working days component
-    const workingDaysElement = document.querySelector('[x-data*="workingDays"]');
+    const workingDaysElement = document.querySelector(
+      '[x-data*="workingDays"]'
+    );
     if (!workingDaysElement) return [];
-    
+
     // Get the Alpine.js component instance
     const alpineData = Alpine.$data(workingDaysElement);
     if (!alpineData || !alpineData.workingDays) return [];
-    
+
     // Format the data for the working_days table
-    return alpineData.workingDays.map(day => ({
-      day: sanitizeInput(day.day),
-      time: sanitizeInput(`${day.open}-${day.close}`), // Combine open and close times
-      branch_id: null // Will be set in saveWorkingDaysToAppwrite
-    })).filter(day => day.day && day.time && day.time !== '-');
+    return alpineData.workingDays
+      .map((day) => ({
+        day: sanitizeInput(day.day),
+        time: sanitizeInput(`${day.open}-${day.close}`), // Combine open and close times
+        branch_id: null, // Will be set in saveWorkingDaysToAppwrite
+      }))
+      .filter((day) => day.day && day.time && day.time !== "-");
   } catch (error) {
     console.error("Error getting working days data:", error);
     return [];
@@ -403,7 +412,7 @@ function getSocialMediaData() {
     facebook: getValue("social-facebook") || getValue("Facebook") || "",
     linkedin: getValue("social-linkedin") || getValue("LinkedIn") || "",
     instagram: getValue("social-instagram") || getValue("Instagram") || "",
-    discord: getValue("social-discord") || getValue("Discord") || ""
+    discord: getValue("social-discord") || getValue("Discord") || "",
   };
 }
 
@@ -411,10 +420,10 @@ function getSocialMediaData() {
 function getImageFiles() {
   const headerFile = document.getElementById("header-upload")?.files?.[0];
   const profileFile = document.getElementById("profile-upload")?.files?.[0];
-  
+
   return {
     headerFile,
-    profileFile
+    profileFile,
   };
 }
 
@@ -426,14 +435,22 @@ async function uploadImagesToAppwrite(branchId, companyId) {
   try {
     // Upload header image if provided
     if (headerFile) {
-      const headerUrl = await uploadFileToAppwrite(headerFile, `header_${branchId}`, companyId);
+      const headerUrl = await uploadFileToAppwrite(
+        headerFile,
+        `header_${branchId}`,
+        companyId
+      );
       uploadedImages.headerImage = headerUrl;
       console.log("✅ Header image uploaded:", headerUrl);
     }
 
     // Upload profile/logo image if provided
     if (profileFile) {
-      const profileUrl = await uploadFileToAppwrite(profileFile, `profile_${branchId}`, companyId);
+      const profileUrl = await uploadFileToAppwrite(
+        profileFile,
+        `profile_${branchId}`,
+        companyId
+      );
       uploadedImages.profileImage = profileUrl;
       console.log("✅ Profile image uploaded:", profileUrl);
     }
@@ -473,35 +490,39 @@ function validateBranchData(data) {
   // Enhanced website validation to handle multiple URL formats
   if (data.website && data.website.trim() !== "") {
     const website = data.website.trim();
-    
+
     // Check length first
     if (website.length > 70) {
       errors.push("Website must be less than 70 characters.");
     } else {
       // Normalize the website URL for validation
       let normalizedUrl = website;
-      
+
       // Add protocol if missing
-      if (!website.startsWith('http://') && !website.startsWith('https://')) {
-        normalizedUrl = 'https://' + website;
+      if (!website.startsWith("http://") && !website.startsWith("https://")) {
+        normalizedUrl = "https://" + website;
       }
-      
+
       // Validate the normalized URL
       try {
         const url = new URL(normalizedUrl);
-        
+
         // Check if it's a valid domain format
-        const domainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-        
+        const domainPattern =
+          /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
         if (!domainPattern.test(url.hostname)) {
-          errors.push("Please enter a valid website URL (e.g., abc.com, www.abc.com, https://abc.com)");
+          errors.push(
+            "Please enter a valid website URL (e.g., abc.com, www.abc.com, https://abc.com)"
+          );
         }
-        
+
         // Update the data with normalized URL for storage
         data.website = normalizedUrl;
-        
       } catch (error) {
-        errors.push("Please enter a valid website URL (e.g., abc.com, www.abc.com, https://abc.com)");
+        errors.push(
+          "Please enter a valid website URL (e.g., abc.com, www.abc.com, https://abc.com)"
+        );
       }
     }
   }
@@ -546,14 +567,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = document.querySelector("form");
   if (!form) return;
 
+  // Show loading modal
+  showLoadingModal();
+
   // Load branch data from Appwrite
   try {
     const branchData = await loadBranchProfileFromAppwrite();
     if (branchData) {
       // Populate form fields - mapping branches table data to original form fields
-      document.getElementById("company-name").value = branchData.branchName || "";
-      document.getElementById("branch-code").value = branchData.branchCode || "";
-      document.getElementById("description").value = branchData.description || "";
+      document.getElementById("company-name").value =
+        branchData.branchName || "";
+      document.getElementById("branch-code").value =
+        branchData.branchCode || "";
+      document.getElementById("description").value =
+        branchData.description || "";
       document.getElementById("location").value = branchData.location || "";
       document.getElementById("email").value = branchData.email || "";
       document.getElementById("phone").value = branchData.phoneNumber || "";
@@ -564,16 +591,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const workingDays = await loadWorkingDaysFromAppwrite();
     if (workingDays.length > 0) {
       // Populate Alpine.js working days component
-      const workingDaysElement = document.querySelector('[x-data*="workingDays"]');
+      const workingDaysElement = document.querySelector(
+        '[x-data*="workingDays"]'
+      );
       if (workingDaysElement) {
         const alpineData = Alpine.$data(workingDaysElement);
         if (alpineData) {
-          alpineData.workingDays = workingDays.map(day => {
-            const [open, close] = day.time.split('-');
+          alpineData.workingDays = workingDays.map((day) => {
+            const [open, close] = day.time.split("-");
             return {
               day: day.day,
-              open: open || '',
-              close: close || ''
+              open: open || "",
+              close: close || "",
             };
           });
         }
@@ -584,12 +613,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const socialMedia = await loadSocialMediaFromAppwrite();
     if (socialMedia) {
       // Populate social media form fields (using the actual field names from HTML)
-      const whatsappField = document.getElementById("social-whatsapp") || document.querySelector('input[name="Whatsapp"]');
-      const twitterField = document.getElementById("social-twitter") || document.querySelector('input[name="Twitter"]');
-      const facebookField = document.getElementById("social-facebook") || document.querySelector('input[name="Facebook"]');
-      const linkedinField = document.getElementById("social-linkedin") || document.querySelector('input[name="LinkedIn"]');
-      const instagramField = document.getElementById("social-instagram") || document.querySelector('input[name="Instagram"]');
-      const discordField = document.getElementById("social-discord") || document.querySelector('input[name="Discord"]');
+      const whatsappField =
+        document.getElementById("social-whatsapp") ||
+        document.querySelector('input[name="Whatsapp"]');
+      const twitterField =
+        document.getElementById("social-twitter") ||
+        document.querySelector('input[name="Twitter"]');
+      const facebookField =
+        document.getElementById("social-facebook") ||
+        document.querySelector('input[name="Facebook"]');
+      const linkedinField =
+        document.getElementById("social-linkedin") ||
+        document.querySelector('input[name="LinkedIn"]');
+      const instagramField =
+        document.getElementById("social-instagram") ||
+        document.querySelector('input[name="Instagram"]');
+      const discordField =
+        document.getElementById("social-discord") ||
+        document.querySelector('input[name="Discord"]');
 
       if (whatsappField) whatsappField.value = socialMedia.whatsapp || "";
       if (twitterField) twitterField.value = socialMedia.twitter || "";
@@ -602,18 +643,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Load images from database and populate Alpine.js component
     console.log("Branch data loaded:", branchData);
     if (branchData && (branchData.headerImage || branchData.profileImage)) {
-      console.log("Images found in database - Header:", branchData.headerImage, "Profile:", branchData.profileImage);
-      const imageContainer = document.querySelector('[x-data*="headerPreview"]');
+      console.log(
+        "Images found in database - Header:",
+        branchData.headerImage,
+        "Profile:",
+        branchData.profileImage
+      );
+      const imageContainer = document.querySelector(
+        '[x-data*="headerPreview"]'
+      );
       if (imageContainer) {
         const alpineData = Alpine.$data(imageContainer);
         if (alpineData) {
           if (branchData.headerImage) {
             alpineData.headerPreview = branchData.headerImage;
-            console.log("✅ Header image loaded from database:", branchData.headerImage);
+            console.log(
+              "✅ Header image loaded from database:",
+              branchData.headerImage
+            );
           }
           if (branchData.profileImage) {
             alpineData.profilePreview = branchData.profileImage;
-            console.log("✅ Profile image loaded from database:", branchData.profileImage);
+            console.log(
+              "✅ Profile image loaded from database:",
+              branchData.profileImage
+            );
           }
         } else {
           console.log("❌ Alpine.js data not found");
@@ -624,8 +678,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       console.log("❌ No images found in database");
     }
+
+    // Hide loading modal after successful load
+    hideLoadingModal();
   } catch (error) {
     console.error("Error loading branch profile:", error);
+    // Hide loading modal on error
+    hideLoadingModal();
   }
 
   // Form submission handler
@@ -673,29 +732,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Save to Appwrite first to get branchId
       const result = await saveBranchProfileToAppwrite(branchData);
       console.log("✅ Branch saved to Appwrite:", result);
-      
+
       const branchId = result.branchId;
 
       // Upload images to Appwrite Storage
       const uploadedImages = await uploadImagesToAppwrite(branchId, companyId);
       console.log("Uploaded images:", uploadedImages);
-      
+
       // Update branch with image URLs
       if (uploadedImages.headerImage || uploadedImages.profileImage) {
         const updateData = {
           header_image: uploadedImages.headerImage || "",
-          profile_image: uploadedImages.profileImage || ""
+          profile_image: uploadedImages.profileImage || "",
         };
-        
+
         console.log("Updating branch with image URLs:", updateData);
-        
+
         // Update the branch document with image URLs
-        const branchDoc = await databases.listDocuments(
-          DB_ID,
-          BRANCHES_COLL,
-          [Query.equal("branch_id", branchId)]
-        );
-        
+        const branchDoc = await databases.listDocuments(DB_ID, BRANCHES_COLL, [
+          Query.equal("branch_id", branchId),
+        ]);
+
         if (branchDoc.documents.length > 0) {
           const updateResult = await databases.updateDocument(
             DB_ID,
@@ -714,13 +771,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Save working days to Appwrite
       const workingDaysData = getWorkingDaysData();
       if (workingDaysData.length > 0) {
-        const workingDaysResult = await saveWorkingDaysToAppwrite(workingDaysData, branchId, companyId);
+        const workingDaysResult = await saveWorkingDaysToAppwrite(
+          workingDaysData,
+          branchId,
+          companyId
+        );
         console.log("✅ Working days saved to Appwrite:", workingDaysResult);
       }
 
       // Save social media to Appwrite
       const socialMediaData = getSocialMediaData();
-      const socialMediaResult = await saveSocialMediaToAppwrite(socialMediaData, branchId, companyId);
+      const socialMediaResult = await saveSocialMediaToAppwrite(
+        socialMediaData,
+        branchId,
+        companyId
+      );
       console.log("✅ Social media saved to Appwrite:", socialMediaResult);
 
       // Data is now stored in Appwrite DB, no need for localStorage
@@ -743,3 +808,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 });
+
+// Loading modal helper functions
+function showLoadingModal() {
+  const modal = document.getElementById("loadingModal");
+  if (modal) {
+    modal.style.display = "flex";
+    modal.classList.remove("fade-out");
+  }
+}
+
+function hideLoadingModal() {
+  const modal = document.getElementById("loadingModal");
+  if (modal) {
+    modal.classList.add("fade-out");
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 500);
+  }
+}

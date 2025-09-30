@@ -33,6 +33,51 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        /* Loading Modal Styles */
+        .loading-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-modal.fade-out {
+            opacity: 0;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+            background: rgba(33, 33, 33, 0.9);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(59, 130, 246, 0.3);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
     <div class="flex">
         <!-- Sidebar -->
@@ -177,6 +222,16 @@
             </div>
         </div>
     </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="loading-modal" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3 class="text-lg font-semibold mb-2">Loading Return Pickups</h3>
+            <p class="text-gray-300">Please wait while we fetch your return pickup data...</p>
+        </div>
+    </div>
+
     <script src="get-return-pickups.js"></script>
 </body>
 </html>
