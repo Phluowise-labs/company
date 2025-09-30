@@ -19,6 +19,9 @@ class RequestsManager {
   }
 
   async init() {
+    // Show loading modal
+    this.showLoadingModal();
+
     try {
       // Check if authentication was successful (AuthManager auto-initializes)
       const user = localStorage.getItem("user");
@@ -33,8 +36,13 @@ class RequestsManager {
 
       this.setupEventListeners();
       await this.loadOrders();
+
+      // Hide loading modal after successful initialization
+      this.hideLoadingModal();
     } catch (error) {
       console.error("Failed to initialize requests manager:", error);
+      // Hide loading modal even on error
+      this.hideLoadingModal();
       // If authentication fails, redirect to signin
       window.location.href = "signin.html";
     }
@@ -593,6 +601,24 @@ class RequestsManager {
 
   hideEmptyState() {
     document.getElementById("empty-state").classList.add("hidden");
+  }
+
+  showLoadingModal() {
+    const modal = document.getElementById("loadingModal");
+    if (modal) {
+      modal.style.display = "flex";
+      modal.classList.remove("fade-out");
+    }
+  }
+
+  hideLoadingModal() {
+    const modal = document.getElementById("loadingModal");
+    if (modal) {
+      modal.classList.add("fade-out");
+      setTimeout(() => {
+        modal.style.display = "none";
+      }, 500);
+    }
   }
 }
 

@@ -64,6 +64,48 @@ export class AuthManager {
       window.location.href = "signin.html";
     }
   }
+
+  /**
+   * Get current user
+   * @returns {Object|null} Current user object
+   */
+  async getCurrentUser() {
+    try {
+      if (!this.user) {
+        this.user = await account.get();
+      }
+      return this.user;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get user preferences (role, company_id, branch_id)
+   * @returns {Object} User preferences
+   */
+  async getUserPreferences() {
+    try {
+      // If not initialized, initialize first
+      if (!this.user || !this.activeRole || !this.companyId) {
+        await this.initialize();
+      }
+
+      return {
+        role: this.activeRole,
+        company_id: this.companyId,
+        branch_id: null // Can be extended later if needed
+      };
+    } catch (error) {
+      console.error('Error getting user preferences:', error);
+      return {
+        role: 'admin',
+        company_id: null,
+        branch_id: null
+      };
+    }
+  }
 }
 
 // Auto-initialize on page load

@@ -1,6 +1,13 @@
 // Chart.js is loaded globally via <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 import { MetricsService } from "./metrics.js";
-import { account, databases, DB_ID, BRANCH_COLL, Appwrite, isCompanyAdminBranch } from "./config.js";
+import {
+  account,
+  databases,
+  DB_ID,
+  BRANCH_COLL,
+  Appwrite,
+  isCompanyAdminBranch,
+} from "./config.js";
 
 // Simple registry to manage chart instances across re-renders
 const __chartRegistry = {
@@ -9,7 +16,7 @@ const __chartRegistry = {
     Object.keys(this.instances).forEach((key) => {
       try {
         const instance = this.instances[key];
-        if (instance && typeof instance.destroy === 'function') {
+        if (instance && typeof instance.destroy === "function") {
           instance.destroy();
         }
       } catch (_) {}
@@ -19,26 +26,29 @@ const __chartRegistry = {
   set(key, instance) {
     if (!key) return;
     if (this.instances[key]) {
-      try { this.instances[key].destroy(); } catch (_) {}
+      try {
+        this.instances[key].destroy();
+      } catch (_) {}
     }
     this.instances[key] = instance;
-  }
+  },
 };
 
 export async function renderDashboard() {
+  // Show loading modal
+  showLoadingModal();
+
   try {
     const user = await account.get();
     if (!user) return;
 
     // Check if user has a role preference in localStorage
     const storedRole = localStorage.getItem("activeRole");
-    
+
     // Get user role from Appwrite user metadata or determine from branch data
-    const branchResult = await databases.listDocuments(
-      DB_ID,
-      BRANCH_COLL,
-      [Appwrite.Query.equal("company_id", user.$id)]
-    );
+    const branchResult = await databases.listDocuments(DB_ID, BRANCH_COLL, [
+      Appwrite.Query.equal("company_id", user.$id),
+    ]);
 
     let activeRole = "branch"; // default
     let canSwitchRole = false;
@@ -57,10 +67,16 @@ export async function renderDashboard() {
       activeRole = storedRole;
     }
 
-    if (activeRole === "admin") renderAdminDashboard(user, canSwitchRole, user.$id);
+    if (activeRole === "admin")
+      renderAdminDashboard(user, canSwitchRole, user.$id);
     else renderBranchDashboard(user, canSwitchRole, user.$id);
+
+    // Hide loading modal after successful render
+    hideLoadingModal();
   } catch (error) {
     console.error("Error rendering dashboard:", error);
+    // Hide loading modal even on error
+    hideLoadingModal();
   }
 }
 
@@ -76,9 +92,15 @@ async function renderAdminDashboard(user, canSwitchRole, companyId) {
       <div class="flex justify-between items-center">
         <div>
           <h1 class="text-3xl font-bold text-white">Phluowise Logistics Dashboard</h1>
-          <p class="text-gray-400">Welcome back, ${user.name} — Monitor your delivery operations across all branches</p>
+          <p class="text-gray-400">Welcome back, ${
+            user.name
+          } — Monitor your delivery operations across all branches</p>
         </div>
-        ${canSwitchRole ? '<button id="switchRoleBtn" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded">Switch to Branch</button>' : ''}
+        ${
+          canSwitchRole
+            ? '<button id="switchRoleBtn" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded">Switch to Branch</button>'
+            : ""
+        }
       </div>
     </div>
 
@@ -133,6 +155,54 @@ async function renderAdminDashboard(user, canSwitchRole, companyId) {
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20 lg:h-96">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">Customers per Branch</h3>
+          <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Total registered customers for each branch.">?</button>
+        </div>
+        <div class="chart-container h-full">
+          <canvas id="customersChart" class="w-full h-full"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-lg font-semibold">Branch Status</h3>
+          <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Shows branches online, offline, or idle.">?</button>
+        </div>
+        <div class="chart-container">
+          <canvas id="branchStatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex items-center gap-2">
+            <h3 class="text-lg font-semibold">Transactions Summary</h3>
+            <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Total transactions aggregated by the selected time range.">?</button>
+          </div>
+          <div class="inline-flex rounded-md border border-zinc-700 overflow-hidden" role="tablist" aria-label="Transactions Range">
+            <button class="tx-range px-3 py-1.5 text-sm hover:bg-zinc-800 focus:outline-none" data-range="day" aria-selected="true">Day</button>
+            <button class="tx-range px-3 py-1.5 text-sm hover:bg-zinc-800 focus:outline-none" data-range="week">Week</button>
+            <button class="tx-range px-3 py-1.5 text-sm hover:bg-zinc-800 focus:outline-none" data-range="month">Month</button>
+            <button class="tx-range px-3 py-1.5 text-sm hover:bg-zinc-800 focus:outline-none" data-range="year">Year</button>
+          </div>
+        </div>
+        <canvas id="transactionsChart"></canvas>
+      </div>
+
+      <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-lg font-semibold">Drivers per Branch</h3>
+          <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Number of active drivers in each branch.">?</button>
+        </div>
+        <canvas id="driversChart"></canvas>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       <div class="bg-zinc-900 p-6 rounded-xl relative group border border-zinc-800">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold">Daily Delivery Performance</h3>
@@ -163,23 +233,7 @@ async function renderAdminDashboard(user, canSwitchRole, companyId) {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <div class="bg-zinc-900/80 backdrop-blur p-12 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20 lg:h-96">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="text-lg font-semibold">Customers per Branch</h3>
-          <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Total registered customers for each branch.">?</button>
-        </div>
-        <canvas id="customersChart" class="w-full h-full"></canvas>
-      </div>
 
-      <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="text-lg font-semibold">Branch Status</h3>
-          <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Shows branches online, offline, or idle.">?</button>
-        </div>
-        <canvas id="branchStatusChart"></canvas>
-      </div>
-    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
@@ -213,7 +267,7 @@ async function renderAdminDashboard(user, canSwitchRole, companyId) {
   initializeAdminCharts(metrics);
 
   // Setup help button listeners
-  document.querySelectorAll(".helpBtn").forEach(btn => {
+  document.querySelectorAll(".helpBtn").forEach((btn) => {
     btn.addEventListener("click", () => {
       Swal.fire({ icon: "info", title: "Info", text: btn.dataset.help });
     });
@@ -241,9 +295,15 @@ async function renderBranchDashboard(user, canSwitchRole, companyId) {
       <div class="flex justify-between items-center">
         <div>
           <h1 class="text-3xl font-bold text-white">Branch Dashboard</h1>
-          <p class="text-gray-400">Welcome back, ${user.name} — Monitor operations for your branch</p>
+          <p class="text-gray-400">Welcome back, ${
+            user.name
+          } — Monitor operations for your branch</p>
         </div>
-        ${canSwitchRole ? '<button id="switchRoleBtn" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded">Switch to Admin</button>' : ''}
+        ${
+          canSwitchRole
+            ? '<button id="switchRoleBtn" class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded">Switch to Admin</button>'
+            : ""
+        }
       </div>
     </div>
 
@@ -355,7 +415,7 @@ async function renderBranchDashboard(user, canSwitchRole, companyId) {
   hydrateBranchKPIs(metrics);
   initializeBranchCharts(metrics);
 
-  document.querySelectorAll(".helpBtn").forEach(btn => {
+  document.querySelectorAll(".helpBtn").forEach((btn) => {
     btn.addEventListener("click", () => {
       Swal.fire({ icon: "info", title: "Info", text: btn.dataset.help });
     });
@@ -374,8 +434,16 @@ async function renderBranchDashboard(user, canSwitchRole, companyId) {
 // Card Helper Function
 // =============================
 function hexToRgba(hex, alpha) {
-  const parsed = hex.replace('#', '');
-  const bigint = parseInt(parsed.length === 3 ? parsed.split('').map(c => c + c).join('') : parsed, 16);
+  const parsed = hex.replace("#", "");
+  const bigint = parseInt(
+    parsed.length === 3
+      ? parsed
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : parsed,
+    16
+  );
   const r = (bigint >> 16) & 255;
   const g = (bigint >> 8) & 255;
   const b = bigint & 255;
@@ -384,14 +452,14 @@ function hexToRgba(hex, alpha) {
 
 function pickIcon(title) {
   const t = title.toLowerCase();
-  if (t.includes('deliver')) return '🚚';
-  if (t.includes('order')) return '📦';
-  if (t.includes('pickup')) return '🧾';
-  if (t.includes('rating')) return '⭐';
-  if (t.includes('driver')) return '🛵';
-  if (t.includes('customer')) return '👥';
-  if (t.includes('transaction')) return '💳';
-  return '📊';
+  if (t.includes("deliver")) return "🚚";
+  if (t.includes("order")) return "📦";
+  if (t.includes("pickup")) return "🧾";
+  if (t.includes("rating")) return "⭐";
+  if (t.includes("driver")) return "🛵";
+  if (t.includes("customer")) return "👥";
+  if (t.includes("transaction")) return "💳";
+  return "📊";
 }
 
 function createInfoCard(title, value, color, helpText) {
@@ -424,210 +492,471 @@ function hydrateAdminKPIs(metrics) {
 }
 
 function initializeAdminCharts(metrics) {
-  if (typeof window.Chart === 'undefined') {
-    console.warn('Chart.js not loaded; skipping charts.');
+  if (typeof window.Chart === "undefined") {
+    console.warn("Chart.js not loaded; skipping charts.");
     return;
   }
 
   __chartRegistry.destroyAll();
 
   // Daily Deliveries - Line
-  const deliveryEl = document.getElementById('deliveryChart');
-  if (deliveryEl) __chartRegistry.set('deliveryChart', new Chart(deliveryEl.getContext('2d'), {
-    type:'line',
-    data:{
-      labels: (metrics?.charts?.deliveryPerformance?.labels) || ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-      datasets:[{label:'Deliveries Completed', data:(metrics?.charts?.deliveryPerformance?.values)||[42,38,45,52,47,39,43], borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.1)', tension:0.4, fill:true}]
-    },
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.1)'},ticks:{color:'#9ca3af'}}, x:{grid:{color:'rgba(255,255,255,0.1)'},ticks:{color:'#9ca3af'}}}}
-  }));
+  const deliveryEl = document.getElementById("deliveryChart");
+  if (deliveryEl)
+    __chartRegistry.set(
+      "deliveryChart",
+      new Chart(deliveryEl.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: metrics?.charts?.deliveryPerformance?.labels || [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun",
+          ],
+          datasets: [
+            {
+              label: "Deliveries Completed",
+              data: metrics?.charts?.deliveryPerformance?.values || [
+                42, 38, 45, 52, 47, 39, 43,
+              ],
+              borderColor: "#3b82f6",
+              backgroundColor: "rgba(59,130,246,0.1)",
+              tension: 0.4,
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: "rgba(255,255,255,0.1)" },
+              ticks: { color: "#9ca3af" },
+            },
+            x: {
+              grid: { color: "rgba(255,255,255,0.1)" },
+              ticks: { color: "#9ca3af" },
+            },
+          },
+        },
+      })
+    );
 
   // Branch Performance - Doughnut
-  const branchEl = document.getElementById('branchChart');
-  if (branchEl) __chartRegistry.set('branchChart', new Chart(branchEl.getContext('2d'), {
-    type:'doughnut',
-    data:{labels:(metrics?.charts?.branchPerformance?.labels)||['Main','North','South','East'], datasets:[{data:(metrics?.charts?.branchPerformance?.values)||[35,28,22,15], backgroundColor:['#3b82f6','#10b981','#f59e0b','#8b5cf6']}]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#9ca3af', padding:20}}}}
-  }));
+  const branchEl = document.getElementById("branchChart");
+  if (branchEl)
+    __chartRegistry.set(
+      "branchChart",
+      new Chart(branchEl.getContext("2d"), {
+        type: "doughnut",
+        data: {
+          labels: metrics?.charts?.branchPerformance?.labels || [
+            "Main",
+            "North",
+            "South",
+            "East",
+          ],
+          datasets: [
+            {
+              data: metrics?.charts?.branchPerformance?.values || [
+                35, 28, 22, 15,
+              ],
+              backgroundColor: ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { color: "#9ca3af", padding: 20 },
+            },
+          },
+        },
+      })
+    );
 
   // Customers per Branch - Bar
-  const customersEl = document.getElementById('customersChart');
-  if (customersEl) __chartRegistry.set('customersChart', new Chart(customersEl.getContext('2d'), {
-    type:'bar',
-    data:{labels:(metrics?.charts?.customersPerBranch?.labels)||['Main','North','South','East'], datasets:[{label:'Customers', data:(metrics?.charts?.customersPerBranch?.values)||[120,95,80,60], backgroundColor:'#3b82f6'}]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{color:'#9ca3af'}}, x:{ticks:{color:'#9ca3af'}}}}
-  }));
+  const customersEl = document.getElementById("customersChart");
+  if (customersEl)
+    __chartRegistry.set(
+      "customersChart",
+      new Chart(customersEl.getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: metrics?.charts?.customersPerBranch?.labels || [
+            "Main",
+            "North",
+            "South",
+            "East",
+          ],
+          datasets: [
+            {
+              label: "Customers",
+              data: metrics?.charts?.customersPerBranch?.values || [
+                120, 95, 80, 60,
+              ],
+              backgroundColor: "#3b82f6",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: window.innerWidth < 768 ? 1.5 : 2,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { color: "#9ca3af" } },
+            x: { ticks: { color: "#9ca3af", maxRotation: 45, minRotation: 0 } },
+          },
+          layout: {
+            padding: {
+              top: 10,
+              bottom: 10,
+              left: 10,
+              right: 10,
+            },
+          },
+        },
+      })
+    );
 
   // Branch Status - Pie
-  const branchStatusEl = document.getElementById('branchStatusChart');
-  if (branchStatusEl) __chartRegistry.set('branchStatusChart', new Chart(branchStatusEl.getContext('2d'), {
-    type:'pie',
-    data:{labels:(metrics?.charts?.branchStatus?.labels)||['Online','Idle','Offline'], datasets:[{data:(metrics?.charts?.branchStatus?.values)||[3,1,1], backgroundColor:['#10b981','#f59e0b','#ef4444']}]},
-    options:{responsive:true, maintainAspectRatio:true, plugins:{legend:{position:'bottom', labels:{color:'#9ca3af', padding:20}}}}
-  }));
+  const branchStatusEl = document.getElementById("branchStatusChart");
+  if (branchStatusEl)
+    __chartRegistry.set(
+      "branchStatusChart",
+      new Chart(branchStatusEl.getContext("2d"), {
+        type: "pie",
+        data: {
+          labels: metrics?.charts?.branchStatus?.labels || [
+            "Online",
+            "Idle",
+            "Offline",
+          ],
+          datasets: [
+            {
+              data: metrics?.charts?.branchStatus?.values || [3, 1, 1],
+              backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { color: "#9ca3af", padding: 20 },
+            },
+          },
+        },
+      })
+    );
 
   // Transactions Summary - Line with range controls
-  const transactionsEl = document.getElementById('transactionsChart');
+  const transactionsEl = document.getElementById("transactionsChart");
   if (transactionsEl) {
-    const txColors = { border:'#f59e0b', fill:'rgba(245,158,11,0.1)' };
+    const txColors = { border: "#f59e0b", fill: "rgba(245,158,11,0.1)" };
     const txData = metrics?.charts?.transactionsSummary;
-    const txPresets = txData ? {
-      day:   { labels: txData.day.labels,   data: txData.day.values },
-      week:  { labels: txData.week.labels,  data: txData.week.values },
-      month: { labels: txData.month.labels, data: txData.month.values },
-      year:  { labels: txData.year.labels,  data: txData.year.values }
-    } : {
-      day:   { labels:['12am','3am','6am','9am','12pm','3pm','6pm','9pm'], data:[12,18,22,40,55,60,48,30] },
-      week:  { labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data:[230,210,260,300,420,380,310] },
-      month: { labels:['W1','W2','W3','W4'], data:[1200,1500,1100,1400] },
-      year:  { labels:['Q1','Q2','Q3','Q4'], data:[5000,6200,5800,7000] }
-    };
-    const storedRange = localStorage.getItem('transactionsRange') || 'day';
+    const txPresets = txData
+      ? {
+          day: { labels: txData.day.labels, data: txData.day.values },
+          week: { labels: txData.week.labels, data: txData.week.values },
+          month: { labels: txData.month.labels, data: txData.month.values },
+          year: { labels: txData.year.labels, data: txData.year.values },
+        }
+      : {
+          day: {
+            labels: ["12am", "3am", "6am", "9am", "12pm", "3pm", "6pm", "9pm"],
+            data: [12, 18, 22, 40, 55, 60, 48, 30],
+          },
+          week: {
+            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            data: [230, 210, 260, 300, 420, 380, 310],
+          },
+          month: {
+            labels: ["W1", "W2", "W3", "W4"],
+            data: [1200, 1500, 1100, 1400],
+          },
+          year: {
+            labels: ["Q1", "Q2", "Q3", "Q4"],
+            data: [5000, 6200, 5800, 7000],
+          },
+        };
+    const storedRange = localStorage.getItem("transactionsRange") || "day";
     const initial = txPresets[storedRange] || txPresets.day;
 
-    __chartRegistry.set('transactionsChart', new Chart(transactionsEl.getContext('2d'), {
-      type:'line',
-      data:{
-        labels: initial.labels,
-        datasets:[{label:'Transactions', data: initial.data, borderColor:txColors.border, backgroundColor:txColors.fill, tension:0.4, fill:true}]
-      },
-      options:{responsive:true, maintainAspectRatio:true, aspectRatio:2, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{color:'#9ca3af'}}, x:{ticks:{color:'#9ca3af'}}}}
-    }));
+    __chartRegistry.set(
+      "transactionsChart",
+      new Chart(transactionsEl.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: initial.labels,
+          datasets: [
+            {
+              label: "Transactions",
+              data: initial.data,
+              borderColor: txColors.border,
+              backgroundColor: txColors.fill,
+              tension: 0.4,
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 2,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { color: "#9ca3af" } },
+            x: { ticks: { color: "#9ca3af" } },
+          },
+        },
+      })
+    );
 
-    const rangeButtons = Array.from(document.querySelectorAll('.tx-range'));
+    const rangeButtons = Array.from(document.querySelectorAll(".tx-range"));
     function setActiveRange(range) {
-      rangeButtons.forEach(btn => {
+      rangeButtons.forEach((btn) => {
         const active = btn.dataset.range === range;
-        btn.setAttribute('aria-selected', active ? 'true' : 'false');
-        if (active) btn.classList.add('bg-zinc-800'); else btn.classList.remove('bg-zinc-800');
+        btn.setAttribute("aria-selected", active ? "true" : "false");
+        if (active) btn.classList.add("bg-zinc-800");
+        else btn.classList.remove("bg-zinc-800");
       });
     }
     function updateTransactionsChart(range) {
       const preset = txPresets[range] || txPresets.day;
-      const chart = __chartRegistry.instances['transactionsChart'];
+      const chart = __chartRegistry.instances["transactionsChart"];
       if (!chart) return;
       chart.data.labels = preset.labels;
       chart.data.datasets[0].data = preset.data;
       chart.update();
-      localStorage.setItem('transactionsRange', range);
+      localStorage.setItem("transactionsRange", range);
       setActiveRange(range);
     }
     // init active state + listeners
     setActiveRange(storedRange);
-    rangeButtons.forEach(btn => {
-      btn.addEventListener('click', () => updateTransactionsChart(btn.dataset.range));
+    rangeButtons.forEach((btn) => {
+      btn.addEventListener("click", () =>
+        updateTransactionsChart(btn.dataset.range)
+      );
     });
   }
-  
-    // Drivers per Branch - Bar
-    const driversEl = document.getElementById('driversChart');
-    if (driversEl) __chartRegistry.set('driversChart', new Chart(driversEl.getContext('2d'), {
-      type:'bar',
-      data:{
-        labels:(metrics?.charts?.driversPerBranch?.labels)||['Main','North','South','East'],
-        datasets:[{label:'Drivers', data:(metrics?.charts?.driversPerBranch?.values)||[10,7,5,3], backgroundColor:'#8b5cf6'}]
+
+  // Drivers per Branch - Bar
+  const driversEl = document.getElementById("driversChart");
+  if (driversEl)
+    __chartRegistry.set(
+      "driversChart",
+      new Chart(driversEl.getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: metrics?.charts?.driversPerBranch?.labels || [
+            "Main",
+            "North",
+            "South",
+            "East",
+          ],
+          datasets: [
+            {
+              label: "Drivers",
+              data: metrics?.charts?.driversPerBranch?.values || [10, 7, 5, 3],
+              backgroundColor: "#8b5cf6",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { color: "#9ca3af" } },
+            x: { ticks: { color: "#9ca3af" } },
+          },
+        },
+      })
+    );
+}
+
+function hydrateBranchKPIs(metrics) {
+  // Placeholder for setting branch KPI card values if we add data-ids
+}
+
+function initializeBranchCharts(metrics) {
+  if (typeof window.Chart === "undefined") {
+    console.warn("Chart.js not loaded; skipping charts.");
+    return;
+  }
+  __chartRegistry.destroyAll();
+
+  const ctx = document.getElementById("branchOperationsChart");
+  if (ctx) {
+    __chartRegistry.set(
+      "branchOperationsChart",
+      new Chart(ctx.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: metrics?.charts?.branchOperations?.labels || [
+            "8AM",
+            "9AM",
+            "10AM",
+            "11AM",
+            "12PM",
+            "1PM",
+            "2PM",
+            "3PM",
+            "4PM",
+            "5PM",
+            "6PM",
+            "7PM",
+          ],
+          datasets: [
+            {
+              label: "Deliveries",
+              data: metrics?.charts?.branchOperations?.values || [
+                2, 5, 8, 12, 15, 18, 20, 22, 23, 23, 23, 23,
+              ],
+              borderColor: "#10b981",
+              backgroundColor: "rgba(16,185,129,0.1)",
+              tension: 0.4,
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: "rgba(255,255,255,0.1)" },
+              ticks: { color: "#9ca3af" },
+            },
+            x: {
+              grid: { color: "rgba(255,255,255,0.1)" },
+              ticks: { color: "#9ca3af" },
+            },
+          },
+        },
+      })
+    );
+  }
+  // Branch Transactions Summary - Line with range controls
+  const branchTxEl = document.getElementById("branchTransactionsChart");
+  if (branchTxEl) {
+    const txColors = { border: "#f59e0b", fill: "rgba(245,158,11,0.1)" };
+    const txPresets = {
+      day: {
+        labels: ["12am", "3am", "6am", "9am", "12pm", "3pm", "6pm", "9pm"],
+        data: [4, 6, 8, 10, 12, 14, 11, 7],
       },
-      options:{
-        responsive:true,
-        maintainAspectRatio:true,
-        plugins:{legend:{display:false}},
-        scales:{
-          y:{beginAtZero:true, ticks:{color:'#9ca3af'}},
-          x:{ticks:{color:'#9ca3af'}}
-        }
-      }
-    }));
-  }
-  
-  function hydrateBranchKPIs(metrics) {
-    // Placeholder for setting branch KPI card values if we add data-ids
-  }
+      week: {
+        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        data: [120, 100, 140, 180, 220, 190, 150],
+      },
+      month: { labels: ["W1", "W2", "W3", "W4"], data: [400, 520, 460, 580] },
+      year: {
+        labels: ["Q1", "Q2", "Q3", "Q4"],
+        data: [1600, 1900, 1750, 2100],
+      },
+    };
+    const storedRange =
+      localStorage.getItem("branchTransactionsRange") || "day";
+    const initial = txPresets[storedRange] || txPresets.day;
 
-  function initializeBranchCharts(metrics) {
-    if (typeof window.Chart === 'undefined') {
-      console.warn('Chart.js not loaded; skipping charts.');
-      return;
-    }
-    __chartRegistry.destroyAll();
-
-    const ctx = document.getElementById('branchOperationsChart');
-    if (ctx) {
-      __chartRegistry.set('branchOperationsChart', new Chart(ctx.getContext('2d'), {
-        type:'line',
-        data:{
-          labels:(metrics?.charts?.branchOperations?.labels)||['8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM'],
-          datasets:[{
-            label:'Deliveries',
-            data:(metrics?.charts?.branchOperations?.values)||[2,5,8,12,15,18,20,22,23,23,23,23],
-            borderColor:'#10b981',
-            backgroundColor:'rgba(16,185,129,0.1)',
-            tension:0.4,
-            fill:true
-          }]
-        },
-        options:{
-          responsive:true,
-          maintainAspectRatio:false,
-          plugins:{legend:{display:false}},
-          scales:{
-            y:{beginAtZero:true, grid:{color:'rgba(255,255,255,0.1)'}, ticks:{color:'#9ca3af'}},
-            x:{grid:{color:'rgba(255,255,255,0.1)'}, ticks:{color:'#9ca3af'}}
-          }
-        }
-      }));
-    }
-    // Branch Transactions Summary - Line with range controls
-    const branchTxEl = document.getElementById('branchTransactionsChart');
-    if (branchTxEl) {
-      const txColors = { border:'#f59e0b', fill:'rgba(245,158,11,0.1)' };
-      const txPresets = {
-        day:   { labels:['12am','3am','6am','9am','12pm','3pm','6pm','9pm'], data:[4,6,8,10,12,14,11,7] },
-        week:  { labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data:[120,100,140,180,220,190,150] },
-        month: { labels:['W1','W2','W3','W4'], data:[400,520,460,580] },
-        year:  { labels:['Q1','Q2','Q3','Q4'], data:[1600,1900,1750,2100] }
-      };
-      const storedRange = localStorage.getItem('branchTransactionsRange') || 'day';
-      const initial = txPresets[storedRange] || txPresets.day;
-
-      __chartRegistry.set('branchTransactionsChart', new Chart(branchTxEl.getContext('2d'), {
-        type:'line',
-        data:{
+    __chartRegistry.set(
+      "branchTransactionsChart",
+      new Chart(branchTxEl.getContext("2d"), {
+        type: "line",
+        data: {
           labels: initial.labels,
-          datasets:[{label:'Transactions', data: initial.data, borderColor:txColors.border, backgroundColor:txColors.fill, tension:0.4, fill:true}]
+          datasets: [
+            {
+              label: "Transactions",
+              data: initial.data,
+              borderColor: txColors.border,
+              backgroundColor: txColors.fill,
+              tension: 0.4,
+              fill: true,
+            },
+          ],
         },
-        options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{color:'#9ca3af'}}, x:{ticks:{color:'#9ca3af'}}}}
-      }));
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { color: "#9ca3af" } },
+            x: { ticks: { color: "#9ca3af" } },
+          },
+        },
+      })
+    );
 
-      const rangeButtons = Array.from(document.querySelectorAll('.tx-range-branch'));
-      function setActiveRange(range) {
-        rangeButtons.forEach(btn => {
-          const active = btn.dataset.range === range;
-          btn.setAttribute('aria-selected', active ? 'true' : 'false');
-          if (active) btn.classList.add('bg-zinc-800'); else btn.classList.remove('bg-zinc-800');
-        });
-      }
-      function updateBranchTransactionsChart(range) {
-        const preset = txPresets[range] || txPresets.day;
-        const chart = __chartRegistry.instances['branchTransactionsChart'];
-        if (!chart) return;
-        chart.data.labels = preset.labels;
-        chart.data.datasets[0].data = preset.data;
-        chart.update();
-        localStorage.setItem('branchTransactionsRange', range);
-        setActiveRange(range);
-      }
-      setActiveRange(storedRange);
-      rangeButtons.forEach(btn => {
-        btn.addEventListener('click', () => updateBranchTransactionsChart(btn.dataset.range));
+    const rangeButtons = Array.from(
+      document.querySelectorAll(".tx-range-branch")
+    );
+    function setActiveRange(range) {
+      rangeButtons.forEach((btn) => {
+        const active = btn.dataset.range === range;
+        btn.setAttribute("aria-selected", active ? "true" : "false");
+        if (active) btn.classList.add("bg-zinc-800");
+        else btn.classList.remove("bg-zinc-800");
       });
     }
-  }
-  
-  // Auto-render on DOMContentLoaded (guard against duplicate registration)
-  if (!window.__dashboardDOMContentHooked) {
-    document.addEventListener('DOMContentLoaded', () => {
-      renderDashboard();
+    function updateBranchTransactionsChart(range) {
+      const preset = txPresets[range] || txPresets.day;
+      const chart = __chartRegistry.instances["branchTransactionsChart"];
+      if (!chart) return;
+      chart.data.labels = preset.labels;
+      chart.data.datasets[0].data = preset.data;
+      chart.update();
+      localStorage.setItem("branchTransactionsRange", range);
+      setActiveRange(range);
+    }
+    setActiveRange(storedRange);
+    rangeButtons.forEach((btn) => {
+      btn.addEventListener("click", () =>
+        updateBranchTransactionsChart(btn.dataset.range)
+      );
     });
-    window.__dashboardDOMContentHooked = true;
   }
-  
+}
+
+// Auto-render on DOMContentLoaded (guard against duplicate registration)
+if (!window.__dashboardDOMContentHooked) {
+  document.addEventListener("DOMContentLoaded", () => {
+    renderDashboard();
+  });
+  window.__dashboardDOMContentHooked = true;
+}
+
+// Loading Modal Functions
+function showLoadingModal() {
+  const modal = document.getElementById("loadingModal");
+  if (modal) {
+    modal.style.display = "flex";
+    modal.classList.remove("fade-out");
+  }
+}
+
+function hideLoadingModal() {
+  const modal = document.getElementById("loadingModal");
+  if (modal) {
+    modal.classList.add("fade-out");
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 500);
+  }
+}

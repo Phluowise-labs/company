@@ -19,6 +19,9 @@ const client = new Client()
   .setEndpoint(APPWRITE_ENDPOINT)
   .setProject(APPWRITE_PROJECT);
 
+// Export the client for direct access if needed
+export { client };
+
 // Appwrite services
 export const account = new Account(client);
 export const databases = new Databases(client);
@@ -37,7 +40,7 @@ export const DELIVERIES_COLL = "deliveries"; // delivery records with timestamps
 export const TRANSACTIONS_COLL = "transactions"; // financial transactions
 export const RATINGS_COLL = "ratings"; // customer feedback per delivery/order
 export const DRIVERS_COLL = "drivers"; // driver profiles and presence status
-export const CUSTOMERS_COLL = "customers"; // customer profiles and branch/company linkage
+export const CUSTOMERS_COLL = "customer_tb"; // customer profiles and branch/company linkage
 export const PRODUCTS_COLL = "product"; // product catalog
 
 // =============================
