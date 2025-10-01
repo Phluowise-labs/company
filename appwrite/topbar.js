@@ -111,7 +111,7 @@ if (!window.__TOPBAR_INIT__) {
       const badge = document.getElementById("branchCount");
       if (badge) {
         badge.textContent = subBranchesCount.toString();
-        badge.style.display = subBranchesCount > 0 ? "inline-block" : "none";
+        badge.style.display = subBranchesCount > 0 ? "flex" : "none";
       }
 
       console.log(
