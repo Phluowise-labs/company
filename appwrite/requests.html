@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
 
     <style>
         body {
@@ -86,6 +87,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.9);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             display: flex;
             justify-content: center;
@@ -252,16 +254,10 @@
             <!-- Main Content Area -->
             <div class="container mx-auto mt-10 p-4">
                 <!-- Page Header -->
-                <div class="mb-8 flex justify-between items-center">
+                <div class="mb-8">
                     <div>
                         <h1 class="text-3xl font-bold text-white">Order Requests</h1>
                         <p class="text-gray-400">Manage and track customer order requests</p>
-                    </div>
-                    <div>
-                        <a href="test-order-creation/test-orders.html"
-                            class="border border-blue-600 hover:bg-blue-600 text-blue-600 hover:text-white px-6 py-3 rounded-lg font-medium inline-flex items-center">
-                            <i class="fas fa-flask mr-2"></i>Test Orders
-                        </a>
                     </div>
                 </div>
 

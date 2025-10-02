@@ -1,4 +1,77 @@
-<div class="w-1/6 h-screen p-4 pr-0 bg-[#212121] fixed">
+<style>
+  /* Responsive sidebar styles */
+  @media (max-width: 768px) {
+    .sidebar-container {
+      width: 64px !important;
+      padding: 0.5rem 0.25rem !important;
+    }
+    .sidebar-container .text-center img {
+      width: 32px !important;
+      height: auto !important;
+    }
+    .sidebar-container span {
+      display: none !important;
+    }
+    .sidebar-container .space-y-8 {
+      gap: 1rem !important;
+    }
+    .sidebar-container h2 {
+      display: none !important;
+    }
+    .sidebar-container .menu-item {
+      justify-content: center !important;
+      padding: 0.5rem !important;
+      position: relative !important;
+      min-height: 48px !important;
+    }
+    .sidebar-container .menu-item a {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      width: 100% !important;
+      height: 100% !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      z-index: 10 !important;
+      padding: 0.5rem !important;
+    }
+    .sidebar-container .menu-item img {
+      position: relative !important;
+      z-index: 5 !important;
+      pointer-events: none !important;
+      width: 24px !important;
+      height: 24px !important;
+    }
+    .sidebar-container .selection-indicator {
+      right: -0.25rem !important;
+    }
+    /* Show tooltips on hover for mobile */
+    .sidebar-container .menu-item:hover::after {
+      content: attr(title);
+      position: absolute;
+      left: 70px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      white-space: nowrap;
+      z-index: 1000;
+      pointer-events: none;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .sidebar-container {
+      width: 16.666667% !important;
+    }
+  }
+</style>
+
+<div class="sidebar-container w-1/6 md:w-1/6 sm:w-16 h-screen p-4 pr-0 bg-[#212121] fixed z-40">
     <div class="text-center mb-8">
         <img src="../images/phluowise_logo.svg" alt="">
     </div>
@@ -7,9 +80,9 @@
             <h2 class="text-gray-500 text-xs mb-2">DASHBOARD</h2>
             <ul class="space-y-4">
                 <li class="menu-item flex items-center space-x-2 text-white hover:text-blue-400 relative"
-                    data-page="home">
-                    <img src="../images/home.svg" alt="">
-                    <a href="home.html" class="flex items-center">
+                    data-page="home" title="Home">
+                    <a href="home.html" class="flex items-center w-full">
+                        <img src="../images/home.svg" alt="Home">
                         <span>Home</span>
                     </a>
                     <div
@@ -17,9 +90,9 @@
                     </div>
                 </li>
                 <li class="menu-item flex items-center space-x-2 text-white hover:text-blue-400 relative"
-                    data-page="add_driver">
-                    <img src="../images/profileadd.svg" alt="">
-                    <a href="add_driver.html" class="flex items-center">
+                    data-page="add_driver" title="Add Drivers">
+                    <a href="add_driver.html" class="flex items-center w-full">
+                        <img src="../images/profileadd.svg" alt="Add Drivers">
                         <span>Add Drivers</span>
                     </a>
                     <div
@@ -31,21 +104,24 @@
         <div>
             <h2 class="text-gray-500 text-xs mb-2">MESSAGING</h2>
             <ul class="space-y-4">
-                <li class="flex items-center space-x-2 text-gray-400 relative group" data-page="chat">
-                    <img src="../images/messages1.svg" alt="">
-                    <span class="flex items-center">
-                        <span>Chat</span>
-                        <span class="ml-2 text-xs text-yellow-500  px-2 py-0.5 rounded-full">Coming Soon</span>
-                    </span>
+                <li class="menu-item flex items-center space-x-2 text-gray-400 relative group" data-page="chat" title="Chat">
+                    <a href="#" class="flex items-center w-full pointer-events-none">
+                        <img src="../images/messages1.svg" alt="Chat">
+                        <span class="flex items-center">
+                            <span>Chat</span>
+                            <span class="ml-2 text-xs text-yellow-500 px-2 py-0.5 rounded-full">Coming Soon</span>
+                        </span>
+                    </a>
                     <div
                         class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm hidden">
                     </div>
-
                 </li>
                 <li class="menu-item flex items-center space-x-2 text-white hover:text-blue-400 relative"
-                    data-page="rating">
-                    <img src="../images/star.svg" alt="">
-                    <a href="rating.html"><span>Rating</span></a>
+                    data-page="rating" title="Rating">
+                    <a href="rating.html" class="flex items-center w-full">
+                        <img src="../images/star.svg" alt="Rating">
+                        <span>Rating</span>
+                    </a>
                     <div
                         class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm hidden">
                     </div>
@@ -56,25 +132,31 @@
             <h2 class="text-gray-500 text-xs mb-2">ACCOUNT DETAILS</h2>
             <ul class="space-y-4">
                 <li class="menu-item flex items-center space-x-2 text-white hover:text-blue-400 relative"
-                    data-page="account">
-                    <img src="../images/chart21.svg" alt="">
-                    <a href="account.html"><span>Account</span></a>
+                    data-page="account" title="Account">
+                    <a href="account.html" class="flex items-center w-full">
+                        <img src="../images/chart21.svg" alt="Account">
+                        <span>Account</span>
+                    </a>
                     <div
                         class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm hidden">
                     </div>
                 </li>
                 <li class="menu-item flex items-center space-x-2 text-white hover:text-blue-400 relative"
-                    data-page="transactions">
-                    <img src="../images/emptywalletchange.png" alt="">
-                    <a href="transactions.html"><span>Transactions</span></a>
+                    data-page="transactions" title="Transactions">
+                    <a href="transactions.html" class="flex items-center w-full">
+                        <img src="../images/emptywalletchange.png" alt="Transactions">
+                        <span>Transactions</span>
+                    </a>
                     <div
                         class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm hidden">
                     </div>
                 </li>
                 <li class="menu-item flex items-center space-x-2 text-white hover:text-blue-400 relative"
-                    data-page="subscription">
-                    <img src="../images/shoppingbag.png" alt="">
-                    <a href="subscription.html"><span>Subscription</span></a>
+                    data-page="subscription" title="Subscription">
+                    <a href="subscription.html" class="flex items-center w-full">
+                        <img src="../images/shoppingbag.png" alt="Subscription">
+                        <span>Subscription</span>
+                    </a>
                     <div
                         class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm hidden">
                     </div>
@@ -85,31 +167,36 @@
             <h2 class="text-gray-500 text-xs mb-2">PICKUPS</h2>
             <ul class="space-y-4">
                 <li class="menu-item flex items-center space-x-2 text-white hover:text-blue-400 relative"
-                    data-page="requests">
-                    <img src="../images/archivebook.png" alt="">
-                    <a href="requests.html"><span>Requests</span></a>
+                    data-page="requests" title="Requests">
+                    <a href="requests.html" class="flex items-center w-full">
+                        <img src="../images/archivebook.png" alt="Requests">
+                        <span>Requests</span>
+                    </a>
                     <div
                         class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm hidden">
                     </div>
                 </li>
                 <li class="menu-item flex items-center space-x-2 text-white hover:text-blue-400 relative"
-                    data-page="get_return_pickups">
-                    <img src="../images/truckfast.png" alt="">
-                    <a href="get_return_pickups.html"><span>Get Return Pickups</span></a>
+                    data-page="get_return_pickups" title="Get Return Pickups">
+                    <a href="get_return_pickups.html" class="flex items-center w-full">
+                        <img src="../images/truckfast.png" alt="Get Return Pickups">
+                        <span>Get Return Pickups</span>
+                    </a>
                     <div
                         class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm hidden">
                     </div>
                 </li>
-                <li class="flex items-center space-x-2 text-gray-400 relative group" data-page="get_driver_app">
-                    <img src="../images/mobile.png" alt="">
-                    <span class="flex items-center">
-                        <span>Get Driver App</span>
-                        <span class="ml-2 text-xs text-yellow-500  px-2 py-0.5 rounded-full">Coming Soon</span>
-                    </span>
+                <li class="menu-item flex items-center space-x-2 text-gray-400 relative group" data-page="get_driver_app" title="Get Driver App">
+                    <a href="#" class="flex items-center w-full pointer-events-none">
+                        <img src="../images/mobile.png" alt="Get Driver App">
+                        <span class="flex items-center">
+                            <span>Get Driver App</span>
+                            <span class="ml-2 text-xs text-yellow-500 px-2 py-0.5 rounded-full">Coming Soon</span>
+                        </span>
+                    </a>
                     <div
                         class="selection-indicator w-1.5 h-12 bg-blue-500 absolute right-0 top-1/2 -translate-y-1/2 rounded-tl-sm rounded-bl-sm hidden">
                     </div>
-
                 </li>
             </ul>
         </div>
