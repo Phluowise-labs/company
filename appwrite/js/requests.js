@@ -6,6 +6,7 @@ import {
   PRODUCTS_COLL,
   DB_ID,
   isCompanyAdminBranch,
+  Appwrite,
 } from "./config.js";
 
 class RequestsManager {
@@ -96,10 +97,13 @@ class RequestsManager {
   async loadOrders() {
     try {
       this.showLoading(true);
+      console.log("🔄 Starting to load orders from Appwrite...");
 
       const user = JSON.parse(localStorage.getItem("user"));
       const activeRole = localStorage.getItem("activeRole");
       const companyId = localStorage.getItem("companyId");
+
+      console.log("👤 User context:", { user: user?.$id, activeRole, companyId });
 
       if (!user) {
         throw new Error("User information not available");
@@ -107,20 +111,26 @@ class RequestsManager {
 
       let queries = [];
 
-      // If user is a branch user, filter by their branch
-      if (activeRole !== "admin") {
-        queries.push(`branchId="${user.$id}"`);
-      } else {
-        // For company admins, show all orders for their company
-        queries.push(`companyId="${companyId}"`);
-      }
+      // Always filter by branch - get branch_id from user context
+      // For branch users: use their user ID as branch_id
+      // For admin users: use their user ID as branch_id (since admin branch_id equals company_id)
+      const branchId = user.$id; // User ID corresponds to branch_id in the system
+      queries.push(Appwrite.Query.equal("branch_id", branchId));
+      console.log("🏢 Filtering by branch_id:", branchId, "for role:", activeRole);
 
       // Use safe database call with error handling like metrics.js
+      console.log("📡 Making Appwrite API call with queries:", queries);
       const response = await this.safeListDocuments(
         DB_ID,
         ORDERS_COLL,
         queries
       );
+
+      console.log("📊 Appwrite response:", {
+        totalDocuments: response.total,
+        documentsCount: response.documents.length,
+        firstDocument: response.documents[0] || "No documents"
+      });
 
       // Load orders with their associated products
       this.orders = await Promise.all(
@@ -131,11 +141,16 @@ class RequestsManager {
         })
       );
 
+      console.log("✅ Orders loaded successfully:", {
+        ordersCount: this.orders.length,
+        orders: this.orders.map(o => ({ id: o.id, status: o.status, customerName: o.customerName }))
+      });
+
       this.renderOrders();
       this.updateTabCounts();
       this.showContent();
     } catch (error) {
-      console.error("Failed to load orders:", error);
+      console.error("❌ Failed to load orders:", error);
       this.showError("Failed to load orders. Please try again.");
     } finally {
       this.showLoading(false);
@@ -149,7 +164,7 @@ class RequestsManager {
       const orderItemsResponse = await this.safeListDocuments(
         DB_ID,
         ORDER_ITEMS_COLL,
-        [`order_id="${orderId}"`]
+        [Appwrite.Query.equal("order_id", orderId)]
       );
 
       // Load product details for each order item
@@ -168,6 +183,7 @@ class RequestsManager {
               price: parseFloat(orderItem.unit_price) || 0,
               quantity: parseInt(orderItem.quantity) || 1,
               productId: orderItem.product_id,
+              image: productResponse.product_image || null,
             };
           } catch (error) {
             console.warn(
@@ -180,6 +196,7 @@ class RequestsManager {
               price: parseFloat(orderItem.unit_price) || 0,
               quantity: parseInt(orderItem.quantity) || 1,
               productId: orderItem.product_id,
+              image: null,
             };
           }
         })
@@ -212,8 +229,8 @@ class RequestsManager {
       id: order.$id,
       name: order.customerName || "Unknown Customer",
       location: order.customerLocation || "Unknown Location",
-      date: this.formatDate(order.orderDate || order.$createdAt),
-      time: this.formatTime(order.orderTime || order.$createdAt),
+      date: this.formatDate(order.$createdAt),
+      time: this.formatTime(order.$createdAt),
       status: order.status || "pending",
       total: order.totalAmount || 0,
       notes: order.notes || "No additional notes",
@@ -255,12 +272,12 @@ class RequestsManager {
 
     // Update tab buttons
     document.querySelectorAll(".tab-button").forEach((btn) => {
-      btn.classList.remove("active", "border-blue-500", "text-white");
+      btn.classList.remove("active", "border-blue-500", "border-b-2", "text-white");
       btn.classList.add("text-gray-400");
     });
 
     const activeTab = document.getElementById(`${tab}-tab`);
-    activeTab.classList.add("active", "border-blue-500", "text-white");
+    activeTab.classList.add("active", "border-blue-500", "border-b-2", "text-white");
     activeTab.classList.remove("text-gray-400");
 
     // Update tab content
@@ -426,8 +443,12 @@ class RequestsManager {
           "glassmorphism p-4 flex justify-between items-center";
         productElement.innerHTML = `
                     <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-box text-gray-400"></i>
+                        <div class="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+                            ${product.image ? 
+                                `<img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover rounded-lg" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                 <i class="fas fa-box text-gray-400 hidden"></i>` :
+                                `<i class="fas fa-box text-gray-400"></i>`
+                            }
                         </div>
                         <div>
                             <h4 class="font-medium text-white">${
@@ -492,10 +513,28 @@ class RequestsManager {
       const buttons = document.querySelectorAll("#order-modal button");
       buttons.forEach((btn) => (btn.disabled = true));
 
+      // Prepare update data with status and corresponding datetime field
+      const updateData = { status: newStatus };
+      const currentDateTime = new Date().toISOString();
+      
+      // Set the appropriate datetime field based on the new status
+      switch (newStatus) {
+        case 'accepted':
+          updateData.accepted_at = currentDateTime;
+          break;
+        case 'denied':
+          updateData.denied_at = currentDateTime;
+          break;
+        case 'cancelled':
+          updateData.cancelled_at = currentDateTime;
+          break;
+        case 'completed':
+          updateData.completed_at = currentDateTime;
+          break;
+      }
+
       // Use safe database update
-      await this.safeUpdateDocument(DB_ID, ORDERS_COLL, this.selectedOrder.id, {
-        status: newStatus,
-      });
+      await this.safeUpdateDocument(DB_ID, ORDERS_COLL, this.selectedOrder.id, updateData);
 
       // Update local order data
       const orderIndex = this.orders.findIndex(

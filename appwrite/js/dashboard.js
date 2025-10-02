@@ -104,60 +104,60 @@ async function renderAdminDashboard(user, canSwitchRole, companyId) {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl relative group">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+      <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-3 sm:p-4 lg:p-6 rounded-xl relative group">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-blue-200 text-sm">Today's Deliveries</p>
-            <p class="text-2xl font-bold text-white">47</p>
-            <p class="text-blue-200 text-sm">+12% vs yesterday</p>
+            <p class="text-blue-200 text-xs sm:text-sm">Today's Deliveries</p>
+            <p class="text-xl sm:text-2xl font-bold text-white">47</p>
+            <p class="text-blue-200 text-xs sm:text-sm">+12% vs yesterday</p>
           </div>
-          <div class="bg-blue-500/30 p-3 rounded-lg">🚚</div>
+          <div class="bg-blue-500/30 p-2 sm:p-3 rounded-lg text-sm sm:text-base">🚚</div>
         </div>
-        <button class="helpBtn absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-help text-white text-sm" data-help="Today's total deliveries across all branches.">?</button>
+        <button class="helpBtn absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center cursor-help text-white text-xs sm:text-sm" data-help="Today's total deliveries across all branches.">?</button>
       </div>
 
-      <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl relative group">
+      <div class="bg-gradient-to-r from-green-600 to-green-700 p-3 sm:p-4 lg:p-6 rounded-xl relative group">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-green-200 text-sm">Active Orders</p>
-            <p class="text-2xl font-bold text-white">23</p>
-            <p class="text-green-200 text-sm">15 in progress, 8 pending</p>
+            <p class="text-green-200 text-xs sm:text-sm">Active Orders</p>
+            <p class="text-xl sm:text-2xl font-bold text-white">23</p>
+            <p class="text-green-200 text-xs sm:text-sm">15 in progress, 8 pending</p>
           </div>
-          <div class="bg-green-500/30 p-3 rounded-lg">📦</div>
+          <div class="bg-green-500/30 p-2 sm:p-3 rounded-lg text-sm sm:text-base">📦</div>
         </div>
-        <button class="helpBtn absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center cursor-help text-white text-sm" data-help="Orders currently being processed.">?</button>
+        <button class="helpBtn absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center cursor-help text-white text-xs sm:text-sm" data-help="Orders currently being processed.">?</button>
       </div>
 
-      <div class="bg-gradient-to-r from-orange-600 to-orange-700 p-6 rounded-xl relative group">
+      <div class="bg-gradient-to-r from-orange-600 to-orange-700 p-3 sm:p-4 lg:p-6 rounded-xl relative group">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-orange-200 text-sm">Pending Pickups</p>
-            <p class="text-2xl font-bold text-white">18</p>
-            <p class="text-orange-200 text-sm">5 urgent (within 2hrs)</p>
+            <p class="text-orange-200 text-xs sm:text-sm">Pending Pickups</p>
+            <p class="text-xl sm:text-2xl font-bold text-white">18</p>
+            <p class="text-orange-200 text-xs sm:text-sm">5 urgent (within 2hrs)</p>
           </div>
-          <div class="bg-orange-500/30 p-3 rounded-lg">🧾</div>
+          <div class="bg-orange-500/30 p-2 sm:p-3 rounded-lg text-sm sm:text-base">🧾</div>
         </div>
-        <button class="helpBtn absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center cursor-help text-white text-sm" data-help="Orders waiting for pickup.">?</button>
+        <button class="helpBtn absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-orange-500 rounded-full flex items-center justify-center cursor-help text-white text-xs sm:text-sm" data-help="Orders waiting for pickup.">?</button>
       </div>
 
-      <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6 rounded-xl relative group">
+      <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-3 sm:p-4 lg:p-6 rounded-xl relative group">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-purple-200 text-sm">Customer Rating</p>
-            <p class="text-2xl font-bold text-white">4.8★</p>
-            <p class="text-purple-200 text-sm">Based on 156 reviews</p>
+            <p class="text-purple-200 text-xs sm:text-sm">Customer Rating</p>
+            <p class="text-xl sm:text-2xl font-bold text-white">4.8★</p>
+            <p class="text-purple-200 text-xs sm:text-sm">Based on 156 reviews</p>
           </div>
-          <div class="bg-purple-500/30 p-3 rounded-lg">⭐</div>
+          <div class="bg-purple-500/30 p-2 sm:p-3 rounded-lg text-sm sm:text-base">⭐</div>
         </div>
-        <button class="helpBtn absolute -top-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center cursor-help text-white text-sm" data-help="Average customer rating across branches.">?</button>
+        <button class="helpBtn absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-purple-500 rounded-full flex items-center justify-center cursor-help text-white text-xs sm:text-sm" data-help="Average customer rating across branches.">?</button>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20 lg:h-96">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold">Customers per Branch</h3>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+      <div class="bg-zinc-900/80 backdrop-blur p-3 sm:p-4 lg:p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20 lg:h-96">
+        <div class="flex justify-between items-center mb-3 sm:mb-4">
+          <h3 class="text-base sm:text-lg font-semibold">Customers per Branch</h3>
           <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Total registered customers for each branch.">?</button>
         </div>
         <div class="chart-container h-full">
@@ -165,57 +165,61 @@ async function renderAdminDashboard(user, canSwitchRole, companyId) {
         </div>
       </div>
 
-      <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="text-lg font-semibold">Branch Status</h3>
-          <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Shows branches online, offline, or idle.">?</button>
+      <div class="bg-zinc-900/80 backdrop-blur p-3 sm:p-4 lg:p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
+        <div class="flex justify-between items-center mb-2 sm:mb-3">
+          <h3 class="text-base sm:text-lg font-semibold">Branch Status</h3>
+          <button class="helpBtn text-gray-400 hover:text-white text-lg sm:text-xl" data-help="Shows branches online, offline, or idle.">?</button>
         </div>
-        <div class="chart-container">
+        <div class="chart-container h-48 sm:h-64">
           <canvas id="branchStatusChart"></canvas>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
-        <div class="flex justify-between items-center mb-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+      <div class="bg-zinc-900/80 backdrop-blur p-3 sm:p-4 lg:p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 gap-2 sm:gap-0">
           <div class="flex items-center gap-2">
-            <h3 class="text-lg font-semibold">Transactions Summary</h3>
-            <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Total transactions aggregated by the selected time range.">?</button>
+            <h3 class="text-base sm:text-lg font-semibold">Transactions Summary</h3>
+            <button class="helpBtn text-gray-400 hover:text-white text-lg sm:text-xl" data-help="Total transactions aggregated by the selected time range.">?</button>
           </div>
           <div class="inline-flex rounded-md border border-zinc-700 overflow-hidden" role="tablist" aria-label="Transactions Range">
-            <button class="tx-range px-3 py-1.5 text-sm hover:bg-zinc-800 focus:outline-none" data-range="day" aria-selected="true">Day</button>
-            <button class="tx-range px-3 py-1.5 text-sm hover:bg-zinc-800 focus:outline-none" data-range="week">Week</button>
-            <button class="tx-range px-3 py-1.5 text-sm hover:bg-zinc-800 focus:outline-none" data-range="month">Month</button>
-            <button class="tx-range px-3 py-1.5 text-sm hover:bg-zinc-800 focus:outline-none" data-range="year">Year</button>
+            <button class="tx-range px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm hover:bg-zinc-800 focus:outline-none" data-range="day" aria-selected="true">Day</button>
+            <button class="tx-range px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm hover:bg-zinc-800 focus:outline-none" data-range="week">Week</button>
+            <button class="tx-range px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm hover:bg-zinc-800 focus:outline-none" data-range="month">Month</button>
+            <button class="tx-range px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm hover:bg-zinc-800 focus:outline-none" data-range="year">Year</button>
           </div>
         </div>
-        <canvas id="transactionsChart"></canvas>
+        <div class="h-48 sm:h-64">
+          <canvas id="transactionsChart"></canvas>
+        </div>
       </div>
 
-      <div class="bg-zinc-900/80 backdrop-blur p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
-        <div class="flex justify-between items-center mb-2">
-          <h3 class="text-lg font-semibold">Drivers per Branch</h3>
-          <button class="helpBtn text-gray-400 hover:text-white text-xl" data-help="Number of active drivers in each branch.">?</button>
+      <div class="bg-zinc-900/80 backdrop-blur p-3 sm:p-4 lg:p-6 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors shadow-lg shadow-black/20">
+        <div class="flex justify-between items-center mb-2 sm:mb-3">
+          <h3 class="text-base sm:text-lg font-semibold">Drivers per Branch</h3>
+          <button class="helpBtn text-gray-400 hover:text-white text-lg sm:text-xl" data-help="Number of active drivers in each branch.">?</button>
         </div>
-        <canvas id="driversChart"></canvas>
+        <div class="h-48 sm:h-64">
+          <canvas id="driversChart"></canvas>
+        </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <div class="bg-zinc-900 p-6 rounded-xl relative group border border-zinc-800">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold">Daily Delivery Performance</h3>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+      <div class="bg-zinc-900 p-3 sm:p-4 lg:p-6 rounded-xl relative group border border-zinc-800">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
+          <h3 class="text-base sm:text-lg font-semibold">Daily Delivery Performance</h3>
           <div class="flex items-center space-x-2">
-            <select class="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm">
+            <select class="bg-gray-800 text-white px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm">
               <option>Last 7 Days</option>
               <option>Last 30 Days</option>
               <option>Last 3 Months</option>
             </select>
-            <button class="helpBtn w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help text-white text-xs" data-help="Track delivery completion rates over time.">?</button>
+            <button class="helpBtn w-4 h-4 sm:w-5 sm:h-5 bg-blue-500 rounded-full flex items-center justify-center cursor-help text-white text-xs" data-help="Track delivery completion rates over time.">?</button>
           </div>
         </div>
-        <div class="h-64">
+        <div class="h-48 sm:h-64">
           <canvas id="deliveryChart" class="w-full h-full"></canvas>
         </div>
       </div>
