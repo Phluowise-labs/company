@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manual Payment Initiation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <!-- Appwrite SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
+    <!-- Payment Methods Manager -->
+    <script type="module" src="manual-payment.js"></script>
+</head>
+
+<body class="bg-black flex items-center justify-center min-h-screen p-4" style="font-family: 'Inter', sans-serif;">
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .glassmorphism {
+            background: rgba(30, 30, 30, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .custom-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            padding: 10px 12px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .custom-input:focus {
+            border-color: rgba(59, 130, 246, 0.5);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        }
+
+        .custom-select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            padding: 10px 12px;
+            width: 100%;
+            transition: all 0.3s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+        }
+
+        .custom-select:focus {
+            border-color: rgba(59, 130, 246, 0.5);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #3b82f6, #2563eb);
+            color: white;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(75, 85, 99, 0.5);
+            color: white;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(75, 85, 99, 0.7);
+        }
+
+        /* Payment method cards */
+        .payment-method-card {
+            background: rgba(30, 30, 30, 0.6);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s;
+        }
+
+        .payment-method-card:hover {
+            background: rgba(40, 40, 40, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .payment-method-card.selected {
+            border: 1px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+    </style>
+
+    <button onclick="history.back()"
+        class="fixed top-10 left-4 flex items-center text-white/70 hover:text-white transition duration-300 z-50">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="text-base font-medium">Back</span>
+    </button>
+
+    <div class="container mx-auto max-w-4xl">
+        <div class="glassmorphism p-6 w-full">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-white">Manual Payment Initiation</h1>
+                <p class="text-gray-400 mt-2">Manage and create payment methods for manual transactions</p>
+            </div>
+
+            <!-- Existing Payment Methods Section -->
+            <div id="existing-methods-section" class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-300 mb-4">Existing Payment Methods</h2>
+                <div id="payment-methods-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Payment methods will be loaded here -->
+                    <div class="text-gray-400 text-center py-8" id="no-methods-message">
+                        <p>No payment methods found. Create a new one below.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create New Payment Method Section -->
+            <div class="border-t border-gray-700 pt-6">
+                <h2 class="text-xl font-semibold text-gray-300 mb-4">Create New Payment Method</h2>
+                
+                <!-- Payment Method Type Selection -->
+                <div class="mb-6">
+                    <label class="block text-gray-400 mb-2">Payment Method Type</label>
+                    <div class="flex space-x-4">
+                        <button id="mobileMoney-btn" class="btn-primary flex-1">Mobile Money</button>
+                        <button id="creditCard-btn" class="btn-secondary flex-1">Credit Card</button>
+                    </div>
+                </div>
+
+                <!-- Mobile Money Form (Default) -->
+                <form id="mobileMoney-form" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-400 mb-2">Name (e.g. "Business MTN")</label>
+                        <input type="text" id="mm-name" class="custom-input" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-400 mb-2">Network</label>
+                        <select id="mm-network" class="custom-select" required>
+                            <option value="">Select Network</option>
+                            <option value="MTN">MTN Mobile Money</option>
+                            <option value="Vodafone">Vodafone Cash</option>
+                            <option value="AirtelTigo">AirtelTigo Money</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-400 mb-2">Mobile Number</label>
+                        <input type="tel" id="mm-mobile-number" class="custom-input" placeholder="e.g. 0244123456" required>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button type="submit" class="btn-primary w-full">Add Mobile Money Method</button>
+                    </div>
+                </form>
+
+                <!-- Credit Card Form (Hidden by default) -->
+                <form id="creditCard-form" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-gray-400 mb-2">Name (e.g. "Business Visa")</label>
+                        <input type="text" id="cc-name" class="custom-input" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-400 mb-2">Card Type</label>
+                        <select id="cc-type" class="custom-select" required>
+                            <option value="">Select Card Type</option>
+                            <option value="visa">Visa</option>
+                            <option value="mastercard">Mastercard</option>
+                            <option value="amex">American Express</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-400 mb-2">Card Number</label>
+                        <input type="text" id="cc-number" class="custom-input" placeholder="XXXX XXXX XXXX XXXX" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-400 mb-2">Expiry Date (MM/YY)</label>
+                        <input type="text" id="cc-expiry" class="custom-input" placeholder="MM/YY" required>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button type="submit" class="btn-primary w-full">Add Credit Card Method</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

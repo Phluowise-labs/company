@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Methods</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="../images/Phluowise_Business_icon.svg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <!-- Appwrite SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
+    <!-- Payment Methods Manager -->
+    <script type="module" src="payment_methods.js"></script>
+
+</head>
+
+<body class="bg-black flex items-center justify-center min-h-screen p-4" style="font-family: 'Inter', sans-serif;">
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .glassmorphism {
+            background: rgba(30, 30, 30, 0.9);
+            /* Increased opacity */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .modal {
+            transition: all 0.3s ease-out;
+        }
+
+        .modal-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-closed {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .radio-label {
+            display: block;
+            cursor: pointer;
+        }
+
+        .custom-radio {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            position: relative;
+        }
+
+        .custom-radio::after {
+            content: "";
+            display: block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+        }
+
+        input[type="radio"]:checked+.custom-radio::after {
+            background-color: #3b82f6;
+        }
+
+        input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        /* Custom scrollbar for accounts container */
+        #accounts-container {
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+
+        #accounts-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #accounts-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #accounts-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        /* Network logo styling */
+        .network-logo {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            margin-right: 12px;
+        }
+
+        /* Card logo styling */
+        .card-logo {
+            width: 30px;
+            height: 20px;
+            object-fit: contain;
+            margin-right: 12px;
+        }
+
+        /* Fixed size for create account div */
+        .fixed-size-panel {
+            width: 320px;
+            min-height: 300px;
+            max-height: 400px;
+        }
+    </style>
+    <button onclick="history.back()"
+        class="fixed top-10 left-4 flex items-center text-white/70 hover:text-white transition duration-300 z-50">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="text-base font-medium">Back</span>
+    </button>
+
+    <div class="container mx-auto flex justify-center">
+        <div id="main-panel" class="glassmorphism p-6 fixed-size-panel">
+            <div class="text-center mb-4 py-2 px-4 bg-gray-700 bg-opacity-50 rounded-lg">
+                <h2 class="text-gray-300">Set Account Payment Method</h2>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex items-center justify-between bg-black bg-opacity-60 p-3 rounded-lg text-gray-300 cursor-pointer"
+                    id="mobileMoneyButton">
+                    <span>Mobile Money</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+
+                <div class="flex items-center justify-between bg-black bg-opacity-60 p-3 rounded-lg text-gray-300 cursor-pointer"
+                    id="creditCardButton">
+                    <span>Credit Card</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+
+                <button id="chooseExistingBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg mt-4">
+                    Choose existing account
+                </button>
+            </div>
+        </div>
+
+        <!-- Accounts Panel -->
+        <div id="accounts-panel" class="hidden glassmorphism ml-4 p-6" style="width: 400px; min-height: 400px;">
+            <div class="flex justify-between items-center mb-4">
+                <div class="text-center py-2 px-4 bg-gradient-to-r from-blue-800 to-blue-600 rounded-lg w-full shadow-lg">
+                    <h2 class="text-white font-medium">Your Payment Methods</h2>
+                </div>
+                <button id="closeAccountsBtn" class="ml-2 p-2 bg-gray-700 hover:bg-gray-600 bg-opacity-70 rounded-lg transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div id="accounts-container" class="space-y-3 mb-4 max-h-[320px] overflow-y-auto pr-1">
+                <!-- Account items will be populated here dynamically -->
+            </div>
+
+            <div id="no-accounts-message" class="hidden text-center py-8 text-gray-300 bg-black bg-opacity-30 rounded-lg border border-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-3 text-gray-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="font-medium">No payment methods found</p>
+                <p class="text-sm text-gray-400 mt-1">Add a new payment method to continue</p>
+            </div>
+
+            <button id="continueBtn"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg">
+                Continue
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Money Modal -->
+    <div id="mobileMoneyModal"
+        class="modal modal-closed fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-80">
+        <!-- Increased opacity -->
+        <div class="glassmorphism p-6 fixed-size-panel">
+            <div class="text-center mb-4 py-2 px-4 bg-gray-700 bg-opacity-50 rounded-lg">
+                <h2 class="text-gray-300">Set Account Payment Method</h2>
+            </div>
+
+            <div class="space-y-3">
+                <input id="mobileName" type="text" placeholder="Name"
+                    class="w-full bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                <div class="relative">
+                    <select id="networkSelect"
+                        class="w-full bg-black bg-opacity-100 p-3 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="" selected disabled>Choose Network</option>
+                        <option value="MTN">MTN</option>
+                        <option value="AirtelTigo">AirtelTigo</option>
+                        <option value="Telecel">Telecel</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+
+                <input id="mobileNumber" type="tel" placeholder="Enter Mobile Money Number"
+                    class="w-full bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                <button id="deleteMobileBtn"
+                    class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 rounded-lg">
+                    Delete
+                </button>
+
+                <button id="setMobileBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg">
+                    Set
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit Card Modal -->
+    <div id="creditCardModal"
+        class="modal modal-closed fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-80">
+        <!-- Increased opacity -->
+        <div class="glassmorphism p-6 fixed-size-panel">
+            <div class="text-center mb-4 py-2 px-4 bg-gray-700 bg-opacity-50 rounded-lg">
+                <h2 class="text-gray-300">Set Account Payment Method</h2>
+            </div>
+
+            <div class="space-y-3">
+                <input id="cardName" type="text" placeholder="Name"
+                    class="w-full bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                <div class="relative">
+                    <select id="cardType"
+                        class="w-full bg-black bg-opacity-100 p-3 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="" selected disabled>Select Card Type</option>
+                        <option value="mastercard">Mastercard</option>
+                        <option value="visa">Visa</option>
+                    </select>
+                    <!-- <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <img id="cardTypeIcon" src="../images/mastercard.png" 
+                             class="card-logo" />
+                    </div> -->
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+
+                <input id="cardNumber" type="text" placeholder="Card Number"
+                    class="w-full bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                <div class="flex space-x-3">
+                    <input id="cardExpiry" type="text" placeholder="MM/YY" maxlength="5"
+                        class="w-1/2 bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input id="cardCVC" type="text" placeholder="CVC" maxlength="4"
+                        class="w-1/2 bg-black bg-opacity-60 p-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex space-x-3 mb-4">
+                    <button id="deleteCreditBtn"
+                        class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 rounded-lg">
+                        Delete
+                    </button>
+
+                    <button id="setCreditBtn"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg">
+                        Set
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Network logo images
+        const networkLogos = {
+            'MTN': '../images/mtn.png',
+            'AirtelTigo': '../images/AirtelTigo.jpg',
+            'Telecel': '../images/telecel.jpeg',
+        };
+
+        // Card logo images
+        const cardLogos = {
+            'mastercard': '../images/mastercard.png',
+            'visa': '../images/visacard.jpeg',
+        };
+
+        // Get all required elements
+        const mobileMoneyButton = document.getElementById('mobileMoneyButton');
+        const creditCardButton = document.getElementById('creditCardButton');
+        const chooseExistingBtn = document.getElementById('chooseExistingBtn');
+        const mobileMoneyModal = document.getElementById('mobileMoneyModal');
+        const creditCardModal = document.getElementById('creditCardModal');
+        const accountsPanel = document.getElementById('accounts-panel');
+        const accountsContainer = document.getElementById('accounts-container');
+        const noAccountsMessage = document.getElementById('no-accounts-message');
+        const mainPanel = document.getElementById('main-panel');
+        const cardTypeSelect = document.getElementById('cardType');
+        const cardTypeIcon = document.getElementById('cardTypeIcon');
+
+        // Choose existing account button functionality
+        chooseExistingBtn.addEventListener('click', function () {
+            accountsPanel.classList.remove('hidden');
+        });
+
+        // Set Mobile Money button functionality
+        mobileMoneyButton.addEventListener('click', function () {
+            mobileMoneyModal.classList.remove('modal-closed');
+            mobileMoneyModal.classList.add('modal-open');
+        });
+
+        // Set Credit Card button functionality
+        creditCardButton.addEventListener('click', function () {
+            creditCardModal.classList.remove('modal-closed');
+            creditCardModal.classList.add('modal-open');
+        });
+
+        // Handle card type selection change
+        if (cardTypeSelect && cardTypeIcon) {
+            cardTypeSelect.addEventListener('change', function () {
+                const selectedCardType = this.value;
+                cardTypeIcon.src = cardLogos[selectedCardType];
+            });
+        }
+
+        // Format expiry date input
+        const cardExpiry = document.getElementById('cardExpiry');
+        if (cardExpiry) {
+            cardExpiry.addEventListener('input', function (e) {
+                // Remove any non-digit characters
+                let value = e.target.value.replace(/\D/g, '');
+
+                // Add slash after 2 digits
+                if (value.length > 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+
+                // Limit to MM/YY format
+                if (value.length > 5) {
+                    value = value.substring(0, 5);
+                }
+
+                e.target.value = value;
+            });
+        }
+
+        // Close accounts panel button
+        const closeAccountsBtn = document.getElementById('closeAccountsBtn');
+        if (closeAccountsBtn) {
+            closeAccountsBtn.addEventListener('click', function () {
+                accountsPanel.classList.add('hidden');
+            });
+        }
+
+        // Close modals when clicking outside
+        window.addEventListener('click', function (e) {
+            if (e.target === mobileMoneyModal) {
+                mobileMoneyModal.classList.remove('modal-open');
+                mobileMoneyModal.classList.add('modal-closed');
+            }
+            if (e.target === creditCardModal) {
+                creditCardModal.classList.remove('modal-open');
+                creditCardModal.classList.add('modal-closed');
+            }
+        });
+
+        // Delete mobile button functionality
+        const deleteMobileBtn = document.getElementById('deleteMobileBtn');
+        if (deleteMobileBtn) {
+            deleteMobileBtn.addEventListener('click', function () {
+                mobileMoneyModal.classList.remove('modal-open');
+                mobileMoneyModal.classList.add('modal-closed');
+
+                // Reset form
+                document.getElementById('mobileName').value = '';
+                document.getElementById('networkSelect').selectedIndex = 0;
+                document.getElementById('mobileNumber').value = '';
+
+                // Show delete alert
+                Swal.fire({
+                    title: 'Cancelled',
+                    text: 'Mobile Money payment method was not added',
+                    icon: 'info',
+                    background: 'rgba(30, 30, 30, 0.9)',
+                    color: '#fff',
+                    confirmButtonColor: '#3b82f6'
+                });
+            });
+        }
+
+        // Delete credit button functionality
+        const deleteCreditBtn = document.getElementById('deleteCreditBtn');
+        if (deleteCreditBtn) {
+            deleteCreditBtn.addEventListener('click', function () {
+                creditCardModal.classList.remove('modal-open');
+                creditCardModal.classList.add('modal-closed');
+
+                // Reset form
+                document.getElementById('cardName').value = '';
+                document.getElementById('cardType').selectedIndex = 0;
+                document.getElementById('cardNumber').value = '';
+                document.getElementById('cardExpiry').value = '';
+                document.getElementById('cardCVC').value = '';
+
+                // Show delete alert
+                Swal.fire({
+                    title: 'Cancelled',
+                    text: 'Credit Card payment method was not added',
+                    icon: 'info',
+                    background: 'rgba(30, 30, 30, 0.9)',
+                    color: '#fff',
+                    confirmButtonColor: '#3b82f6'
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
